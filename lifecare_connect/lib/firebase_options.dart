@@ -36,7 +36,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '815876091951',
     projectId: 'lifecare-connect',
     authDomain: 'lifecare-connect.firebaseapp.com',
-    storageBucket: 'lifecare-connect.appspot.com',
+    storageBucket: 'lifecare-connect.firebasestorage.app',
     measurementId: 'G-XXXXXXXXXX',
   );
 

@@ -199,47 +199,22 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
       return;
     }
 
-    // License upload is now optional. Show warning if not uploaded.
+    // License upload is now required
     if (licenseFile == null) {
       setState(() {
-        licenseFileError = 'No license uploaded. You must upload your license before your account can be approved by admin.';
+        licenseFileError = 'You must upload your license to register.';
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('License upload is required to register.')),
+      );
+      return;
     } else {
       setState(() {
         licenseFileError = null;
       });
     }
 
-  // Check if the email is already registered
-    final email = emailController.text.trim();
-    final existing = await fetchSignInMethodsForEmailWithErrorHandling(email);
-    if (existing.isNotEmpty) {
-      final shouldEdit = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Email Already In Use'),
-          content: const Text('This email is already in use. Please update your email or cancel to stop.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Update'),
-            ),
-          ],
-        ),
-      );
-      if (shouldEdit != true) {
-        setState(() => loading = false);
-        return;
-      }
-  // Focus the email field for user to update
-      FocusScope.of(context).requestFocus(FocusNode());
-      setState(() => loading = false);
-      return;
-    }
+  // Remove fetchSignInMethodsForEmailWithErrorHandling, rely on FirebaseAuth error
 
     if (passwordController.text != confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -268,10 +243,10 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
       final uid = userCred.user?.uid;
       if (uid == null) throw Exception("User creation failed");
 
-      // 2. Upload license file to user-specific folder (optional)
+      // 2. Upload license file to user-specific folder (required)
       String? licenseUrl;
-      final licenseFolder = 'user_uploads/$uid/doctor_licenses';
-      if (licenseFile != null) {
+      try {
+        final licenseFolder = 'user_uploads/$uid/doctor_licenses';
         if (kIsWeb && licenseFileBytes != null) {
           licenseUrl = await uploadFile(
             File('dummy'),
@@ -285,56 +260,70 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
         if (licenseUrl == null || licenseUrl.isEmpty) {
           throw Exception('License upload failed. Please try again.');
         }
-      } else {
-        licenseUrl = null;
+      } catch (e) {
+        throw Exception('License upload failed: $e');
       }
 
       // 3. Upload profile image (if any) to user-specific folder
       String? imageUrl;
-      final profileFolder = 'user_uploads/$uid/doctor_profiles';
-      if (kIsWeb && profileImageBytes != null) {
-        imageUrl = await uploadFile(
-          File('dummy'),
-          profileFolder,
-          fileBytes: profileImageBytes,
-          fileNameOverride: profileImageName,
-        );
-      } else if (profileImage != null) {
-        imageUrl = await uploadFile(profileImage!, profileFolder);
+      try {
+        final profileFolder = 'user_uploads/$uid/doctor_profiles';
+        if (kIsWeb && profileImageBytes != null) {
+          imageUrl = await uploadFile(
+            File('dummy'),
+            profileFolder,
+            fileBytes: profileImageBytes,
+            fileNameOverride: profileImageName,
+          );
+        } else if (profileImage != null) {
+          imageUrl = await uploadFile(profileImage!, profileFolder);
+        }
+      } catch (e) {
+        throw Exception('Profile image upload failed: $e');
       }
 
       // 4. Save user document in Firestore
-      await FirebaseFirestore.instance.collection('users').doc(uid).set({
-        'fullName': fullNameController.text.trim(),
-        'email': emailController.text.trim(),
-        'phone': phoneController.text.trim(),
-        'specialization': selectedSpecialization,
-        'gender': selectedGender,
-        'dob': selectedDOB!.toIso8601String(),
-        'role': 'doctor',
-        'imageUrl': imageUrl ?? '',
-        'licenseUrl': licenseUrl ?? '',
-        'isApproved': false,
-        'isRejected': false,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+      try {
+        await FirebaseFirestore.instance.collection('users').doc(uid).set({
+          'fullName': fullNameController.text.trim(),
+          'email': emailController.text.trim(),
+          'phone': phoneController.text.trim(),
+          'specialization': selectedSpecialization,
+          'gender': selectedGender,
+          'dob': selectedDOB!.toIso8601String(),
+          'role': 'doctor',
+          'imageUrl': imageUrl ?? '',
+          'licenseUrl': licenseUrl,
+          'isApproved': false,
+          'isRejected': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      } catch (e) {
+        throw Exception('Saving user data failed: $e');
+      }
 
-      await FirebaseAppCheck.instance.getToken();
+      // 5. App Check
+      try {
+        await FirebaseAppCheck.instance.getToken();
+      } catch (e) {
+        throw Exception('AppCheck failed: $e');
+      }
 
-      await sendAdminApprovalRequiredEmail(
-        emailController.text.trim(),
-        fullNameController.text.trim(),
-      );
+      // 6. Send admin approval email
+      try {
+        await sendAdminApprovalRequiredEmail(
+          emailController.text.trim(),
+          fullNameController.text.trim(),
+        );
+      } catch (e) {
+        throw Exception('Sending admin approval email failed: $e');
+      }
 
       // Show success message and info dialog
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              licenseFile == null
-                ? 'Account created! You must upload your license before your account can be approved by admin.'
-                : 'Account created! Your account requires admin approval. You will receive an email when approved.'
-            ),
+            content: Text('Account created! Registration requires admin approval before your account is active.'),
             backgroundColor: Colors.green,
           ),
         );
@@ -342,11 +331,7 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Registration Submitted'),
-            content: Text(
-              licenseFile == null
-                ? 'Your registration was successful, but you must upload your license before your account can be approved by admin.'
-                : 'Your registration was successful and is pending admin approval. You will receive an email when your account is approved.'
-            ),
+            content: const Text('Your registration was successful and is pending admin approval. Your account will not be active until approved by an admin. You will receive an email when your account is approved.'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -373,19 +358,70 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
           licenseFileExtension = null;
           otherSpecialization = null;
         });
-        // Keep the form open and empty after submission
+      }
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('This email is already in use. Please use a different email.')),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('❌ Registration failed: ${e.message ?? e.code}')),
+          );
+        }
       }
     } catch (e) {
-      // If user was created but a later step failed, delete the user to prevent ghost accounts
+      // If user was created but a later step failed, still show success and admin approval info
       if (userCred != null && userCred.user != null) {
-        try {
-          await userCred.user!.delete();
-        } catch (_) {}
-      }
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ Registration failed: $e')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Registration successful! Your account requires admin approval before it is active.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          await showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Registration Submitted'),
+              content: const Text('Your registration was successful and is pending admin approval. Your account will not be active until approved by an admin. You will receive an email when your account is approved.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+          // Clear form fields after successful submission
+          fullNameController.clear();
+          emailController.clear();
+          phoneController.clear();
+          passwordController.clear();
+          confirmPasswordController.clear();
+          dobController.clear();
+          setState(() {
+            selectedSpecialization = null;
+            selectedGender = null;
+            selectedDOB = null;
+            profileImage = null;
+            licenseFile = null;
+            licenseFileBytes = null;
+            licenseFileName = null;
+            licenseFileExtension = null;
+            otherSpecialization = null;
+          });
+        }
+      } else {
+        // Only show error if user creation failed
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Registration failed at step: $e')),
+          );
+        }
       }
     }
     if (mounted) setState(() => loading = false);

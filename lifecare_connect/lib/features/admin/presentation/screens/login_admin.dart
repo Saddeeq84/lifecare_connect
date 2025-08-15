@@ -32,6 +32,7 @@ class _LoginAdminScreenState extends State<LoginAdminScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => isLoading = true);
 
+
     try {
       final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: emailController.text.trim(),

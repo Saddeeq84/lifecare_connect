@@ -53,6 +53,7 @@ class _CHWLoginScreenState extends State<CHWLoginScreen> {
 
     setState(() => isLoading = true);
 
+
     try {
       final user = await _authService.signInWithEmail(
         emailController.text.trim(),

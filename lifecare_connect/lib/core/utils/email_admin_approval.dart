@@ -8,8 +8,8 @@ import 'dart:convert';
 /// You must manually implement the backend endpoint (e.g., Firebase Cloud Function or REST API)
 /// that actually sends the email. Replace the URL below with your deployed endpoint.
 Future<void> sendAdminApprovalRequiredEmail(String email, String name) async {
-  // TODO: Replace with your actual backend endpoint URL
-  const String endpointUrl = 'https://your-backend/send-approval-email'; // <-- MANUAL: Set this to your backend
+  // Updated to use deployed Firebase Cloud Function endpoint
+  const String endpointUrl = 'https://us-central1-lifecare-connect.cloudfunctions.net/sendAdminApprovalEmail';
 
   final response = await http.post(
     Uri.parse(endpointUrl),

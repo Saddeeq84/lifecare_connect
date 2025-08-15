@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:lifecare_connect/core/utils/email_admin_approval.dart';
+import 'dart:typed_data';
 
 class OwnerRegisterFacilityScreen extends StatefulWidget {
   const OwnerRegisterFacilityScreen({super.key});
 
   @override
-  State<OwnerRegisterFacilityScreen> createState() =>
-      _OwnerRegisterFacilityScreenState();
+  State<OwnerRegisterFacilityScreen> createState() => _OwnerRegisterFacilityScreenState();
 }
-
 class _OwnerRegisterFacilityScreenState extends State<OwnerRegisterFacilityScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -22,22 +21,24 @@ class _OwnerRegisterFacilityScreenState extends State<OwnerRegisterFacilityScree
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   String? _selectedFacilityType;
-  File? _selectedDocument;
+  Uint8List? _selectedDocumentBytes;
+  String? _selectedDocumentName;
   bool _isSubmitting = false;
   final _formKey = GlobalKey<FormState>();
   // firebase_auth 6.x does not support fetchSignInMethodsForEmail; always return false so registration proceeds.
 
   Future<void> _pickDocument() async {
     final result = await FilePicker.platform.pickFiles(type: FileType.any);
-    if (result != null && result.files.single.path != null) {
+    if (result != null && result.files.single.bytes != null) {
       setState(() {
-        _selectedDocument = File(result.files.single.path!);
+        _selectedDocumentBytes = result.files.single.bytes;
+        _selectedDocumentName = result.files.single.name;
       });
     }
   }
 
   Future<void> _handleSubmit() async {
-    if (!_formKey.currentState!.validate()) return;
+  // ...existing code...
     setState(() {
       _isSubmitting = true;
     });
@@ -52,31 +53,28 @@ class _OwnerRegisterFacilityScreenState extends State<OwnerRegisterFacilityScree
       final facilityType = _selectedFacilityType;
       String? documentUrl;
 
-      // Import these at the top if not already:
-      // import 'package:firebase_auth/firebase_auth.dart';
-      // import 'package:cloud_firestore/cloud_firestore.dart';
-      // import 'package:firebase_storage/firebase_storage.dart';
       final auth = FirebaseAuth.instance;
       final firestore = FirebaseFirestore.instance;
       final storage = FirebaseStorage.instance;
 
-  UserCredential userCredential = await auth.createUserWithEmailAndPassword(
+      UserCredential userCredential = await auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
       // 2. Upload document if present
-      if (_selectedDocument != null) {
-        final fileName = 'facility_docs/${userCredential.user!.uid}_${_selectedDocument!.path.split('/').last}';
+      if (_selectedDocumentBytes != null && _selectedDocumentName != null) {
+        final fileName = 'facility_docs/${userCredential.user!.uid}_$_selectedDocumentName';
         final ref = storage.ref().child(fileName);
-        await ref.putFile(_selectedDocument!);
+        await ref.putData(_selectedDocumentBytes!);
         documentUrl = await ref.getDownloadURL();
       }
 
-      // 3. Save facility data to Firestore
-      await firestore.collection('facilities').doc(userCredential.user!.uid).set({
+      // 3. Save facility data to Firestore (pending approval) in 'users' collection
+      await firestore.collection('users').doc(userCredential.user!.uid).set({
         'name': name,
         'location': location,
+        'role': 'facility',
         'type': facilityType,
         'contact': contact,
         'email': email,
@@ -84,15 +82,26 @@ class _OwnerRegisterFacilityScreenState extends State<OwnerRegisterFacilityScree
         'documentUrl': documentUrl,
         'ownerUid': userCredential.user!.uid,
         'createdAt': FieldValue.serverTimestamp(),
-        'status': 'pending', // for admin approval
+        'isApproved': false,
+        'isRejected': false,
       });
 
-      // 4. Show success dialog and clear form
+      // 4. Send admin approval email notification
+      try {
+        await sendAdminApprovalRequiredEmail(email, name);
+      } catch (e) {
+        debugPrint('Failed to send admin approval email: $e');
+      }
+
+      // 5. Show success dialog and clear form
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Success'),
-          content: const Text('Facility registered successfully!'),
+          content: const Text(
+            'Facility registered successfully!\n\nYour account requires admin review and approval. '
+            'Your account will become active after admin approval and you will receive an email notification.'
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -102,9 +111,17 @@ class _OwnerRegisterFacilityScreenState extends State<OwnerRegisterFacilityScree
         ),
       );
       _formKey.currentState!.reset();
+      _nameController.clear();
+      _locationController.clear();
+      _contactController.clear();
+      _emailController.clear();
+      _phoneController.clear();
+      _passwordController.clear();
+      _confirmPasswordController.clear();
       setState(() {
         _selectedFacilityType = null;
-        _selectedDocument = null;
+        _selectedDocumentBytes = null;
+        _selectedDocumentName = null;
       });
     } on FirebaseAuthException catch (e) {
       showDialog(
@@ -264,13 +281,13 @@ class _OwnerRegisterFacilityScreenState extends State<OwnerRegisterFacilityScree
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Registration Document (Optional)',
+                          'Registration Document (Required)',
                           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
-                        if (_selectedDocument != null) ...[
+                        if (_selectedDocumentBytes != null && _selectedDocumentName != null) ...[
                           Text(
-                            'Selected: ${_selectedDocument!.path.split('/').last}',
+                            'Selected: $_selectedDocumentName',
                             style: const TextStyle(color: Colors.green),
                           ),
                           const SizedBox(height: 8),
@@ -278,7 +295,7 @@ class _OwnerRegisterFacilityScreenState extends State<OwnerRegisterFacilityScree
                         ElevatedButton.icon(
                           onPressed: _pickDocument,
                           icon: const Icon(Icons.attach_file),
-                          label: Text(_selectedDocument != null ? 'Change Document' : 'Select Document'),
+                          label: Text(_selectedDocumentBytes != null ? 'Change Document' : 'Select Document'),
                         ),
                       ],
                     ),
@@ -314,7 +331,30 @@ class _OwnerRegisterFacilityScreenState extends State<OwnerRegisterFacilityScree
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: _isSubmitting ? null : _handleSubmit,
+                  onPressed: _isSubmitting
+                      ? null
+                      : () async {
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Confirm Registration'),
+                              content: const Text('Are you sure you want to register this facility?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(false),
+                                  child: const Text('Cancel'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () => Navigator.of(context).pop(true),
+                                  child: const Text('Confirm'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirmed == true) {
+                            _handleSubmit();
+                          }
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.teal,
                     foregroundColor: Colors.white,

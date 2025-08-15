@@ -1,7 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -9,6 +8,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 class AdminTrainingUploadScreen extends StatefulWidget {
   const AdminTrainingUploadScreen({super.key});
@@ -123,8 +123,8 @@ class _AdminTrainingUploadScreenState extends State<AdminTrainingUploadScreen> w
       String downloadUrl;
       int fileSize;
 
-      // Platform check for web
-      bool isWeb = identical(0, 0.0);
+  // Platform check for web
+  bool isWeb = kIsWeb;
 
       if (isWeb && _selectedFileBytes != null) {
         fileSize = _selectedFileBytes!.length;

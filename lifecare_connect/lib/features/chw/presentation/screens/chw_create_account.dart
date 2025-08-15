@@ -272,116 +272,127 @@ class _CHWCreateAccountScreenState extends State<CHWCreateAccountScreen> {
         centerTitle: true,
         backgroundColor: Colors.teal,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              _buildTextField('Full Name', fullNameController),
-              const SizedBox(height: 15),
-              _buildTextField('Email', emailController, keyboardType: TextInputType.emailAddress),
-              const SizedBox(height: 15),
-              _buildTextField('Phone (+234)', phoneController, keyboardType: TextInputType.phone),
-              const SizedBox(height: 15),
-              _buildTextField('Password', passwordController, obscureText: true),
-              const SizedBox(height: 15),
-              _buildTextField('Confirm Password', confirmPasswordController, obscureText: true),
-              const SizedBox(height: 30),
-              // Registration button
-              ElevatedButton(
-                onPressed: () async {
-                  final fullName = fullNameController.text.trim();
-                  final email = emailController.text.trim();
-                  final phone = phoneController.text.trim();
-                  final password = passwordController.text.trim();
-                  final confirmPassword = confirmPasswordController.text.trim();
-                  if (password != confirmPassword) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Passwords do not match')),
-                    );
-                    return;
-                  }
-                  setState(() => _isLoading = true);
-                  try {
-                    UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-                      email: email,
-                      password: password,
-                    );
-                    final user = userCredential.user;
-                    if (user == null) throw Exception('User creation failed');
-                    await _firestore.collection('users').doc(user.uid).set({
-                      'fullName': fullName,
-                      'email': email,
-                      'phone': phone,
-                      'role': 'chw',
-                      'isPhoneVerified': false,
-                      'isApproved': false, // CHWs now need admin approval
-                      'isRejected': false,
-                      'emailVerified': true, // CHWs don't need email verification 
-                      'createdAt': FieldValue.serverTimestamp(),
-                    });
-                    // Show dialog and send email about admin approval requirement
-                    await showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        content: const Text('Your email has been verified. Your account will require admin approval before it becomes active. You will receive another email once your account is approved.'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: const Text('OK'),
-                          ),
-                        ],
-                      ),
-                    );
-                    await sendAdminApprovalRequiredEmail(email, fullName);
-                    _auth.verifyPhoneNumber(
-                      phoneNumber: phone,
-                      timeout: const Duration(seconds: 60),
-                      verificationCompleted: (PhoneAuthCredential credential) async {
-                        final currentUser = _auth.currentUser;
-                        if (currentUser != null) {
-                          await currentUser.linkWithCredential(credential);
-                          await _firestore.collection('users').doc(currentUser.uid).update({
-                            'isPhoneVerified': true,
-                          });
-                          await _handleApprovalAndRedirect(currentUser.uid);
-                        }
-                      },
-                      verificationFailed: (FirebaseAuthException e) {
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  _buildTextField('Full Name', fullNameController),
+                  const SizedBox(height: 15),
+                  _buildTextField('Email', emailController, keyboardType: TextInputType.emailAddress),
+                  const SizedBox(height: 15),
+                  _buildTextField('Phone (+234)', phoneController, keyboardType: TextInputType.phone),
+                  const SizedBox(height: 15),
+                  _buildTextField('Password', passwordController, obscureText: true),
+                  const SizedBox(height: 15),
+                  _buildTextField('Confirm Password', confirmPasswordController, obscureText: true),
+                  const SizedBox(height: 30),
+                  // Registration button
+                  ElevatedButton(
+                    onPressed: () async {
+                      final fullName = fullNameController.text.trim();
+                      final email = emailController.text.trim();
+                      final phone = phoneController.text.trim();
+                      final password = passwordController.text.trim();
+                      final confirmPassword = confirmPasswordController.text.trim();
+                      if (password != confirmPassword) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Phone verification failed: ${e.message}')),
+                          const SnackBar(content: Text('Passwords do not match')),
                         );
-                      },
-                      codeSent: (String verificationId, int? resendToken) {
-                        setState(() {
-                          _verificationId = verificationId;
-                          _codeSent = true;
-                          _resendToken = resendToken ?? 0;
+                        return;
+                      }
+                      setState(() => _isLoading = true);
+                      try {
+                        UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+                          email: email,
+                          password: password,
+                        );
+                        final user = userCredential.user;
+                        if (user == null) throw Exception('User creation failed');
+                        await _firestore.collection('users').doc(user.uid).set({
+                          'fullName': fullName,
+                          'email': email,
+                          'phone': phone,
+                          'role': 'chw',
+                          'isPhoneVerified': false,
+                          'isApproved': false, // CHWs now need admin approval
+                          'isRejected': false,
+                          'emailVerified': true, // CHWs don't need email verification 
+                          'createdAt': FieldValue.serverTimestamp(),
                         });
-                        _startCountdown();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('📩 OTP sent to your phone')),
+                        // Show dialog and send email about admin approval requirement
+                        await showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            content: const Text('Your email has been verified. Your account will require admin approval before it becomes active. You will receive another email once your account is approved.'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: const Text('OK'),
+                              ),
+                            ],
+                          ),
                         );
-                      },
-                      codeAutoRetrievalTimeout: (String verificationId) {
-                        _verificationId = verificationId;
-                      },
-                      forceResendingToken: _resendToken,
-                    );
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Registration failed: $e')),
-                    );
-                  } finally {
-                    setState(() => _isLoading = false);
-                  }
-                },
-                child: const Text('Register'),
+                        await sendAdminApprovalRequiredEmail(email, fullName);
+                        _auth.verifyPhoneNumber(
+                          phoneNumber: phone,
+                          timeout: const Duration(seconds: 60),
+                          verificationCompleted: (PhoneAuthCredential credential) async {
+                            final currentUser = _auth.currentUser;
+                            if (currentUser != null) {
+                              await currentUser.linkWithCredential(credential);
+                              await _firestore.collection('users').doc(currentUser.uid).update({
+                                'isPhoneVerified': true,
+                              });
+                              await _handleApprovalAndRedirect(currentUser.uid);
+                            }
+                          },
+                          verificationFailed: (FirebaseAuthException e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Phone verification failed: ${e.message}')),
+                            );
+                          },
+                          codeSent: (String verificationId, int? resendToken) {
+                            setState(() {
+                              _verificationId = verificationId;
+                              _codeSent = true;
+                              _resendToken = resendToken ?? 0;
+                            });
+                            _startCountdown();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('📩 OTP sent to your phone')),
+                            );
+                          },
+                          codeAutoRetrievalTimeout: (String verificationId) {
+                            _verificationId = verificationId;
+                          },
+                          forceResendingToken: _resendToken,
+                        );
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Registration failed: $e')),
+                        );
+                      } finally {
+                        setState(() => _isLoading = false);
+                      }
+                    },
+                    child: const Text('Register'),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
+          if (_isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.3),
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+        ],
       ),
     );
   }

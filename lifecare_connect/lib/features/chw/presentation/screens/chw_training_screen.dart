@@ -2,12 +2,15 @@
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
+// ...existing code...
+import 'package:video_player/video_player.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
-import 'file_opener_stub.dart'
-    if (dart.library.io) 'file_opener_io.dart';
+// ...existing code...
 import 'dart:io';
 import 'dart:async';
 
@@ -22,97 +25,19 @@ class _CHWTrainingScreenState extends State<CHWTrainingScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final Map<String, bool> _downloadingFiles = {};
-  final Map<String, bool> _loadingTimeouts = {
-    'video': false,
-    'pdf': false,
-  };
+  // Removed loading timeout logic
+  bool _showAllVideos = false;
+  bool _showAllMaterials = false;
+  VideoPlayerController? _videoController;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _testFirestoreConnection();
-    
-    // Set timeouts for each type
-    Timer(Duration(seconds: 15), () {
-      if (mounted) {
-        setState(() {
-          _loadingTimeouts['video'] = true;
-        });
-      }
-    });
-    
-    Timer(Duration(seconds: 15), () {
-      if (mounted) {
-        setState(() {
-          _loadingTimeouts['pdf'] = true;
-        });
-      }
-    });
+  // ...existing code...
   }
 
-  Future<void> _testFirestoreConnection() async {
-    try {
-      print('🔍 Testing Firestore connection...');
-      
-      // Test authentication first
-      final user = FirebaseAuth.instance.currentUser;
-      print('🔍 Current user: ${user?.uid}');
-      print('🔍 User email: ${user?.email}');
-      
-      // Test basic collection access without any filters
-      print('🔍 Testing basic collection access...');
-      final basicSnapshot = await FirebaseFirestore.instance
-          .collection('training_materials')
-          .limit(10)
-          .get();
-      print('✅ Basic collection access successful. Found ${basicSnapshot.docs.length} documents');
-      
-      if (basicSnapshot.docs.isNotEmpty) {
-        basicSnapshot.docs.forEach((doc) {
-          final data = doc.data();
-          print('📄 Document: ${data['title'] ?? 'No title'} | Type: ${data['type'] ?? 'No type'} | Active: ${data['isActive'] ?? 'No isActive'}');
-        });
-      } else {
-        print('⚠️ No documents found in training_materials collection');
-      }
-      
-      // Test specific type queries separately
-      print('🔍 Testing video query...');
-      try {
-        final videoQuery = await FirebaseFirestore.instance
-            .collection('training_materials')
-            .where('type', isEqualTo: 'video')
-            .get()
-            .timeout(Duration(seconds: 5));
-        print('🎥 Videos found: ${videoQuery.docs.length}');
-        videoQuery.docs.forEach((doc) {
-          print('🎥 Video: ${doc.data()['title']}');
-        });
-      } catch (e) {
-        print('❌ Video query failed: $e');
-      }
-      
-      print('🔍 Testing PDF query...');
-      try {
-        final pdfQuery = await FirebaseFirestore.instance
-            .collection('training_materials')
-            .where('type', isEqualTo: 'pdf')
-            .get()
-            .timeout(Duration(seconds: 5));
-        print('📄 PDFs found: ${pdfQuery.docs.length}');
-        pdfQuery.docs.forEach((doc) {
-          print('📄 PDF: ${doc.data()['title']}');
-        });
-      } catch (e) {
-        print('❌ PDF query failed: $e');
-      }
-      
-    } catch (e) {
-      print('❌ Firestore connection error: $e');
-      print('❌ Error type: ${e.runtimeType}');
-    }
-  }
+  // Removed debug test function
 
   @override
   void dispose() {
@@ -122,38 +47,53 @@ class _CHWTrainingScreenState extends State<CHWTrainingScreen>
 
   /// Get training resources filtered by type
   Stream<QuerySnapshot> _getResourcesStream(String type) {
-    print('🔍 Loading training materials for type: $type');
-    // Ultra-simplified query for debugging - just type filter with timeout
-    return FirebaseFirestore.instance
-        .collection('training_materials')
-        .where('type', isEqualTo: type)
-        .snapshots()
-        .timeout(
-          Duration(seconds: 10),
-          onTimeout: (sink) {
-            print('❌ Query timeout for type: $type');
-            sink.addError('Query timeout - check your connection');
-          },
-        );
+  print('🔍 Loading training materials for type: $type');
+  return FirebaseFirestore.instance
+    .collection('training_materials')
+    .where('targetRole', isEqualTo: 'chw')
+    .where('type', isEqualTo: type)
+    .orderBy('uploadedAt', descending: true)
+    .snapshots();
   }
 
   /// Launch video URL in browser or video player
   Future<void> _playVideo(String url, String title) async {
+    // Play video inline using video_player in a dialog
     try {
-      final Uri uri = Uri.parse(url);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not open video')),
-          );
-        }
+      if (_videoController != null) {
+        await _videoController!.dispose();
+      }
+      _videoController = VideoPlayerController.network(url);
+      await _videoController!.initialize();
+      setState(() {});
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text(title),
+              content: AspectRatio(
+                aspectRatio: _videoController!.value.aspectRatio,
+                child: VideoPlayer(_videoController!),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    _videoController?.pause();
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Close'),
+                ),
+              ],
+            );
+          },
+        );
+        _videoController!.play();
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error opening video: $e')),
+          SnackBar(content: Text('Error playing video: $e')),
         );
       }
     }
@@ -161,39 +101,65 @@ class _CHWTrainingScreenState extends State<CHWTrainingScreen>
 
   /// Download and open PDF file
   Future<void> _downloadAndOpenPdf(String url, String fileName, String docId) async {
+  // ...existing code...
+    // View PDF inline using syncfusion_flutter_pdfviewer in a dialog
     setState(() => _downloadingFiles[docId] = true);
     try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final Directory tempDir = await getTemporaryDirectory();
-        final String filePath = '${tempDir.path}/$fileName';
-        final File file = File(filePath);
-        await file.writeAsBytes(response.bodyBytes);
-        // Update download count
-        FirebaseFirestore.instance
-            .collection('training_materials')
-            .doc(docId)
-            .update({'downloadCount': FieldValue.increment(1)});
-        try {
-          await openFile(filePath);
-        } catch (e) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Could not open PDF file')),
-            );
-          }
+      if (kIsWeb) {
+        // On web, open PDF in new tab
+        if (mounted) {
+          // Update download count
+          FirebaseFirestore.instance
+              .collection('training_materials')
+              .doc(docId)
+              .update({'downloadCount': FieldValue.increment(1)});
+          await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
         }
       } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to download file')),
-          );
+        final response = await http.get(Uri.parse(url));
+        if (response.statusCode == 200) {
+          final Directory tempDir = await getTemporaryDirectory();
+          final String filePath = '${tempDir.path}/$fileName';
+          final File file = File(filePath);
+          await file.writeAsBytes(response.bodyBytes);
+          // Update download count
+          FirebaseFirestore.instance
+              .collection('training_materials')
+              .doc(docId)
+              .update({'downloadCount': FieldValue.increment(1)});
+          if (mounted) {
+            showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  title: Text(fileName),
+                  content: SizedBox(
+                    width: 400,
+                    height: 500,
+                    child: SfPdfViewer.file(file),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('Close'),
+                    ),
+                  ],
+                );
+              },
+            );
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Failed to load PDF file')),
+            );
+          }
         }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error downloading file: $e')),
+          SnackBar(content: Text('Error loading PDF: $e')),
         );
       }
     } finally {
@@ -239,16 +205,8 @@ class _CHWTrainingScreenState extends State<CHWTrainingScreen>
           );
         }
 
-        // Check if we should show timeout state
         if (snapshot.connectionState == ConnectionState.waiting) {
           print('📱 Showing loading indicator for $type');
-          
-          // If timeout occurred, show the empty state instead of endless loading
-          if (_loadingTimeouts[type] == true) {
-            print('📱 Loading timeout reached for $type, showing empty state');
-            return _buildEmptyState(type);
-          }
-          
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -256,17 +214,6 @@ class _CHWTrainingScreenState extends State<CHWTrainingScreen>
                 const CircularProgressIndicator(),
                 const SizedBox(height: 16),
                 Text('Loading $type materials...'),
-                const SizedBox(height: 24),
-                // Add a manual refresh button during loading
-                TextButton(
-                  onPressed: () {
-                    print('🔍 Manual refresh triggered for $type');
-                    setState(() {
-                      _loadingTimeouts[type] = false; // Reset timeout
-                    });
-                  },
-                  child: Text('Taking too long? Tap to refresh'),
-                ),
               ],
             ),
           );
@@ -278,18 +225,49 @@ class _CHWTrainingScreenState extends State<CHWTrainingScreen>
         }
 
         final resources = snapshot.data!.docs;
+        final showMax = 3;
+        bool showAll = type == 'video' ? _showAllVideos : _showAllMaterials;
+        final showList = showAll ? resources : (resources.length > showMax ? resources.sublist(0, showMax) : resources);
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: resources.length,
-          itemBuilder: (context, index) {
-            final doc = resources[index];
-            final data = doc.data() as Map<String, dynamic>;
-            
-            return type == 'video' 
-                ? _buildVideoCard(data, doc.id)
-                : _buildMaterialCard(data, doc.id);
-          },
+        return Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: showList.length,
+                itemBuilder: (context, index) {
+                  final doc = showList[index];
+                  final data = doc.data() as Map<String, dynamic>;
+                  return type == 'video'
+                      ? _buildVideoCard(data, doc.id)
+                      : _buildMaterialCard(data, doc.id);
+                },
+              ),
+            ),
+            if (!showAll && resources.length > showMax)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: type == 'video' ? Colors.red : Colors.teal,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        if (type == 'video') {
+                          _showAllVideos = true;
+                        } else {
+                          _showAllMaterials = true;
+                        }
+                      });
+                    },
+                    child: Text(type == 'video' ? 'Watch More' : 'Read More'),
+                  ),
+                ),
+              ),
+          ],
         );
       },
     );
@@ -327,24 +305,7 @@ class _CHWTrainingScreenState extends State<CHWTrainingScreen>
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () async {
-              print('🔍 Manual debug test for $type');
-              try {
-                final testSnapshot = await FirebaseFirestore.instance
-                    .collection('training_materials')
-                    .where('type', isEqualTo: type)
-                    .get();
-                print('🔍 Manual test results for $type: ${testSnapshot.docs.length} docs');
-                testSnapshot.docs.forEach((doc) {
-                  print('🔍 Found: ${doc.data()['title']}');
-                });
-              } catch (e) {
-                print('🔍 Manual test error: $e');
-              }
-            },
-            child: Text('Debug: Test $type Query'),
-          ),
+          // ...existing code...
         ],
       ),
     );
@@ -515,8 +476,8 @@ class _CHWTrainingScreenState extends State<CHWTrainingScreen>
                           valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
-                    : const Icon(Icons.download),
-                label: Text(isDownloading ? 'Downloading...' : 'Download & Open'),
+                    : const Icon(Icons.picture_as_pdf),
+                label: Text(isDownloading ? 'Loading...' : 'Read'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.teal,
                   foregroundColor: Colors.white,

@@ -34,6 +34,7 @@ class _LoginDoctorScreenState extends State<LoginDoctorScreen> {
 
     setState(() => loading = true);
 
+
     try {
       await _auth.signInWithEmailAndPassword(
         email: emailController.text.trim(),

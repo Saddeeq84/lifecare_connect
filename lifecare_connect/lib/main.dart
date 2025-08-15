@@ -1,11 +1,3 @@
-// IMPORTANT: If you are running on web and using Firebase AppCheck, you must initialize AppCheck with your reCAPTCHA site key.
-// Example:
-// import 'package:firebase_app_check/firebase_app_check.dart';
-// await FirebaseAppCheck.instance.activate(
-//   webProvider: ReCaptchaV3Provider('YOUR_RECAPTCHA_SITE_KEY'),
-//   androidProvider: AndroidProvider.debug,
-//   appleProvider: AppleProvider.debug,
-// );
 
 
 import 'package:flutter/material.dart';
@@ -30,11 +22,10 @@ Future<void> main() async {
         options: DefaultFirebaseOptions.currentPlatform,
       );
     }
-    await FirebaseAppCheck.instance.activate(
-      webProvider: ReCaptchaV3Provider('6LffLoErAAAAAPnHyrMPo4p7_sIu9jBPHG4km5ju'),
-      androidProvider: AndroidProvider.playIntegrity,
-      appleProvider: AppleProvider.deviceCheck,
-    );
+      await FirebaseAppCheck.instance.activate(
+        androidProvider: AndroidProvider.playIntegrity,
+        appleProvider: AppleProvider.deviceCheck,
+      );
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     await _initializeNotifications();
   } catch (e) {

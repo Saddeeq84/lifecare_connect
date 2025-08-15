@@ -2,8 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:intl/intl.dart';
+// ...existing code...
+import 'package:video_player/video_player.dart';
+// ...existing code...
 
 class PatientEducationScreen extends StatefulWidget {
   const PatientEducationScreen({super.key});
@@ -12,18 +13,21 @@ class PatientEducationScreen extends StatefulWidget {
   State<PatientEducationScreen> createState() => _PatientEducationScreenState();
 }
 
-class _PatientEducationScreenState extends State<PatientEducationScreen>
-    with SingleTickerProviderStateMixin {
+class _PatientEducationScreenState extends State<PatientEducationScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  bool _showAllVideos = false;
+  bool _showAllHealthTips = false;
+  VideoPlayerController? _videoController;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this); // Updated to 3 tabs
+    _tabController = TabController(length: 2, vsync: this); // Now only 2 tabs
   }
 
   @override
   void dispose() {
+    _videoController?.dispose();
     _tabController.dispose();
     super.dispose();
   }
@@ -41,21 +45,44 @@ class _PatientEducationScreenState extends State<PatientEducationScreen>
 
   /// Launch video URL in browser or video player
   Future<void> _playVideo(String url, String title) async {
+    // Show video in a dialog using video_player
     try {
-      final Uri uri = Uri.parse(url);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not open video')),
-          );
-        }
+      if (_videoController != null) {
+        await _videoController!.dispose();
+      }
+      _videoController = VideoPlayerController.network(url);
+      await _videoController!.initialize();
+      setState(() {
+        // No need to assign _currentVideoUrl
+      });
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text(title),
+              content: AspectRatio(
+                aspectRatio: _videoController!.value.aspectRatio,
+                child: VideoPlayer(_videoController!),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    _videoController?.pause();
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Close'),
+                ),
+              ],
+            );
+          },
+        );
+        _videoController!.play();
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error opening video: $e')),
+          SnackBar(content: Text('Error playing video: $e')),
         );
       }
     }
@@ -75,18 +102,49 @@ class _PatientEducationScreenState extends State<PatientEducationScreen>
         }
 
         final content = snapshot.data!.docs;
+        final showMax = 3;
+        bool showAll = type == 'video' ? _showAllVideos : _showAllHealthTips;
+        final showList = showAll ? content : (content.length > showMax ? content.sublist(0, showMax) : content);
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: content.length,
-          itemBuilder: (context, index) {
-            final doc = content[index];
-            final data = doc.data() as Map<String, dynamic>;
-            
-            return type == 'video' 
-                ? _buildVideoCard(data, doc.id)
-                : _buildHealthTipCard(data, doc.id);
-          },
+        return Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: showList.length,
+                itemBuilder: (context, index) {
+                  final doc = showList[index];
+                  final data = doc.data() as Map<String, dynamic>;
+                  return type == 'video'
+                      ? _buildVideoCard(data, doc.id)
+                      : _buildHealthTipCard(data, doc.id);
+                },
+              ),
+            ),
+            if (!showAll && content.length > showMax)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: type == 'video' ? Colors.blue : Colors.green,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        if (type == 'video') {
+                          _showAllVideos = true;
+                        } else {
+                          _showAllHealthTips = true;
+                        }
+                      });
+                    },
+                    child: Text(type == 'video' ? 'Watch More' : 'Read More'),
+                  ),
+                ),
+              ),
+          ],
         );
       },
     );
@@ -147,7 +205,7 @@ class _PatientEducationScreenState extends State<PatientEducationScreen>
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withValues(alpha: 0.1),
+                    color: Colors.blue.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
@@ -228,7 +286,7 @@ class _PatientEducationScreenState extends State<PatientEducationScreen>
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: 0.1),
+                    color: Colors.green.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
@@ -278,10 +336,10 @@ class _PatientEducationScreenState extends State<PatientEducationScreen>
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.05),
+                  color: Colors.green.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: Colors.green.withValues(alpha: 0.2),
+                    color: Colors.green.withOpacity(0.2),
                   ),
                 ),
                 child: Column(
@@ -349,10 +407,6 @@ class _PatientEducationScreenState extends State<PatientEducationScreen>
               icon: Icon(Icons.tips_and_updates),
               text: 'Health Tips',
             ),
-            Tab(
-              icon: Icon(Icons.calendar_today),
-              text: 'Daily Tips',
-            ),
           ],
         ),
       ),
@@ -361,312 +415,8 @@ class _PatientEducationScreenState extends State<PatientEducationScreen>
         children: [
           _buildContentList('video'),
           _buildContentList('health_tip'),
-          const _DailyHealthTipsTab(), // New daily tips tab
         ],
       ),
     );
-  }
-}
-
-// Daily Health Tips Tab Widget
-class _DailyHealthTipsTab extends StatelessWidget {
-  const _DailyHealthTipsTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('daily_health_tips')
-          .where('isActive', isEqualTo: true)
-          .orderBy('date', descending: true)
-          .limit(30) // Show last 30 days of tips
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return _buildEmptyDailyTips();
-        }
-
-        final tips = snapshot.data!.docs;
-        final today = DateTime.now();
-        final todayTip = tips.where((tip) {
-          final tipDate = (tip.data() as Map<String, dynamic>)['date'] as Timestamp?;
-          if (tipDate != null) {
-            final tipDateTime = tipDate.toDate();
-            return tipDateTime.year == today.year &&
-                   tipDateTime.month == today.month &&
-                   tipDateTime.day == today.day;
-          }
-          return false;
-        }).toList();
-
-        return ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            // Today's tip section
-            if (todayTip.isNotEmpty) ...[
-              const Text(
-                'Today\'s Health Tip',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green,
-                ),
-              ),
-              const SizedBox(height: 8),
-              _buildTodaysTipCard(todayTip.first.data() as Map<String, dynamic>),
-              const SizedBox(height: 24),
-            ],
-            
-            // Recent tips section
-            const Text(
-              'Recent Health Tips',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            
-            ...tips.map((tip) {
-              final data = tip.data() as Map<String, dynamic>;
-              return _buildTipCard(data);
-            }),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildEmptyDailyTips() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.tips_and_updates,
-            size: 80,
-            color: Colors.grey,
-          ),
-          SizedBox(height: 16),
-          Text(
-            'No daily health tips available',
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey,
-            ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Check back later for new tips!',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTodaysTipCard(Map<String, dynamic> data) {
-    final title = data['title'] ?? 'Health Tip';
-    final content = data['content'] ?? 'No content available';
-    final category = data['category'] ?? 'General';
-    final imageUrl = data['imageUrl'];
-
-    return Card(
-      elevation: 4,
-      color: Colors.green.shade50,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.today, color: Colors.green, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            
-            if (imageUrl != null && imageUrl.isNotEmpty) ...[
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  imageUrl,
-                  height: 150,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      height: 150,
-                      color: Colors.grey.shade200,
-                      child: const Icon(Icons.broken_image, size: 50),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 12),
-            ],
-            
-            Text(
-              content,
-              style: const TextStyle(fontSize: 16),
-            ),
-            
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                category,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.green,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTipCard(Map<String, dynamic> data) {
-    final title = data['title'] ?? 'Health Tip';
-    final content = data['content'] ?? 'No content available';
-    final category = data['category'] ?? 'General';
-    final date = data['date'] as Timestamp?;
-    final imageUrl = data['imageUrl'];
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                if (date != null)
-                  Text(
-                    DateFormat('MMM dd').format(date.toDate()),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            
-            if (imageUrl != null && imageUrl.isNotEmpty) ...[
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  imageUrl,
-                  height: 120,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      height: 120,
-                      color: Colors.grey.shade200,
-                      child: const Icon(Icons.broken_image, size: 40),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
-            
-            Text(
-              content.length > 100 ? '${content.substring(0, 100)}...' : content,
-              style: const TextStyle(fontSize: 14),
-            ),
-            
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    category,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.blue,
-                    ),
-                  ),
-                ),
-                
-                if (content.length > 100)
-                  TextButton(
-                    onPressed: () => _showFullTip(data),
-                    child: const Text('Read More'),
-                  ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showFullTip(Map<String, dynamic> data) {
-    // This would need a BuildContext, but since this is a StatelessWidget,
-    // we'll handle this differently in the actual implementation
-  }
-}
-
-// Extension to add DateFormat if needed
-extension DateFormatExtension on DateFormat {
-  static String formatRelativeDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-    
-    if (difference.inDays == 0) {
-      return 'Today';
-    } else if (difference.inDays == 1) {
-      return 'Yesterday';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays} days ago';
-    } else {
-      return DateFormat('MMM dd, yyyy').format(date);
-    }
   }
 }

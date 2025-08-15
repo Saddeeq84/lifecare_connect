@@ -37,6 +37,7 @@ class _LoginPatientState extends State<LoginPatient> with SingleTickerProviderSt
 
     setState(() => _isLoading = true);
 
+
     try {
       final credential = await _auth.signInWithEmailAndPassword(
         email: _emailController.text.trim(),

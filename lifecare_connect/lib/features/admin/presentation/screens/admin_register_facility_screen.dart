@@ -106,18 +106,29 @@ class _AdminRegisterFacilityScreenState
 
     try {
       String? docUrl;
-      if (_selectedDocument != null) {
-        docUrl = await _uploadDocument(_selectedDocument!);
-        if (docUrl == null || docUrl.isEmpty) {
-          throw Exception('Document upload failed. Please try again.');
+      // Always require a document
+      if (kIsWeb) {
+        if (_selectedDocumentBytes == null || _selectedDocumentName == null) {
+          throw Exception('Please select a registration document.');
         }
+        // Use a dummy File for API compatibility, but only bytes are used
+        docUrl = await _uploadDocument(File('dummy'));
+      } else {
+        if (_selectedDocument == null) {
+          throw Exception('Please select a registration document.');
+        }
+        docUrl = await _uploadDocument(_selectedDocument!);
+      }
+      if (docUrl == null || docUrl.isEmpty) {
+        throw Exception('Document upload failed. Please try again.');
       }
 
-      // Add to facilities collection
-      final facilityRef = await FirebaseFirestore.instance.collection('facilities').add({
+      // Add to users collection as facility
+      await FirebaseFirestore.instance.collection('users').add({
         'name': _nameController.text.trim(),
         'location': _locationController.text.trim(),
         'type': _typeController.text.trim(),
+        'role': 'facility',
         'createdBy': 'admin',
         'isApproved': true,
         'isRejected': false,
@@ -125,7 +136,7 @@ class _AdminRegisterFacilityScreenState
         'contactPerson': _contactPersonController.text.trim(),
         'email': _emailController.text.trim(),
         'phone': _phoneController.text.trim(),
-        if (docUrl != null) 'documentUrl': docUrl,
+  'documentUrl': docUrl,
       });
 
       // Send password setup (reset) email to facility owner
@@ -135,7 +146,10 @@ class _AdminRegisterFacilityScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text("✅ Facility registered! Password setup email sent to owner.")),
+            content: Text(
+              "✅ Facility registration successful! The owner must check their email and follow the link to set up their password."
+            ),
+          ),
         );
         Navigator.of(context).pop();
       }
@@ -284,7 +298,7 @@ class _AdminRegisterFacilityScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Registration Document (Optional)',
+                        'Registration Document (Required)',
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
@@ -298,15 +312,43 @@ class _AdminRegisterFacilityScreenState
                       ElevatedButton.icon(
                         onPressed: _pickDocument,
                         icon: const Icon(Icons.attach_file),
-                        label: Text(_selectedDocument != null ? 'Change Document' : 'Select Document'),
+                        label: Text((_selectedDocument != null || _selectedDocumentBytes != null) ? 'Change Document' : 'Select Document'),
                       ),
+                      if (_selectedDocument == null && _selectedDocumentBytes == null)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 8),
+                          child: Text('Please select a registration document.', style: TextStyle(color: Colors.red)),
+                        ),
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: 32),
               ElevatedButton(
-                onPressed: _isSubmitting ? null : _handleSubmit,
+                onPressed: _isSubmitting || (_selectedDocument == null && _selectedDocumentBytes == null)
+                    ? null
+                    : () async {
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Confirm Registration'),
+                            content: const Text('Are you sure you want to register this facility?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(false),
+                                child: const Text('Cancel'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => Navigator.of(context).pop(true),
+                                child: const Text('Confirm'),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirmed == true) {
+                          _handleSubmit();
+                        }
+                      },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.teal,
                   foregroundColor: Colors.white,

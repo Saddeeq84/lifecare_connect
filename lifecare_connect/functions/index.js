@@ -21,3 +21,6 @@ exports.sendAdminApprovalEmail = functions.https.onRequest(async (req, res) => {
 // Export approval/rejection email functions for deployment
 exports.sendAccountApprovedEmail = require('./account_status_emails').sendAccountApprovedEmail;
 exports.sendAccountRejectedEmail = require('./account_status_emails').sendAccountRejectedEmail;
+
+// Automatically set Content-Disposition:inline for all future PDF uploads
+exports.setPdfInlineDisposition = require('./setPdfInlineDisposition').setPdfInlineDisposition;
