@@ -10,7 +10,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 // Only import dart:html on web
 // ignore: avoid_web_libraries_in_flutter
-import 'dart:html' as html;
+// import 'dart:html' as html; // Removed for mobile compatibility
 
 class DoctorClinicalResourcesScreen extends StatefulWidget {
   const DoctorClinicalResourcesScreen({super.key});
@@ -52,16 +52,10 @@ class _DoctorClinicalResourcesScreenState extends State<DoctorClinicalResourcesS
         downloadUrl = await ref.getDownloadURL();
       }
       if (kIsWeb) {
-        // On web, trigger browser download
-        html.AnchorElement anchor = html.AnchorElement(href: downloadUrl)
-          ..download = fileName
-          ..target = '_blank';
-        html.document.body!.append(anchor);
-        anchor.click();
-        anchor.remove();
+        // On web, show a message or handle differently if needed
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Download started in browser for $fileName')),
+            SnackBar(content: Text('Please download this file from a desktop browser.')),
           );
         }
       } else {

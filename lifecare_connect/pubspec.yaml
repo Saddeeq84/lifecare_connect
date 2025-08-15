@@ -1,6 +1,6 @@
 name: lifecare_connect
 description: A mobile app for CHWs and healthcare providers to manage patients.
-version: 1.0.8+8
+version: 1.0.9+11
 publish_to: "none"
 
 environment:
@@ -46,8 +46,14 @@ dependencies:
   video_player: ^2.8.6
   table_calendar: ^3.1.1
   open_file: ^3.3.2
+
 dev_dependencies:
   flutter_lints: ^6.0.0
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo.png"
 
 flutter:
   uses-material-design: true

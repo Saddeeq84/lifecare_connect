@@ -16,6 +16,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 // Import actual screens from features
 import '../../features/doctor/presentation/screens/doctor_settings_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/auth/presentation/screens/privacy_screen.dart';
 // Ensure that LoginScreen is defined as a class in login_screen.dart
 import '../../features/admin/presentation/screens/admin_dashboard.dart';
 import '../../features/doctor/presentation/screens/doctor_patient_list_screen.dart';
@@ -62,6 +63,12 @@ class AppRouter {
           // Link to the central/shared messaging system
           return const MessagesScreen();
         },
+      ),
+      // Direct route for Privacy Policy
+      GoRoute(
+        path: '/privacy',
+        name: 'privacy-policy',
+        builder: (context, state) => const PrivacyScreen(),
       ),
       // Custom routes for CHW consultation flows
       // Doctor dashboard with nested settings route
