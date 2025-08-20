@@ -1,0 +1,243 @@
+{"users": [
+{
+  "localId": "71uSUfSjidcuxaB7KqI6yejYHf12",
+  "email": "idris@rhemn.org.ng",
+  "emailVerified": false,
+  "passwordHash": "g/AabhE8uT4R+sEgxoqr/BNupdAAfu+ulFjMH+qHxoFgmFZ8bLnOgjSn81l6a9Ee9i9bCCxURQYFr4OQWZHpIg==",
+  "salt": "MJHK1IBpLmTtTA==",
+  "lastSignedInAt": "1754909617850",
+  "createdAt": "1754909617850",
+  "providerUserInfo": []
+},
+{
+  "localId": "83QQcgjPdIdRwYLQ06k4stej85d2",
+  "email": "dumitinladan3@gmail.com",
+  "emailVerified": false,
+  "passwordHash": "3aBSFKjkGP/eujSgzIkXVJixXWod/FyjJgmGFk+GYerxHCw4k+cNkaojZn+4CcgRC4FiP2yTjtG6gpDKtVMRBg==",
+  "salt": "lkNChhmp1r6sDQ==",
+  "lastSignedInAt": "1755255706819",
+  "createdAt": "1755181019977",
+  "providerUserInfo": []
+},
+{
+  "localId": "CkpPihAAhjTFP23sr2TppR6JoGX2",
+  "email": "patient@test.com",
+  "emailVerified": false,
+  "passwordHash": "mi1aQqqNBMxwdqQsHXkeT5VExGQEXoNToZyxol7XEQmYqIl2kdWEyF25oN1q/qKgNim24djQYLTLSq8oRd2EAg==",
+  "salt": "Y1HuhEWnXqINBA==",
+  "lastSignedInAt": "1755371051097",
+  "createdAt": "1752943064278",
+  "disabled": false,
+  "providerUserInfo": []
+},
+{
+  "localId": "DdJncX1RKkdvXwuF2cDGRxvXx923",
+  "email": "chw@test.com",
+  "emailVerified": true,
+  "passwordHash": "aul/a/H0HUDyV4LTLM1225DgxJ6EuD0p0TfAnXFoz5BKTAWNxdBIPXkujwW5SL7lwGfPYWVLGHNiiHnw69949w==",
+  "salt": "Cmf4wppyEejQDQ==",
+  "lastSignedInAt": "1755210124264",
+  "createdAt": "1753079620847",
+  "disabled": false,
+  "providerUserInfo": []
+},
+{
+  "localId": "Gof6nCTr8gO3XKt4HnYA0FrLsPF2",
+  "email": "admin@lifecare.rhemn.org.ng",
+  "emailVerified": false,
+  "passwordHash": "tVOVS/P+Hx/7fjU0/pJwf7yjlsUUHIajaPqIuoCA0rvuvWxR4PZ1yWvfxHBfkKxog2E21K/w3knonud3/lcp4w==",
+  "salt": "5aW78C+lqf+lsA==",
+  "createdAt": "1755559723717",
+  "disabled": false,
+  "providerUserInfo": []
+},
+{
+  "localId": "HZNA8lmnD7N72DLR0Lf4JOp8JTI2",
+  "email": "aliyudechi@gmail.com",
+  "emailVerified": false,
+  "passwordHash": "8kD/oH7/wzdq8SpsLy7e2/Bm1IMsZOs/NMLHlHWHJJ8BWu3OKmFPRdZIrqAVL1mgllyu2wsbjXTXYcAYfSv9BQ==",
+  "salt": "rEElhIdW35l21w==",
+  "lastSignedInAt": "1755172632747",
+  "createdAt": "1755172460839",
+  "providerUserInfo": []
+},
+{
+  "localId": "IDmxFACxSEcd0mW451pWTsfi77X2",
+  "email": "musaddiqun@gmail.com",
+  "emailVerified": false,
+  "passwordHash": "lSPVDJo6hwCJxwUVSQB9DhTUjPhviHVgh0KqMNeZKU/4LYjAVrzo9/enKjpYuiJOm69aBdheSpru969GBoxqZQ==",
+  "salt": "W4R7jxDzWxaf5g==",
+  "lastSignedInAt": "1755551599236",
+  "createdAt": "1755551599236",
+  "providerUserInfo": []
+},
+{
+  "localId": "JFCPl0oOqCUOjoO1t0tDqrH9B1J2",
+  "email": "aliyuahmedsaddiq@gmail.com",
+  "emailVerified": true,
+  "passwordHash": "1JUfhaEnPy4JzdV3yuO1OHxzyvqBMED9WEDxS6kDfLib4JykRMjpLMNi3YgUQ8k0Ka4RaPjw86bTSYvqEL82QA==",
+  "salt": "NPGszTkbBfcoTA==",
+  "lastSignedInAt": "1755163320685",
+  "createdAt": "1755005959690",
+  "providerUserInfo": []
+},
+{
+  "localId": "MQg6t1EOpnWGZdfhzXW0Qmwkzfu1",
+  "email": "jibrillatankosadiq@gmail.com",
+  "emailVerified": true,
+  "passwordHash": "wQ0W3i5uON+if/5w+BsEtgn+aR76JEVHB7460JGiZMCUKCvkGd21Jdh+qslNoGhUkulykzJooRkM9sv8lRw3dQ==",
+  "salt": "NOU8PiJev6TQgA==",
+  "lastSignedInAt": "1755190670165",
+  "createdAt": "1755190519667",
+  "providerUserInfo": []
+},
+{
+  "localId": "MTLc6b94GVTaSfBYM5O7NtvoHHb2",
+  "email": "abdullahisahmed20@gmail.com",
+  "emailVerified": false,
+  "passwordHash": "YNx2EPv2vwazI0tAcxXTctQyDBvgh0bWLZY8HZb3EvYspOMgukfn4JG1z9m1xV6KFKABtFjIlkXlAqYZuD36kw==",
+  "salt": "QCDdf4w/I8ss0w==",
+  "lastSignedInAt": "1755522335489",
+  "createdAt": "1755522335489",
+  "providerUserInfo": []
+},
+{
+  "localId": "NXP1M3jbDYfhTEkNSqVDP59gliu1",
+  "email": "facility@test.com",
+  "emailVerified": false,
+  "passwordHash": "TmwI7E9zDZyli+m4oU5wBtQfHaneNC/TQjozGPnWKTgq+Y4enEkgM3SOIxa7Ji6wE/ydwrUe4TC4yQ02P5RWkg==",
+  "salt": "5KhBBfP8zHAyfQ==",
+  "lastSignedInAt": "1755208682921",
+  "createdAt": "1752943090610",
+  "disabled": false,
+  "providerUserInfo": []
+},
+{
+  "localId": "SnRhZ4rkOXcQq7zRwrkVzYUrnFo2",
+  "lastSignedInAt": "1754982649233",
+  "createdAt": "1754982649232",
+  "phoneNumber": "+2348069653269",
+  "providerUserInfo": []
+},
+{
+  "localId": "VQ1fXVCICCSTaSP0HMBpELeYZXU2",
+  "email": "m.adam@rhemn.org.ng",
+  "emailVerified": false,
+  "passwordHash": "v335SS5aUQS/+19hTsv4x6O0VkMPiB06Mj1ze1Gl/EMrKrX6oWpLn8oZO+nj8ynv8MOlunKPWPSQaV6etIEPpg==",
+  "salt": "pfKgGYq2lN2YGQ==",
+  "lastSignedInAt": "1754931591927",
+  "createdAt": "1754930654117",
+  "providerUserInfo": []
+},
+{
+  "localId": "XE7BeGuWYkMEeoXr44GSa2t0enz1",
+  "email": "jibirima75@gmail.com",
+  "emailVerified": false,
+  "passwordHash": "cpcENW0Y3McCBQ2pTTLEC85MGuy9a3DGtzskVNFwTd6klqNELrNBp54GQ22Mh9zqGMJ30itd1xU6TWn6l/xyoQ==",
+  "salt": "GxeB4YAl86eF+g==",
+  "lastSignedInAt": "1755191098077",
+  "createdAt": "1755190369620",
+  "providerUserInfo": []
+},
+{
+  "localId": "dbZjnW28QAMhq8FsMn26cecZsjs1",
+  "email": "doctor@test.com",
+  "emailVerified": false,
+  "passwordHash": "2gxr80IbNdF9uXvwQ3PP8wBWxf1aZOEGRELuAN/rTyaf6aNL9xgxnZRTjxOtug9tV8tur3A/5RvWgHdOuFHqJQ==",
+  "salt": "X4KYBBCP6p8vSA==",
+  "lastSignedInAt": "1755371354683",
+  "createdAt": "1753797501388",
+  "disabled": false,
+  "providerUserInfo": []
+},
+{
+  "localId": "eIkLrBJegqPpVXOh7T1b3r5cdmF2",
+  "email": "adoaudu@gmail.cm",
+  "emailVerified": false,
+  "passwordHash": "9BvPxdHtUc77kL7KYtDoTKm+8fjZ/30Rwo72EbSiv9s/ZQS60Qq9rBMRN4CvsWWrPvRVtu8scPMspc9vAcNpbA==",
+  "salt": "wzG1h3X6ayooQQ==",
+  "lastSignedInAt": "1754914845341",
+  "createdAt": "1754914845341",
+  "providerUserInfo": []
+},
+{
+  "localId": "j5NOUxxOLUTy2fVLinMaFKMHwpz2",
+  "email": "idrismjamo@gmail.com",
+  "emailVerified": true,
+  "passwordHash": "Rl09ZgF8Go6wrkRl/TfTYYChfahHo4rRToasiCOktl6f/vqEqtAw58DOp+PiI7vxfmsLEx+V3RFkQaczUvpDmQ==",
+  "salt": "+kx4xvT5v8YJCg==",
+  "lastSignedInAt": "1755170424876",
+  "createdAt": "1754926519586",
+  "providerUserInfo": []
+},
+{
+  "localId": "kIwOjRhzDFRzZeumK3OWVa6qVaD3",
+  "email": "muhadam2011@gmail.com",
+  "emailVerified": false,
+  "passwordHash": "APPSKk86/Fv/caj1jBnAe1Nu2devH59xUkm9/PQ3lYU+1Sp+U8TC4SreanbIYt3lBv5d7zt/6/hx2YrIHYH3Ng==",
+  "salt": "WDtmlJG0PHFKKg==",
+  "lastSignedInAt": "1754931991399",
+  "createdAt": "1754775693567",
+  "providerUserInfo": []
+},
+{
+  "localId": "ksDkTlF2U2WX5dudd8JizOgOtlZ2",
+  "email": "info@rhemn.org.ng",
+  "emailVerified": false,
+  "passwordHash": "nd2an+O/qzPuarN7Fnx7vm6OPk0WabPMUg+RzmfkLq+MUCyxEwj+voxANcAUT5kRvddRy/4qkgsdqoG4o07cxA==",
+  "salt": "dkul/MG6ZvGS/Q==",
+  "lastSignedInAt": "1755165176577",
+  "createdAt": "1755165176577",
+  "providerUserInfo": []
+},
+{
+  "localId": "n5Qo1IFnLPfOnr4X0MPGdmICWxI3",
+  "email": "admin@test.com",
+  "emailVerified": false,
+  "passwordHash": "K8V2iazeKqRA/hd+2tb2JPMgbvHmTmW86s2whMK5E+lt3OEBfc1Zu0DaC5JkhnwIMazUdPH5hCCXNcp0JZwmDQ==",
+  "salt": "DkKMzuwrJkbYpg==",
+  "lastSignedInAt": "1755558948057",
+  "createdAt": "1754842423654",
+  "disabled": false,
+  "providerUserInfo": []
+},
+{
+  "localId": "oIOpdAJ85oTrh9YikVrqWIwbbsu1",
+  "email": "abujafar773@gmail.com",
+  "emailVerified": true,
+  "passwordHash": "nsWtyocKykhS+FJUHndR8ZLMoIV91k8TCpkoGvTpflIhCtLu0lptGrdoMlbcM4wgQfAfPDVyMKK6Hp1S90/BTA==",
+  "salt": "Jbs66zhKu/gB3g==",
+  "lastSignedInAt": "1755157095088",
+  "createdAt": "1754778630779",
+  "providerUserInfo": []
+},
+{
+  "localId": "rK3xD4M8fYaaSUp8DSabN671PVp1",
+  "email": "mohammedmusazambuk@gmail.com",
+  "emailVerified": true,
+  "passwordHash": "eP4TG+pRTCn9cKxo28O0+tItVSAFifSZIrsnc2c/4Hmgx4MMAQriWY0CY9uFGiu7zLWQmXOGv+jMwWa1N6zylw==",
+  "salt": "x6NdC5UXkmPeGQ==",
+  "lastSignedInAt": "1755195829551",
+  "createdAt": "1754930243189",
+  "providerUserInfo": []
+},
+{
+  "localId": "vzukDgrZsKNNzKRlRbOHYAaFKj72",
+  "email": "daddysaddiq96@gmail.com",
+  "emailVerified": false,
+  "passwordHash": "daHBOuB8OviPb0RzYm/9ZBVdhWOMt+rBZpc22DdMTf1D+lamWwdVsIJ+aqcEHgDEaIjDSLta2WgSMtvXTnrjMg==",
+  "salt": "AclFAOvcGlwakg==",
+  "lastSignedInAt": "1754767334077",
+  "createdAt": "1754765488045",
+  "providerUserInfo": []
+},
+{
+  "localId": "ystJUwaXPEXe1Fx0yWncfjm5q982",
+  "email": "dangbamaiyi@gmail.com",
+  "emailVerified": false,
+  "passwordHash": "wywkAN6C9a3AEGhpU76qaQ9QlzYSpsJxiXYhhZoWOmTGTxrLGNOCWpbrcqoIzFkMRYwp2QzZlnZ+O2nA+ClKYw==",
+  "salt": "PShDaP1YEOTlrA==",
+  "lastSignedInAt": "1755464469562",
+  "createdAt": "1755464469562",
+  "providerUserInfo": []
+}]}

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class PrivacyScreen extends StatelessWidget {
   const PrivacyScreen({super.key});
@@ -11,6 +12,25 @@ class PrivacyScreen extends StatelessWidget {
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
         elevation: 2,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            // Use GoRouter for navigation to login page
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            } else {
+              // Use GoRouter to go to login if not in navigation stack
+              // ignore: use_build_context_synchronously
+              try {
+                // If GoRouter is available
+                // ignore: avoid_dynamic_calls
+                (GoRouter.of(context)).go('/login');
+              } catch (_) {
+                Navigator.of(context).pushReplacementNamed('/login');
+              }
+            }
+          },
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),

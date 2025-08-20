@@ -122,13 +122,13 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
         });
         // Call Firebase Cloud Function to send invitation email
         try {
-          // You must deploy a callable function named 'sendPatientInviteEmail' in your Firebase backend
-          // Example Node.js function: functions.httpsCallable('sendPatientInviteEmail')
-          // The function should accept { email, name } and send the invite
-          await FirebaseFunctions.instance.httpsCallable('sendPatientInviteEmail').call({
-            'email': _emailController.text.trim(),
-            'name': _nameController.text.trim(),
-          });
+          // Call the function in the correct region to avoid CORS/region errors
+          await FirebaseFunctions.instanceFor(region: 'europe-west2')
+            .httpsCallable('sendPatientInviteEmail')
+            .call({
+              'email': _emailController.text.trim(),
+              'name': _nameController.text.trim(),
+            });
         } catch (e) {
           // Optionally handle errors, but don't block registration
         }

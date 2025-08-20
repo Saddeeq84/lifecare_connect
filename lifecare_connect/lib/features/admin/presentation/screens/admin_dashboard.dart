@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -123,18 +124,23 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ],
           ),
           IconButton(
+            icon: Icon(Icons.email),
+            tooltip: 'Send Email',
+            onPressed: () => _showEmailDialog(context),
+          ),
+          IconButton(
             icon: Icon(Icons.settings),
             tooltip: 'Settings',
             onPressed: () => context.goNamed('admin-settings'),
           ),
-          IconButton(
-            icon: Icon(Icons.logout),
-            tooltip: 'Logout',
-            onPressed: () => _confirmLogout(context),
-          ),
-        ],
+      IconButton(
+        icon: Icon(Icons.logout),
+        tooltip: 'Logout',
+        onPressed: () => _confirmLogout(context),
       ),
-      body: Padding(
+    ],
+  ),
+  body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: ListView(
           children: [
@@ -236,6 +242,93 @@ class _AdminDashboardState extends State<AdminDashboard> {
         ],
       ),
     );
+  }
+
+  void _showEmailDialog(BuildContext context) {
+    final subjectController = TextEditingController();
+    final messageController = TextEditingController();
+    String selectedRole = 'all';
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Send Email'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            DropdownButtonFormField<String>(
+              value: selectedRole,
+              items: [
+                DropdownMenuItem(value: 'all', child: Text('All Users')),
+                DropdownMenuItem(value: 'doctor', child: Text('Doctors')),
+                DropdownMenuItem(value: 'chw', child: Text('CHWs')),
+                DropdownMenuItem(value: 'facility', child: Text('Facilities')),
+                DropdownMenuItem(value: 'patient', child: Text('Patients')),
+              ],
+              onChanged: (value) => selectedRole = value ?? 'all',
+              decoration: InputDecoration(labelText: 'Recipient Group'),
+            ),
+            TextField(
+              controller: subjectController,
+              decoration: InputDecoration(labelText: 'Subject'),
+            ),
+            TextField(
+              controller: messageController,
+              decoration: InputDecoration(labelText: 'Message'),
+              maxLines: 4,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            child: Text('Cancel'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          ElevatedButton(
+            child: Text('Send'),
+            onPressed: () async {
+              final shouldSend = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text('Confirm Send'),
+                  content: Text('Are you sure you want to send this email to the selected group?'),
+                  actions: [
+                    TextButton(
+                      child: Text('Cancel'),
+                      onPressed: () => Navigator.of(context).pop(false),
+                    ),
+                    ElevatedButton(
+                      child: Text('Send'),
+                      onPressed: () => Navigator.of(context).pop(true),
+                    ),
+                  ],
+                ),
+              );
+              if (shouldSend == true) {
+                Navigator.of(context).pop();
+                await _sendBulkEmail(selectedRole, subjectController.text, messageController.text);
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _sendBulkEmail(String role, String subject, String message) async {
+    try {
+      final functions = FirebaseFunctions.instanceFor(region: 'europe-west2');
+      final result = await functions
+        .httpsCallable('sendBulkEmail')
+        .call({'role': role, 'subject': subject, 'message': message});
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Email sent: ${result.data['sent']} success, ${result.data['failed']} failed'))
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to send email: $e'), backgroundColor: Colors.red)
+      );
+    }
   }
 }
 

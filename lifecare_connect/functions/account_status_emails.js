@@ -1,6 +1,11 @@
+require('dotenv').config();
 const functions = require('firebase-functions');
+const admin = require('firebase-admin');
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
 const sgMail = require('@sendgrid/mail');
-sgMail.setApiKey(functions.config().sendgrid.key);
+sgMail.setApiKey(process.env.SENDGRID_KEY);
 
 exports.sendAdminApprovalEmail = functions.https.onRequest(async (req, res) => {
   const { email, name } = req.body;
@@ -24,7 +29,7 @@ exports.sendAccountApprovedEmail = functions.https.onRequest(async (req, res) =>
     to: email,
     from: 'admin@lifecare.rhemn.org.ng',
     subject: 'Account Approved',
-    text: `Hello ${name}, your account has been approved and is now active. You can now login and start using the platform.`,
+    text: `Hello ${name}, your account has been approved and is now active. You can now login and start using the platform at https://lifecare-connect.web.app/`,
   };
   try {
     await sgMail.send(msg);

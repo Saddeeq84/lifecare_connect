@@ -229,6 +229,12 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
       );
       return;
     }
+    if (selectedSpecialization == 'Other' && (otherSpecialization == null || otherSpecialization!.trim().isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please specify your specialization')),
+      );
+      return;
+    }
 
     setState(() => loading = true);
 
@@ -288,7 +294,7 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
           'fullName': fullNameController.text.trim(),
           'email': emailController.text.trim(),
           'phone': phoneController.text.trim(),
-          'specialization': selectedSpecialization,
+          'specialization': selectedSpecialization == 'Other' ? otherSpecialization?.trim() : selectedSpecialization,
           'gender': selectedGender,
           'dob': selectedDOB!.toIso8601String(),
           'role': 'doctor',
