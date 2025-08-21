@@ -1,3 +1,5 @@
+// Export FCM notification sender
+exports.sendNotificationToUser = require('./sendNotification').sendNotificationToUser;
 require('dotenv').config();
 const functions = require('firebase-functions');
 const sgMail = require('@sendgrid/mail');
@@ -51,7 +53,10 @@ exports.sendBulkEmail = functions.region('europe-west2').https.onCall(async (dat
     let sent = 0;
     let failed = 0;
     let errors = [];
-    for (const to of emails) {
+    for (const doc of snapshot.docs) {
+      const data = doc.data();
+      const to = data.email;
+      const userId = doc.id;
       const msg = {
         to,
         from: fromEmail,
@@ -60,6 +65,11 @@ exports.sendBulkEmail = functions.region('europe-west2').https.onCall(async (dat
       };
       try {
         await sgMail.send(msg);
+        // Send push notification
+        if (data.fcmToken) {
+          const notificationFn = require('./sendNotification').sendNotificationToUser;
+          await notificationFn({ userId, title: subject, body: message }, { auth: null });
+        }
         sent++;
       } catch (err) {
         failed++;
@@ -124,6 +134,11 @@ exports.sendPatientInviteEmail = functions.region('europe-west2').https.onCall(a
   };
   try {
     await sgMail.send(msg);
+    // Send push notification
+    if (user && user.uid) {
+      const notificationFn = require('./sendNotification').sendNotificationToUser;
+      await notificationFn({ userId: user.uid, title: 'Welcome to LifeCare!', body: 'You have been registered as a patient. Please set up your account.' }, { auth: null });
+    }
     return { success: true };
   } catch (err) {
     console.error('Error sending invite email:', err);
@@ -143,9 +158,9 @@ exports.sendApprovalEmailOnUserUpdate = functions.region('europe-west2').firesto
     if (!before.isApproved && after.isApproved) {
       const email = after.email;
       const name = after.fullName || after.name || after.displayName || '';
-      // Call the approval email function
-  const sgMail = require('@sendgrid/mail');
-  sgMail.setApiKey(process.env.SENDGRID_KEY);
+      const userId = context.params.userId;
+      const sgMail = require('@sendgrid/mail');
+      sgMail.setApiKey(process.env.SENDGRID_KEY);
       const msg = {
         to: email,
         from: 'admin@lifecare.rhemn.org.ng',
@@ -154,16 +169,22 @@ exports.sendApprovalEmailOnUserUpdate = functions.region('europe-west2').firesto
       };
       try {
         await sgMail.send(msg);
+        // Send push notification
+        if (after.fcmToken) {
+          const notificationFn = require('./sendNotification').sendNotificationToUser;
+          await notificationFn({ userId, title: 'Account Approved', body: 'Your account has been approved and is now active.' }, { auth: null });
+        }
         console.log('Approval email sent to', email);
       } catch (err) {
         console.error('Failed to send approval email:', err);
       }
     }
-        // Send rejection email if isRejected changed from false to true
+    // Send rejection email if isRejected changed from false to true
     if (!before.isRejected && after.isRejected) {
       const email = after.email;
       const name = after.fullName || after.name || after.displayName || '';
       const reason = after.rejectionReason || 'No reason provided.';
+      const userId = context.params.userId;
       const sgMail = require('@sendgrid/mail');
       sgMail.setApiKey(process.env.SENDGRID_KEY);
       const msg = {
@@ -174,6 +195,11 @@ exports.sendApprovalEmailOnUserUpdate = functions.region('europe-west2').firesto
       };
       try {
         await sgMail.send(msg);
+        // Send push notification
+        if (after.fcmToken) {
+          const notificationFn = require('./sendNotification').sendNotificationToUser;
+          await notificationFn({ userId, title: 'Account Rejected', body: `Your account was rejected: ${reason}` }, { auth: null });
+        }
         console.log('Rejection email sent to', email);
       } catch (err) {
         console.error('Failed to send rejection email:', err);
@@ -186,6 +212,7 @@ exports.sendAppointmentBookedEmail = functions.region('europe-west2').firestore.
     const email = data.patientEmail || data.userEmail || '';
     const name = data.patientName || data.userName || '';
     const date = data.date || data.appointmentDate || '';
+    const userId = data.patientId || data.userId || '';
     const sgMail = require('@sendgrid/mail');
     sgMail.setApiKey(process.env.SENDGRID_KEY);
     const msg = {
@@ -196,13 +223,17 @@ exports.sendAppointmentBookedEmail = functions.region('europe-west2').firestore.
     };
     try {
       await sgMail.send(msg);
+      // Send push notification
+      if (data.fcmToken && userId) {
+        const notificationFn = require('./sendNotification').sendNotificationToUser;
+        await notificationFn({ userId, title: 'Appointment Booked', body: `Your appointment for ${date} has been booked.` }, { auth: null });
+      }
       console.log('Appointment booked email sent to', email);
     } catch (err) {
       console.error('Failed to send appointment booked email:', err);
     }
     return null;
   });
-return null;
 });
 
 // Firestore trigger: notify patient when appointment is approved
@@ -215,6 +246,7 @@ exports.sendAppointmentApprovedEmail = functions.region('europe-west2').firestor
       const email = after.patientEmail || after.userEmail || '';
       const name = after.patientName || after.userName || '';
       const date = after.date || after.appointmentDate || '';
+      const userId = after.patientId || after.userId || '';
       const sgMail = require('@sendgrid/mail');
       sgMail.setApiKey(process.env.SENDGRID_KEY);
       const msg = {
@@ -225,6 +257,11 @@ exports.sendAppointmentApprovedEmail = functions.region('europe-west2').firestor
       };
       try {
         await sgMail.send(msg);
+        // Send push notification
+        if (after.fcmToken && userId) {
+          const notificationFn = require('./sendNotification').sendNotificationToUser;
+          await notificationFn({ userId, title: 'Appointment Approved', body: `Your appointment for ${date} has been approved.` }, { auth: null });
+        }
         console.log('Appointment approved email sent to', email);
       } catch (err) {
         console.error('Failed to send appointment approved email:', err);
@@ -241,6 +278,7 @@ exports.sendReferralToDoctorEmail = functions.region('europe-west2').firestore.d
       const doctorName = data.toProviderName || '';
       const patientName = data.patientName || '';
       const reason = data.reason || '';
+      const doctorId = data.doctorId || '';
       const sgMail = require('@sendgrid/mail');
       sgMail.setApiKey(process.env.SENDGRID_KEY);
       const msg = {
@@ -251,6 +289,11 @@ exports.sendReferralToDoctorEmail = functions.region('europe-west2').firestore.d
       };
       try {
         await sgMail.send(msg);
+        // Send push notification
+        if (data.doctorFcmToken && doctorId) {
+          const notificationFn = require('./sendNotification').sendNotificationToUser;
+          await notificationFn({ userId: doctorId, title: 'New Patient Referral', body: `You have a new referral for patient ${patientName}.` }, { auth: null });
+        }
         console.log('Referral email sent to doctor:', email);
       } catch (err) {
         console.error('Failed to send referral email to doctor:', err);
@@ -274,6 +317,7 @@ exports.sendReferralAcceptedToCHWEmail = functions.region('europe-west2').firest
       const chwName = after.fromProviderName || '';
       const doctorName = after.toProviderName || '';
       const patientName = after.patientName || '';
+      const chwId = after.chwId || '';
       const sgMail = require('@sendgrid/mail');
       sgMail.setApiKey(process.env.SENDGRID_KEY);
       const msg = {
@@ -284,6 +328,11 @@ exports.sendReferralAcceptedToCHWEmail = functions.region('europe-west2').firest
       };
       try {
         await sgMail.send(msg);
+        // Send push notification
+        if (after.chwFcmToken && chwId) {
+          const notificationFn = require('./sendNotification').sendNotificationToUser;
+          await notificationFn({ userId: chwId, title: 'Referral Accepted', body: `Your referral for patient ${patientName} has been accepted by Dr. ${doctorName}.` }, { auth: null });
+        }
         console.log('Referral accepted email sent to CHW:', email);
       } catch (err) {
         console.error('Failed to send referral accepted email to CHW:', err);

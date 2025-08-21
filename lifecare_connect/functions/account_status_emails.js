@@ -24,7 +24,7 @@ exports.sendAdminApprovalEmail = functions.https.onRequest(async (req, res) => {
 });
 
 exports.sendAccountApprovedEmail = functions.https.onRequest(async (req, res) => {
-  const { email, name } = req.body;
+  const { email, name, userId } = req.body;
   const msg = {
     to: email,
     from: 'admin@lifecare.rhemn.org.ng',
@@ -33,6 +33,12 @@ exports.sendAccountApprovedEmail = functions.https.onRequest(async (req, res) =>
   };
   try {
     await sgMail.send(msg);
+    // Send push notification
+    if (userId) {
+      const admin = require('firebase-admin');
+      const notificationFn = require('./sendNotification').sendNotificationToUser;
+      await notificationFn({ userId, title: 'Account Approved', body: 'Your account has been approved and is now active.' }, { auth: null });
+    }
     res.status(200).send('Approval email sent');
   } catch (err) {
     res.status(500).send('Failed to send approval email');
@@ -40,7 +46,7 @@ exports.sendAccountApprovedEmail = functions.https.onRequest(async (req, res) =>
 });
 
 exports.sendAccountRejectedEmail = functions.https.onRequest(async (req, res) => {
-  const { email, name, reason } = req.body;
+  const { email, name, reason, userId } = req.body;
   const msg = {
     to: email,
     from: 'admin@lifecare.rhemn.org.ng',
@@ -49,6 +55,12 @@ exports.sendAccountRejectedEmail = functions.https.onRequest(async (req, res) =>
   };
   try {
     await sgMail.send(msg);
+    // Send push notification
+    if (userId) {
+      const admin = require('firebase-admin');
+      const notificationFn = require('./sendNotification').sendNotificationToUser;
+      await notificationFn({ userId, title: 'Account Rejected', body: `Your account was rejected: ${reason}` }, { auth: null });
+    }
     res.status(200).send('Rejection email sent');
   } catch (err) {
     res.status(500).send('Failed to send rejection email');
