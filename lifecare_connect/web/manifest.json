@@ -8,7 +8,7 @@
   "description": "A new Flutter project.",
   "icons": [
     {
-      "src": "assets/images/logo.png",
+      "src": "favicon.png",
       "sizes": "48x48 32x32 16x16",
       "type": "image/png"
     }

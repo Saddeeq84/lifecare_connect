@@ -21,12 +21,6 @@ class _CHWDashboardState extends State<CHWDashboard> {
   Widget build(BuildContext context) {
     final dashboardItems = [
       {
-        'icon': Icons.checklist,
-        'title': 'ANC/PNC Checklist',
-        'route': '/chw_dashboard/anc_pnc_checklist',
-        'subtitle': 'Standard checklist for antenatal/postnatal care',
-      },
-      {
         'icon': Icons.calendar_today,
         'title': 'Appointments',
         'route': '/chw_dashboard/appointments',
@@ -83,25 +77,27 @@ class _CHWDashboardState extends State<CHWDashboard> {
               context.go('/chw_dashboard/profile');
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.account_balance_wallet),
-            tooltip: 'Wallet',
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Wallet'),
-                  content: const Text('Wallet feature coming soon!'),
-                  actions: [
-                    TextButton(
-                      child: const Text('OK'),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
+           IconButton(
+             icon: const Icon(Icons.account_balance_wallet),
+             tooltip: 'Wallet',
+             onPressed: () {
+               showDialog(
+                 context: context,
+                 builder: (BuildContext context) {
+                   return AlertDialog(
+                     title: const Text('Wallet'),
+                     content: const Text('Coming Soon'),
+                     actions: [
+                       TextButton(
+                         onPressed: () => Navigator.of(context).pop(),
+                         child: const Text('OK'),
+                       ),
+                     ],
+                   );
+                 },
+               );
+             },
+           ),
           IconButton(
             icon: const Icon(Icons.settings),
             tooltip: 'Settings',

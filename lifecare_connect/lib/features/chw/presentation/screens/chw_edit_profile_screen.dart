@@ -21,7 +21,7 @@ class _CHWEditProfileScreenState extends State<CHWEditProfileScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // State variables
-  bool _isLoading = false;
+  final bool _isLoading = false;
   bool _notificationsEnabled = true;
   bool _pushNotifications = true;
   bool _emailNotifications = false;
@@ -30,9 +30,9 @@ class _CHWEditProfileScreenState extends State<CHWEditProfileScreen> {
   String _timezone = 'Auto';
 
   // User info
-  String _userName = '';
-  String _userEmail = '';
-  String _userRole = '';
+  final String _userName = '';
+  final String _userEmail = '';
+  final String _userRole = '';
 
   /// Show success message
   void _showSuccessSnackBar(String message) {
@@ -72,50 +72,7 @@ class _CHWEditProfileScreenState extends State<CHWEditProfileScreen> {
     }
   }
 
-  /// Load user data from Firebase
-  Future<void> _loadUserData() async {
-    setState(() => _isLoading = true);
-    try {
-      final user = _auth.currentUser;
-      if (user != null) {
-        _userEmail = user.email ?? '';
-        final userDoc = await _firestore.collection('users').doc(user.uid).get();
-        if (userDoc.exists) {
-          final data = userDoc.data()!;
-          _userName = data['fullName'] ?? data['name'] ?? 'Unknown User';
-          _userRole = data['role'] ?? 'CHW';
-        }
-      }
-    } catch (e) {
-      _showErrorSnackBar('Failed to load user data');
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
 
-  /// Load user settings from SharedPreferences or Firestore
-  Future<void> _loadSettings() async {
-    try {
-      final user = _auth.currentUser;
-      if (user != null) {
-        final settingsDoc = await _firestore
-            .collection('user_settings')
-            .doc(user.uid)
-            .get();
-        if (settingsDoc.exists) {
-          final settings = settingsDoc.data()!;
-          setState(() {
-            _notificationsEnabled = settings['notificationsEnabled'] ?? true;
-            _pushNotifications = settings['pushNotifications'] ?? true;
-            _emailNotifications = settings['emailNotifications'] ?? false;
-            _darkMode = settings['darkMode'] ?? false;
-            _language = settings['language'] ?? 'English';
-            _timezone = settings['timezone'] ?? 'Auto';
-          });
-        }
-      }
-    } catch (e) {}
-  }
 
   /// Save settings to Firestore
   Future<void> _saveSettings() async {

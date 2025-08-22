@@ -11,7 +11,7 @@ import '../../../patient/presentation/screens/login_patient.dart';
 import '../../../admin/presentation/screens/login_admin.dart';
 import '../../../doctor/presentation/screens/login_doctor.dart';
 import '../../../facility/presentation/screens/facility_login_screen.dart';
-import '../../../patient/presentation/screens/patient_create_account.dart';
+import '../../../patient/presentation/screens/patient_create_account.dart' hide SizedBox, ElevatedButton;
 import '../../../chw/presentation/screens/chw_create_account.dart';
 import '../../../doctor/presentation/screens/doctor_create_account.dart';
 import '../../../facility/presentation/screens/owner_register_facility_screen.dart';

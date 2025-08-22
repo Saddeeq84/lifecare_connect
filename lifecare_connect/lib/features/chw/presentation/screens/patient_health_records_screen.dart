@@ -125,11 +125,11 @@ class PatientHealthRecordsScreen extends StatelessWidget {
     }
 
     // Query all health records for the patient, regardless of role
-  return FirebaseFirestore.instance
-    .collection('health_records')
-    .where('patientId', isEqualTo: patientId)
-    .orderBy('timestamp', descending: true)
-    .snapshots();
+    return FirebaseFirestore.instance
+        .collection('health_records')
+        .where('patientUid', isEqualTo: patientId)
+        .orderBy('createdAt', descending: true)
+        .snapshots();
   }
 
   Widget _buildHealthRecordCard(BuildContext context, String recordId, Map<String, dynamic> recordData) {

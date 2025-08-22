@@ -88,10 +88,10 @@ class _DoctorSelectorForBookingState extends State<_DoctorSelectorForBooking> {
   Future<void> _searchDoctors() async {
     setState(() { _isLoading = true; });
     try {
-    final query = FirebaseFirestore.instance
-      .collection('users')
-      .where('role', isEqualTo: 'doctor')
-      .where('isApproved', isEqualTo: true);
+      final query = FirebaseFirestore.instance
+          .collection('users')
+          .where('role', isEqualTo: 'doctor')
+          .where('isActive', isEqualTo: true);
       final snapshot = await query.get();
       final searchTerm = _searchController.text.trim().toLowerCase();
       final doctors = snapshot.docs.map((doc) {
@@ -115,7 +115,7 @@ class _DoctorSelectorForBookingState extends State<_DoctorSelectorForBooking> {
         final phone = (doctor['phone'] ?? '').toLowerCase();
         return name.contains(searchTerm) || email.contains(searchTerm) || phone.contains(searchTerm);
       }).toList();
-  debugPrint('Doctor list loaded: count = ${doctors.length}');
+      debugPrint('Doctor list loaded: count = ���[33m${doctors.length}���[0m');
       if (doctors.isEmpty) {
         debugPrint('No doctors found. Check isActive and isApproved fields in Firestore.');
       }

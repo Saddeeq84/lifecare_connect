@@ -15,9 +15,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 // Import actual screens from features
 import '../../features/doctor/presentation/screens/doctor_settings_screen.dart';
-import '../../features/chw/presentation/screens/anc_pnc_checklist_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
-import '../../features/auth/presentation/screens/privacy_screen.dart';
 // Ensure that LoginScreen is defined as a class in login_screen.dart
 import '../../features/admin/presentation/screens/admin_dashboard.dart';
 import '../../features/doctor/presentation/screens/doctor_patient_list_screen.dart';
@@ -64,12 +62,6 @@ class AppRouter {
           // Link to the central/shared messaging system
           return const MessagesScreen();
         },
-      ),
-      // Direct route for Privacy Policy
-      GoRoute(
-        path: '/privacy',
-        name: 'privacy-policy',
-        builder: (context, state) => const PrivacyScreen(),
       ),
       // Custom routes for CHW consultation flows
       // Doctor dashboard with nested settings route
@@ -279,16 +271,9 @@ class AppRouter {
               ),
             ],
           ),
-          GoRoute(
-            path: 'anc_pnc_checklist',
-            name: 'chw-anc-pnc-checklist',
-            builder: (context, state) {
-              final extra = state.extra as Map<String, dynamic>?;
-              final patientId = extra?['patientId'] ?? '';
-              final patientName = extra?['patientName'] ?? 'Unknown Patient';
-              return const AncPncChecklistScreen();
-            },
-          ),
+          // Removed: ANCChecklistScreen route (no longer exists)
+          // Removed: CHWANCConsultationScreen (no longer exists)
+          // If ANC/PNC details are needed, use chw_anc_consultation_details_screen.dart instead.
           GoRoute(
             path: 'patient_health_records',
             name: 'chw-patient-health-records',
@@ -436,23 +421,18 @@ class AppRouter {
     final user = FirebaseAuth.instance.currentUser;
     final isLoggedIn = user != null;
     final isOnLoginPage = state.fullPath == '/login';
-    final isOnPrivacyPage = state.fullPath == '/privacy';
-
-    // Allow unauthenticated access to /privacy
-    if (!isLoggedIn && (isOnLoginPage || isOnPrivacyPage)) {
-      return null;
-    }
-
-    // If not logged in and not on login or privacy page, redirect to login
-    if (!isLoggedIn) {
+    
+    // If not logged in and not on login page, redirect to login
+    if (!isLoggedIn && !isOnLoginPage) {
       return '/login';
     }
-
+    
     // If logged in and on login page, redirect based on user role
     if (isLoggedIn && isOnLoginPage) {
+      // Use a more sophisticated role resolution approach
       return _getRouteForUserRole(user);
     }
-
+    
     return null; // No redirect needed
   }
   

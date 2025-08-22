@@ -16,10 +16,6 @@ class CHWCreateAccountScreen extends StatefulWidget {
 
 class _CHWCreateAccountScreenState extends State<CHWCreateAccountScreen> {
   // firebase_auth 6.x does not support fetchSignInMethodsForEmail; always return false so registration proceeds.
-  Future<bool> _checkEmailExists(String email) async {
-    // TODO: When firebase_auth supports this again, restore real check.
-    return false;
-  }
   final _formKey = GlobalKey<FormState>();
   final _auth = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
@@ -32,8 +28,8 @@ class _CHWCreateAccountScreenState extends State<CHWCreateAccountScreen> {
   final otpController = TextEditingController();
 
   bool _isLoading = false;
-  bool _codeSent = false;
   bool _isVerifying = false;
+  bool _codeSent = false;
   String? _verificationId;
   int _resendToken = 0;
   int _timerSeconds = 60;
@@ -51,111 +47,6 @@ class _CHWCreateAccountScreenState extends State<CHWCreateAccountScreen> {
     });
   }
 
-  Future<void> _register() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    final fullName = fullNameController.text.trim();
-    final email = emailController.text.trim();
-    final phone = phoneController.text.trim();
-    final password = passwordController.text.trim();
-    final confirmPassword = confirmPasswordController.text.trim();
-
-    // Check if email exists
-    if (await _checkEmailExists(email)) {
-      final shouldEdit = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Email Already In Use'),
-          content: const Text('This email is already in use. Please update your email or cancel to stop.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Update'),
-            ),
-          ],
-        ),
-      );
-      if (shouldEdit != true) return;
-      // Focus email field for update
-      FocusScope.of(context).requestFocus(FocusNode());
-      return;
-    }
-
-    if (password != confirmPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('❗ Passwords do not match')),
-      );
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    try {
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      final user = userCredential.user;
-      if (user == null) throw Exception('User creation failed');
-
-      // CHWs auto-verify email but require admin approval before dashboard access
-      
-      await _firestore.collection('users').doc(user.uid).set({
-  'fullName': fullName,
-  'email': email,
-  'phone': phone,
-  'role': 'chw',
-  'isPhoneVerified': false,
-  'isApproved': false, // CHWs now need admin approval
-  'isRejected': false,
-  'emailVerified': true, // CHWs don't need email verification 
-  'createdAt': FieldValue.serverTimestamp(),
-      });
-
-
-      await _auth.verifyPhoneNumber(
-        phoneNumber: phone,
-        timeout: const Duration(seconds: 60),
-        verificationCompleted: (PhoneAuthCredential credential) async {
-          await user.linkWithCredential(credential);
-          await _firestore.collection('users').doc(user.uid).update({
-            'isPhoneVerified': true,
-          });
-          await _handleApprovalAndRedirect(user.uid);
-        },
-        verificationFailed: (FirebaseAuthException e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Phone verification failed: ${e.message}')),
-          );
-        },
-        codeSent: (String verificationId, int? resendToken) {
-          setState(() {
-            _verificationId = verificationId;
-            _codeSent = true;
-            _resendToken = resendToken ?? 0;
-          });
-          _startCountdown();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('📩 OTP sent to your phone')),
-          );
-        },
-        codeAutoRetrievalTimeout: (String verificationId) {
-          _verificationId = verificationId;
-        },
-        forceResendingToken: _resendToken,
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ Error: $e')),
-      );
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
 
   Future<void> _verifyOtpAndLinkPhone() async {
     if (_verificationId == null || otpController.text.trim().isEmpty) {
@@ -381,11 +272,29 @@ class _CHWCreateAccountScreenState extends State<CHWCreateAccountScreen> {
                     },
                     child: const Text('Register'),
                   ),
+                  if (_codeSent)
+                    Column(
+                      children: [
+                        const SizedBox(height: 20),
+                        _buildTextField('Enter OTP', otpController, keyboardType: TextInputType.number),
+                        const SizedBox(height: 10),
+                        ElevatedButton(
+                          onPressed: _isVerifying ? null : _verifyOtpAndLinkPhone,
+                          child: const Text('Verify OTP'),
+                        ),
+                        TextButton(
+                          onPressed: _timerSeconds == 0 ? _resendCode : null,
+                          child: Text(_timerSeconds == 0
+                              ? 'Resend OTP'
+                              : 'Resend OTP in $_timerSeconds s'),
+                        ),
+                      ],
+                    ),
                 ],
               ),
             ),
           ),
-          if (_isLoading)
+          if (_isLoading || _isVerifying)
             Container(
               color: Colors.black.withOpacity(0.3),
               child: const Center(

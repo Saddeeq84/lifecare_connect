@@ -3,7 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../shared/presentation/widgets/patient_list_widget.dart';
+import 'anc_pnc_checklist_screen.dart';
 
 class ChwPatientListScreen extends StatelessWidget {
   const ChwPatientListScreen({super.key});
@@ -68,13 +70,17 @@ class ChwPatientListScreen extends StatelessWidget {
               subtitle: const Text('Document antenatal care visit'),
               onTap: () {
                 Navigator.pop(context);
-                // Navigate to CHW ANC Consultation Details screen
-                context.go('/chw_anc_consultation_details', extra: {
-                  'appointmentId': '', // No appointment yet
-                  'patientId': patient.id,
-                  'patientName': patientName,
-                  'appointmentData': {'appointmentType': 'ANC'},
-                });
+                // Navigate to ANC/PNC Checklist screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AncPncChecklistScreen(
+                      patientId: patient.id,
+                      patientName: patientName,
+                      checklistType: 'ANC',
+                    ),
+                  ),
+                );
               },
             ),
             ListTile(

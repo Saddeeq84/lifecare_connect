@@ -2,11 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -37,8 +32,6 @@ Future<void> main() async {
 
   }
   runApp(const LifeCareApp());
-
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 }
 
 class LifeCareApp extends StatelessWidget {
@@ -46,8 +39,6 @@ class LifeCareApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // FCM setup
-    _setupFCM();
     return MaterialApp.router(
       title: AppConstants.appName,
       theme: AppTheme.lightTheme,
@@ -64,20 +55,6 @@ class LifeCareApp extends StatelessWidget {
         );
       },
     );
-  }
-
-  void _setupFCM() async {
-    final messaging = FirebaseMessaging.instance;
-    await messaging.requestPermission();
-    final token = await messaging.getToken();
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null && token != null) {
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({'fcmToken': token});
-    }
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      // Show local notification
-      // You can use flutter_local_notifications here
-    });
   }
 }
 

@@ -18,27 +18,8 @@ android {
         applicationId = "com.lifecare_connect"
         minSdk = 23
         targetSdk = flutter.targetSdkVersion
-    versionCode = 11 // Set to 11 for next release
-    versionName = "1.0.9" // Set to 1.0.9 for next release
-
-    // Enable APK splitting by ABI (Kotlin DSL)
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-        }
-    }
-
-    // APK splits by ABI (Kotlin DSL)
-    splits {
-        abi {
-            isEnable = true
-            reset()
-            include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
-            isUniversalApk = false
-        }
-    }
+    versionCode = 8 // Increased from 7 to 8
+    versionName = "1.0.8" // Updated version name
         multiDexEnabled = true // ✅ Required for large apps using many methods (e.g., Firebase)
     }
 

@@ -1,283 +1,299 @@
+
+
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../shared/data/services/health_records_service.dart';
 
 class AncPncChecklistScreen extends StatefulWidget {
-  const AncPncChecklistScreen({super.key});
+	final String patientId;
+	final String patientName;
+	final String checklistType; // 'ANC' or 'PNC'
 
-  @override
-  State<AncPncChecklistScreen> createState() => _AncPncChecklistScreenState();
+	const AncPncChecklistScreen({
+		super.key,
+		required this.patientId,
+		required this.patientName,
+		required this.checklistType,
+	});
+
+	@override
+	State<AncPncChecklistScreen> createState() => _AncPncChecklistScreenState();
 }
 
 class _AncPncChecklistScreenState extends State<AncPncChecklistScreen> {
-  Future<List<DocumentSnapshot>> _loadMyPatients() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) return [];
-    final String userId = currentUser.uid;
-    final Set<String> patientIds = <String>{};
+	DateTime? selectedFollowUpDate;
+	late Map<String, Map<String, List<String>>> groupedSections;
+	late List<String> sectionOrder;
+	late Map<String, List<bool>> checkedMap;
+  final TextEditingController followUpPlanController = TextEditingController();
+  final TextEditingController followUpDateController = TextEditingController();
+  final TextEditingController followUpNotesController = TextEditingController();
 
-    // 1. Patients registered by this CHW
-    final registeredPatients = await FirebaseFirestore.instance
-        .collection('users')
-        .where('role', isEqualTo: 'patient')
-        .where('createdBy', isEqualTo: userId)
-        .get();
-    for (final doc in registeredPatients.docs) {
-      patientIds.add(doc.id);
-    }
+	@override
+	void initState() {
+		super.initState();
+			groupedSections = {
+				'ANC': {
+					'Screening & Assessment': [
+						'Blood Pressure Checked',
+						'Weight Measured',
+						'Urine Test for Protein/Sugar',
+						'Blood Test (Hemoglobin, HIV, Syphilis)',
+						'Screening for Gestational Diabetes',
+						'Screening for Pre-eclampsia',
+						'Assessment of Fetal Growth',
+						'Assessment of Fetal Presentation',
+						'Assessment of Amniotic Fluid Volume',
+						'Screening for Sexually Transmitted Infections (STIs)',
+					],
+					'Clinical Care': [
+						'Iron/Folic Acid Tablets Given',
+						'Tetanus Toxoid Immunization',
+						'Abdominal Examination',
+						'Fetal Heart Rate Checked',
+						'Malaria Prevention (if endemic)',
+					],
+					'Education & Counseling': [
+						'Diet and Nutrition Counseling',
+						'Birth Preparedness Counseling',
+						'Danger Signs Explained',
+						'Hygiene and Rest Advice',
+						'Family Planning Counseling',
+						'Education on Birth Spacing',
+						'Education on Early Initiation of Breastfeeding',
+						'Education on Postpartum Care',
+					],
+					'Follow-up & Documentation': [
+						'Follow-up Visit Scheduled',
+						'Assessment of Maternal Mental Health',
+						'Review of Medication Use',
+						'Assessment of Social Support',
+						'Referral to Specialist (if needed)',
+						'Documentation of All Findings',
+					],
+				},
+				'PNC': {
+					'Mother Assessment': [
+						'Mother’s General Health Checked',
+						'Maternal Mental Health Screening',
+						'Assessment of Uterine Involution',
+						'Assessment of Lochia',
+						'Screening for Postpartum Hemorrhage',
+						'Screening for Infection (Mother and Baby)',
+						'Nutrition and Rest Advice',
+						'Danger Signs Explained',
+						'Hygiene Advice',
+						'Assessment of Maternal Sleep and Rest',
+						'Assessment of Social Support',
+					],
+					'Baby Assessment': [
+						'Baby’s General Health Checked',
+						'Assessment of Baby’s Weight Gain',
+						'Assessment of Baby’s Feeding',
+						'Screening for Jaundice in Baby',
+					],
+					'Education & Counseling': [
+						'Breastfeeding Counseling',
+						'Support for Exclusive Breastfeeding',
+						'Education on Newborn Danger Signs',
+						'Education on Maternal Danger Signs',
+						'Education on Infant Immunization Schedule',
+						'Education on Maternal Nutrition',
+						'Education on Family Planning Options',
+					],
+					'Follow-up & Documentation': [
+						'Cord Care Explained',
+						'Immunization Advice',
+						'Postpartum Family Planning',
+						'Follow-up Visit Scheduled',
+						'Referral to Specialist (if needed)',
+						'Documentation of All Findings',
+					],
+				},
+			};
+			sectionOrder = groupedSections[widget.checklistType]!.keys.toList();
+			checkedMap = {};
+		for (var section in sectionOrder) {
+			checkedMap[section] = List.filled(groupedSections[widget.checklistType]![section]!.length, false);
+		}
+}
 
-    // 2. Patients from health records (consultations, ANC visits, etc.)
-    final healthRecords = await FirebaseFirestore.instance
-        .collection('health_records')
-        .where('providerId', isEqualTo: userId)
-        .get();
-    for (final doc in healthRecords.docs) {
-      final data = doc.data();
-      if (data['patientId'] != null) {
-        patientIds.add(data['patientId']);
-      }
-    }
 
-    // 3. Patients from appointments (approved, completed, attended, or any interaction)
-    try {
-      final appointments = await FirebaseFirestore.instance
-          .collection('appointments')
-          .where('providerId', isEqualTo: userId)
-          .get();
-      for (final doc in appointments.docs) {
-        final data = doc.data();
-        if (data['patientId'] != null) {
-          patientIds.add(data['patientId']);
-        }
-      }
-      // Also include self-registered patients who booked appointment with this CHW
-      final selfAppointments = await FirebaseFirestore.instance
-          .collection('appointments')
-          .where('status', whereIn: ['completed', 'attended', 'approved'])
-          .where('providerId', isEqualTo: userId)
-          .get();
-      for (final doc in selfAppointments.docs) {
-        final data = doc.data();
-        if (data['patientId'] != null) {
-          patientIds.add(data['patientId']);
-        }
-      }
-    } catch (e) {}
+	void _saveChecklist() {
+		showDialog(
+			context: context,
+			builder: (BuildContext context) {
+				return AlertDialog(
+					title: const Text('Confirm Save'),
+					content: const Text('Are you sure you want to save the checklist?'),
+					actions: [
+						TextButton(
+							child: const Text('Cancel'),
+							onPressed: () {
+								Navigator.of(context).pop();
+							},
+						),
+						ElevatedButton(
+							child: const Text('Confirm'),
+							onPressed: () {
+								Navigator.of(context).pop();
+								_performSaveChecklist();
+							},
+						),
+					],
+				);
+			},
+		);
+	}
 
-    // 4. Patients from referrals (sent or received)
-    try {
-      final referrals = await FirebaseFirestore.instance
-          .collection('referrals')
-          .where('referredById', isEqualTo: userId)
-          .get();
-      for (final doc in referrals.docs) {
-        final data = doc.data();
-        if (data['patientId'] != null) {
-          patientIds.add(data['patientId']);
-        }
-      }
-      final receivedReferrals = await FirebaseFirestore.instance
-          .collection('referrals')
-          .where('referredToId', isEqualTo: userId)
-          .get();
-      for (final doc in receivedReferrals.docs) {
-        final data = doc.data();
-        if (data['patientId'] != null) {
-          patientIds.add(data['patientId']);
-        }
-      }
-    } catch (e) {}
+	void _performSaveChecklist() {
+		// Prepare checklist data
+		final Map<String, dynamic> checklistData = {
+			'patientId': widget.patientId,
+			'patientName': widget.patientName,
+			'checklistType': widget.checklistType,
+			'timestamp': FieldValue.serverTimestamp(),
+			'followUpPlan': followUpPlanController.text,
+			'followUpDate': followUpDateController.text,
+			'followUpNotes': followUpNotesController.text,
+			'sections': {
+				for (var section in sectionOrder)
+					section: List.generate(
+						groupedSections[widget.checklistType]![section]!.length,
+						(i) => {
+							'item': groupedSections[widget.checklistType]![section]![i],
+							'checked': checkedMap[section]![i],
+						},
+					),
+			},
+		};
 
-    // 5. Patients from general consultations (health_records with type 'General Consultation')
-    final generalConsults = await FirebaseFirestore.instance
-        .collection('health_records')
-        .where('providerId', isEqualTo: userId)
-        .where('type', isEqualTo: 'General Consultation')
-        .get();
-    for (final doc in generalConsults.docs) {
-      final data = doc.data();
-      if (data['patientId'] != null) {
-        patientIds.add(data['patientId']);
-      }
-    }
+		// Save to Firestore 'health_records' collection
+			FirebaseFirestore.instance.collection('health_records').add(checklistData).then((_) {
+				setState(() {
+					// Clear all checkboxes
+					for (var section in sectionOrder) {
+						checkedMap[section] = List.filled(groupedSections[widget.checklistType]![section]!.length, false);
+					}
+					// Clear text fields
+					followUpPlanController.clear();
+					followUpDateController.clear();
+					followUpNotesController.clear();
+					selectedFollowUpDate = null;
+				});
+				ScaffoldMessenger.of(context).showSnackBar(
+					const SnackBar(content: Text('Checklist saved to health_records!')),
+				);
+			}).catchError((error) {
+				ScaffoldMessenger.of(context).showSnackBar(
+					SnackBar(content: Text('Error saving checklist: '
+							'${error.toString()}')),
+				);
+			});
+	}
 
-    // 6. Patients from ANC consultations (health_records with type 'ANC Consultation')
-    final ancConsults = await FirebaseFirestore.instance
-        .collection('health_records')
-        .where('providerId', isEqualTo: userId)
-        .where('type', isEqualTo: 'ANC Consultation')
-        .get();
-    for (final doc in ancConsults.docs) {
-      final data = doc.data();
-      if (data['patientId'] != null) {
-        patientIds.add(data['patientId']);
-      }
-    }
-
-    // Get all patients that match these IDs
-    if (patientIds.isEmpty) return [];
-    final List<DocumentSnapshot> allDocs = [];
-    final List<String> patientIdsList = patientIds.toList();
-    const int batchSize = 10;
-    for (int i = 0; i < patientIdsList.length; i += batchSize) {
-      final batch = patientIdsList.sublist(
-        i,
-        i + batchSize > patientIdsList.length ? patientIdsList.length : i + batchSize,
-      );
-      final batchQuery = await FirebaseFirestore.instance
-          .collection('users')
-          .where('role', isEqualTo: 'patient')
-          .where(FieldPath.documentId, whereIn: batch)
-          .get();
-      allDocs.addAll(batchQuery.docs);
-    }
-    allDocs.sort((a, b) {
-      final aData = a.data() as Map<String, dynamic>;
-      final bData = b.data() as Map<String, dynamic>;
-      final aName = aData['name'] ?? aData['fullName'] ?? '';
-      final bName = bData['name'] ?? bData['fullName'] ?? '';
-      return aName.compareTo(bName);
-    });
-    return allDocs;
-  }
-  String? selectedPatientId;
-  String? selectedPatientName;
-  final Map<String, bool> ancChecklist = {
-    'Blood pressure measured': false,
-    'Urine tested for protein': false,
-    'Weight recorded': false,
-    'Fetal heart rate checked': false,
-    'Iron/folic acid supplementation given': false,
-    'Tetanus toxoid vaccination': false,
-    'Counseling on danger signs': false,
-    'Birth preparedness discussed': false,
-  };
-  final Map<String, bool> pncChecklist = {
-    'Mother’s vital signs checked': false,
-    'Breastfeeding assessed': false,
-    'Uterine involution checked': false,
-    'Perineum/incision site inspected': false,
-    'Family planning discussed': false,
-    'Immunizations for newborn': false,
-    'Counseling on postpartum danger signs': false,
-  };
-  bool submitting = false;
-
-  Future<void> submitChecklist() async {
-    if (selectedPatientId == null || selectedPatientName == null) return;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirm Submission'),
-        content: const Text('Are you sure you want to submit this checklist to the patient health record?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Submit'),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-    setState(() => submitting = true);
-    try {
-      await FirebaseFirestore.instance.collection('health_records').add({
-        'patientId': selectedPatientId,
-        'patientName': selectedPatientName,
-        'type': 'ANC/PNC Checklist',
-        'ancChecklist': ancChecklist,
-        'pncChecklist': pncChecklist,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Checklist submitted to health record!'), backgroundColor: Colors.green),
-        );
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error submitting checklist: $e'), backgroundColor: Colors.red),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => submitting = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('ANC/PNC Checklist'),
-        backgroundColor: Colors.teal,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          FutureBuilder<List<DocumentSnapshot>>(
-            future: _loadMyPatients(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Text('No patients found');
-              }
-              final patients = snapshot.data!;
-              return DropdownButtonFormField<String>(
-                decoration: const InputDecoration(labelText: 'Select Patient'),
-                value: selectedPatientId,
-                items: patients.map((doc) {
-                  final data = doc.data() as Map<String, dynamic>;
-                  final name = data['name'] ?? data['fullName'] ?? 'Unknown Patient';
-                  return DropdownMenuItem(
-                    value: doc.id,
-                    child: Text(name),
-                  );
-                }).toList(),
-                onChanged: (val) {
-                  setState(() {
-                    selectedPatientId = val;
-                    final selectedDoc = patients.firstWhere((doc) => doc.id == val);
-                    final data = selectedDoc.data() as Map<String, dynamic>;
-                    selectedPatientName = data['name'] ?? data['fullName'] ?? 'Unknown Patient';
-                  });
-                },
-                validator: (val) => val == null ? 'Please select a patient' : null,
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-          const Text('Antenatal Care (ANC) Checklist', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
-          ...ancChecklist.keys.map((label) => CheckboxListTile(
-                title: Text(label),
-                value: ancChecklist[label],
-                onChanged: selectedPatientId == null ? null : (val) => setState(() => ancChecklist[label] = val ?? false),
-              )),
-          const Divider(height: 32),
-          const Text('Postnatal Care (PNC) Checklist', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
-          ...pncChecklist.keys.map((label) => CheckboxListTile(
-                title: Text(label),
-                value: pncChecklist[label],
-                onChanged: selectedPatientId == null ? null : (val) => setState(() => pncChecklist[label] = val ?? false),
-              )),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            icon: const Icon(Icons.save),
-            label: submitting ? const CircularProgressIndicator(color: Colors.white) : const Text('Submit Checklist'),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
-            onPressed: submitting || selectedPatientId == null ? null : submitChecklist,
-          ),
-        ],
-      ),
-    );
+	@override
+	Widget build(BuildContext context) {
+		return Scaffold(
+			appBar: AppBar(
+				title: Text('${widget.checklistType == 'ANC' ? 'ANC' : 'PNC'} Checklist'),
+				backgroundColor: Colors.teal,
+			),
+			body: SingleChildScrollView(
+				padding: const EdgeInsets.all(16),
+				child: Column(
+					crossAxisAlignment: CrossAxisAlignment.start,
+					children: [
+						Text(
+							'Patient: ${widget.patientName}',
+							style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+						),
+						const SizedBox(height: 16),
+						Text(
+							'Patient ID: ${widget.patientId}',
+							style: const TextStyle(fontSize: 14, color: Colors.grey),
+						),
+						const SizedBox(height: 24),
+						Text(
+							widget.checklistType == 'ANC'
+									? 'Antenatal Care (ANC) Checklist'
+									: 'Postnatal Care (PNC) Checklist',
+							style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.teal),
+						),
+						const SizedBox(height: 12),
+						...sectionOrder.map((section) => Column(
+							crossAxisAlignment: CrossAxisAlignment.start,
+							children: [
+								Text(section, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.teal)),
+								const SizedBox(height: 8),
+								...List.generate(groupedSections[widget.checklistType]![section]!.length, (index) {
+									final item = groupedSections[widget.checklistType]![section]![index];
+									return CheckboxListTile(
+										title: Text(item),
+										value: checkedMap[section]![index],
+										onChanged: (val) {
+											setState(() {
+												checkedMap[section]![index] = val ?? false;
+											});
+										},
+									);
+								}),
+								const SizedBox(height: 12),
+							],
+						)),
+						const SizedBox(height: 16),
+						Text('Follow-up Plan:', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+						TextField(
+							controller: followUpPlanController,
+							decoration: const InputDecoration(hintText: 'Describe follow-up actions or advice', border: OutlineInputBorder()),
+							maxLines: 2,
+						),
+						const SizedBox(height: 8),
+									Text('Next Visit Date:', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+									InkWell(
+										onTap: () async {
+											final picked = await showDatePicker(
+												context: context,
+												initialDate: selectedFollowUpDate ?? DateTime.now(),
+												firstDate: DateTime.now().subtract(const Duration(days: 365)),
+												lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+											);
+											if (picked != null) {
+												setState(() {
+													selectedFollowUpDate = picked;
+													followUpDateController.text = '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+												});
+											}
+										},
+										child: IgnorePointer(
+											child: TextField(
+												controller: followUpDateController,
+												decoration: const InputDecoration(
+													hintText: 'Select date',
+													border: OutlineInputBorder(),
+													suffixIcon: Icon(Icons.calendar_today),
+												),
+												readOnly: true,
+											),
+										),
+									),
+						const SizedBox(height: 8),
+						Text('Additional Notes:', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+						TextField(
+							controller: followUpNotesController,
+							decoration: const InputDecoration(hintText: 'Any extra notes', border: OutlineInputBorder()),
+							maxLines: 2,
+						),
+						const SizedBox(height: 16),
+						ElevatedButton(
+							onPressed: _saveChecklist,
+							style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
+							child: const Text('Save Checklist'),
+						),
+					],
+				),
+			),
+		);
   }
 }
