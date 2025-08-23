@@ -213,7 +213,7 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
         key: _formKey,
         child: ListView(
           children: [
-            Text(widget.isCHW ? 'CHW Patient Registration' : 'Patient Self Registration', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(widget.isCHW ? 'Patient Registration by Email' : 'Patient Self Registration', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             TextFormField(
               controller: _nameController,
@@ -322,7 +322,7 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, minimumSize: const Size.fromHeight(45)),
               onPressed: _isLoading ? null : _handleRegister,
-              child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text('Register'),
+              child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text('Create Account'),
             ),
           ],
         ),
@@ -369,7 +369,7 @@ class PatientRegistrationScreen extends StatelessWidget {
           elevation: 2,
           bottom: TabBar(
             tabs: [
-              Tab(text: 'Form Registration'),
+              Tab(text: 'Email Registration'),
               Tab(text: 'Phone Registration'),
             ],
           ),
@@ -634,7 +634,7 @@ class _CHWPatientPhoneFormState extends State<_CHWPatientPhoneForm> {
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, minimumSize: const Size.fromHeight(45)),
                 onPressed: _isLoading ? null : _verifyPhone,
-                child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text('Register by Phone'),
+                child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text('Create Account'),
               ),
             ] else ...[
               TextFormField(
