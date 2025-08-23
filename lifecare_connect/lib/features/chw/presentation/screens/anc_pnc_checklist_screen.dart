@@ -1,9 +1,7 @@
 
 
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../shared/data/services/health_records_service.dart';
 
 class AncPncChecklistScreen extends StatefulWidget {
 	final String patientId;

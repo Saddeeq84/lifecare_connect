@@ -79,6 +79,35 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
       return;
     }
     setState(() => isLoading = true);
+    // Normalize phone number
+    final inputPhone = phoneController.text.trim();
+    String normalizedPhone = inputPhone;
+    if (inputPhone.startsWith('0')) {
+      normalizedPhone = '+234' + inputPhone.substring(1);
+    } else if (inputPhone.startsWith('234')) {
+      normalizedPhone = '+234' + inputPhone.substring(3);
+    }
+    // Check for duplicate phone number
+    final existing = await FirebaseFirestore.instance.collection('users')
+      .where('phone', isEqualTo: normalizedPhone)
+      .get();
+    if (existing.docs.isNotEmpty) {
+      setState(() => isLoading = false);
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Phone Number Already Used'),
+          content: const Text('This phone number is already registered by someone. Please use a different number.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
     try {
       final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: emailController.text.trim(),
@@ -90,7 +119,7 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
           'uid': user.uid,
           'name': nameController.text.trim(),
           'email': emailController.text.trim(),
-          'phone': phoneController.text.trim(),
+          'phone': normalizedPhone,
           'address': addressController.text.trim(),
           'emergencyContact': emergencyContactController.text.trim(),
           'dateOfBirth': Timestamp.fromDate(selectedDate!),
@@ -124,9 +153,38 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
   Future<void> handlePhoneRegister() async {
     if (!formKey.currentState!.validate()) return;
     setState(() => isLoading = true);
+    // Normalize phone number
+    final inputPhone = phoneController.text.trim();
+    String normalizedPhone = inputPhone;
+    if (inputPhone.startsWith('0')) {
+      normalizedPhone = '+234' + inputPhone.substring(1);
+    } else if (inputPhone.startsWith('234')) {
+      normalizedPhone = '+234' + inputPhone.substring(3);
+    }
+    // Check for duplicate phone number
+    final existing = await FirebaseFirestore.instance.collection('users')
+      .where('phone', isEqualTo: normalizedPhone)
+      .get();
+    if (existing.docs.isNotEmpty) {
+      setState(() => isLoading = false);
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Phone Number Already Used'),
+          content: const Text('This phone number is already registered by someone. Please use a different number.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
     try {
       await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: phoneController.text.trim(),
+        phoneNumber: normalizedPhone,
         verificationCompleted: (credential) async {
           await FirebaseAuth.instance.signInWithCredential(credential);
           await _savePatientToFirestorePhone();
@@ -229,11 +287,11 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
                 children: const [
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Text('Use Email'),
+                    child: Text('Email Registration'),
                   ),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Text('Use Phone'),
+                    child: Text('Phone Registration'),
                   ),
                 ],
               ),
@@ -250,9 +308,17 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
                     const SizedBox(height: 10),
                     TextFormField(
                       controller: phoneController,
-                      decoration: const InputDecoration(labelText: 'Phone Number'),
+                      decoration: const InputDecoration(
+                        labelText: 'Phone Number',
+                        hintText: 'e.g. 08012345678, 08123456789, 2348012345678, +2348012345678',
+                      ),
                       keyboardType: TextInputType.phone,
-                      validator: (val) => val != null && val.length >= 10 ? null : 'Enter a valid phone number',
+                      validator: (val) {
+                        if (val == null || val.isEmpty) return 'Enter phone number';
+                        final regex = RegExp(r'^(0[789][01]\d{8}|234[789][01]\d{8}|\+234[789][01]\d{8})$');
+                        if (!regex.hasMatch(val)) return 'Enter a valid Nigerian phone number.';
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 10),
                     if (!isPhoneMode) ...[
@@ -316,7 +382,7 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
                     const SizedBox(height: 10),
                     TextFormField(
                       controller: emergencyContactController,
-                      decoration: const InputDecoration(labelText: 'Emergency Contact'),
+                      decoration: const InputDecoration(labelText: 'Emergency Contact (optional)'),
                       keyboardType: TextInputType.phone,
                     ),
                     const SizedBox(height: 20),
@@ -327,9 +393,30 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
                       ),
                       onPressed: isLoading
                           ? null
-                          : () => isPhoneMode
-                              ? handlePhoneRegister()
-                              : handleEmailRegister(),
+                          : () async {
+                              final confirmed = await showDialog<bool>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Confirm Account Creation'),
+                                  content: const Text('Are you sure you want to create this patient account?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.of(context).pop(false),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () => Navigator.of(context).pop(true),
+                                      child: const Text('Confirm'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (confirmed == true) {
+                                isPhoneMode
+                                  ? await handlePhoneRegister()
+                                  : await handleEmailRegister();
+                              }
+                            },
                       child: isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
                           : const Text('Create Account'),

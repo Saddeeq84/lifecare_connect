@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 // Shared patient registration form for both CHW and patient self-registration
 class _PatientRegistrationForm extends StatefulWidget {
   final bool isCHW;
-  const _PatientRegistrationForm({super.key, required this.isCHW});
+  const _PatientRegistrationForm({required this.isCHW});
 
   @override
   State<_PatientRegistrationForm> createState() => _PatientRegistrationFormState();
