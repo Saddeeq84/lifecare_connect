@@ -1,8 +1,11 @@
+import 'package:flutter/foundation.dart';
 // ignore_for_file: use_build_context_synchronously, prefer_const_constructors
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'login_patient_register.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 // // import '../sharedScreen/register_role_selection.dart'; // Broken import // Broken import
 
 class LoginPatientPhone extends StatefulWidget {
@@ -28,7 +31,7 @@ class _LoginPatientPhoneState extends State<LoginPatientPhone> {
 
   void _verifyPhone() async {
     setState(() => _loading = true);
-
+    setState(() => _loading = true);
     await FirebaseAuth.instance.verifyPhoneNumber(
       phoneNumber: formatPhoneNumber(_phoneController.text.trim()),
       verificationCompleted: (credential) async {
@@ -61,8 +64,41 @@ class _LoginPatientPhoneState extends State<LoginPatientPhone> {
     );
 
     try {
-      await FirebaseAuth.instance.signInWithCredential(credential);
-      if (mounted) Navigator.pushReplacementNamed(context, '/patient_dashboard');
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      final user = userCredential.user;
+      if (user != null) {
+        // Fetch user role from Firestore
+        final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        String role = 'patient';
+        if (userDoc.exists) {
+          final userData = userDoc.data()!;
+          role = userData['role']?.toString().toLowerCase() ?? 'patient';
+        }
+        // Save role to SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_role', role);
+        // Redirect based on role
+        if (mounted) {
+          switch (role) {
+            case 'admin':
+              Navigator.pushReplacementNamed(context, '/admin_dashboard');
+              break;
+            case 'doctor':
+              Navigator.pushReplacementNamed(context, '/doctor_dashboard');
+              break;
+            case 'chw':
+              Navigator.pushReplacementNamed(context, '/chw_dashboard');
+              break;
+            case 'facility':
+              Navigator.pushReplacementNamed(context, '/facility_dashboard');
+              break;
+            case 'patient':
+            default:
+              Navigator.pushReplacementNamed(context, '/patient_dashboard');
+              break;
+          }
+        }
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Login failed: $e')),
@@ -79,6 +115,11 @@ class _LoginPatientPhoneState extends State<LoginPatientPhone> {
 
   @override
   Widget build(BuildContext context) {
+    // For web reCAPTCHA container
+    final recaptchaWidget = kIsWeb ? Container(
+      key: const ValueKey('recaptcha-container'),
+      child: const SizedBox.shrink(),
+    ) : const SizedBox.shrink();
     return Scaffold(
       appBar: AppBar(
         title: const Text("Patient Phone Login"),
@@ -94,6 +135,7 @@ class _LoginPatientPhoneState extends State<LoginPatientPhone> {
         child: SingleChildScrollView(
           child: Column(
             children: [
+              recaptchaWidget,
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
                 decoration: BoxDecoration(

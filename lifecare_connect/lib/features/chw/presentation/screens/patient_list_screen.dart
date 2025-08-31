@@ -97,14 +97,18 @@ class ChwPatientListScreen extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.edit, color: Colors.teal),
-              title: const Text('Update Patient Info'),
-              subtitle: const Text('Edit patient details'),
+              leading: const Icon(Icons.note_add, color: Colors.teal),
+              title: const Text('Add Consultation Note'),
+              subtitle: const Text('Record a new consultation for this patient'),
               onTap: () {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Update info for $patientName (Coming soon)')),
-                );
+                  context.go('/chw_anc_consultation_details', extra: {
+                    'appointmentId': 'manual',
+                    'patientId': patient.id,
+                    'patientName': patientName,
+                    'appointmentData': {},
+                    'isReadOnly': false,
+                  });
               },
             ),
             const SizedBox(height: 16),

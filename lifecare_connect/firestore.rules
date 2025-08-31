@@ -1,6 +1,16 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // FACILITIES COLLECTION - Allow public read/list for facility selection
+    match /facilities/{facilityId} {
+      // Allow anyone to read and list facilities for dropdowns and selection
+      allow read, list: if true;
+      // Only authenticated users can write
+      allow write: if isAuthenticated();
+      // Only admin can delete
+      allow delete: if isAdmin();
+    }
+
     // MESSAGES COLLECTION - Unified messaging
     match /messages/{messageId} {
       // Allow authenticated users to read and write messages
@@ -73,23 +83,17 @@ service cloud.firestore {
 
     // 👥 USERS COLLECTION
     match /users/{userId} {
-      // Users can read and update their own data
-      allow read, update: if isAuthenticated() && request.auth.uid == userId;
+      // Allow anyone to read for duplicate check
+      allow read: if true;
+
+      // Allow staff to read/write their own profile if authenticated and userId matches their staffId in token
+      allow read, write: if isAuthenticated() && (request.auth.token.staffId == userId);
+
+      // Allow authenticated users to create their own account (for other roles)
+      allow create: if isAuthenticated() && request.auth.uid == userId;
 
       // Admin can read and write all user data
       allow read, write: if isAdmin();
-
-  // TEMP: Allow public write for debugging (INSECURE)
-  allow create, write: if true;
-    // TEMP: Allow public write to facilities collection for debugging (INSECURE)
-    match /facilities/{facilityId} {
-      // Require 'documentUrl' on create
-      allow create: if request.resource.data.keys().hasAll(['documentUrl']);
-      allow read, update, delete: if true;
-    }
-
-      // Healthcare providers can read other user profiles for patient management
-      allow read: if isAuthenticated() && (isDoctor() || isCHWWithoutApproval() || isFacility());
 
       // CHW can create patient profiles
       allow create: if isCHWWithoutApproval() &&
@@ -175,7 +179,8 @@ service cloud.firestore {
 
     // All other collections with basic rules...
     match /{document=**} {
-  allow read, write: if request.auth != null;
+      allow read: if true;
+      allow write: if request.auth != null;
     }
   }
 }

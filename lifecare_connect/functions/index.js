@@ -1,3 +1,4 @@
+exports.sendStaffSetupPasswordEmail = require('./send_staff_setup_password').sendStaffSetupPasswordEmail;
 const functions = require('firebase-functions');
 const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(functions.config().sendgrid.key);

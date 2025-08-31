@@ -13,6 +13,8 @@ import 'facility_messages_screen.dart';
 import 'facility_patient_list_screen.dart';
 import 'facility_analytics_screen.dart';
 import 'facility_services_screen.dart';
+import 'facility_staff_create_account.dart';
+import 'facility_staff_list.dart';
 import 'package:go_router/go_router.dart';
   Future<void> _handleLogout(BuildContext context) async {
     _showLogoutDialog(context);
@@ -138,6 +140,11 @@ class _FacilityDashboardState extends State<FacilityDashboard> {
           "icon": Icons.analytics,
           "label": "Reports & Analytics",
           "action": "analytics"
+        },
+        {
+          "icon": Icons.group,
+          "label": "Staff",
+          "action": "staff"
         },
         {
           "icon": Icons.account_balance_wallet,
@@ -288,6 +295,14 @@ class _FacilityDashboardState extends State<FacilityDashboard> {
         break;
       case 'services':
         _navigateToServices(context);
+        break;
+      case 'staff':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => FacilityStaffListScreen(facilityName: 'chana health center'),
+          ),
+        );
         break;
       case 'wallet':
         _showComingSoonDialog(context, 'Wallet');

@@ -25,6 +25,7 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  String? _verificationId;
 
   @override
   void dispose() {
@@ -50,7 +51,7 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
     }
   }
 
-  Future<void> _handleRegister() async {
+  Future<void> _handlePhoneRegister() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -64,15 +65,32 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
       );
       return;
     }
-    if (!widget.isCHW && _passwordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Passwords do not match')),
+    setState(() => _isLoading = true);
+    // Normalize phone number
+    String phone = _phoneController.text.trim().replaceAll(' ', '');
+    final localPattern = RegExp(r'^0([789][01]\d{8})$');
+    final intlPattern = RegExp(r'^\+234[789][01]\d{8}$');
+    if (localPattern.hasMatch(phone)) {
+      phone = '+234' + phone.substring(1);
+    }
+    if (!intlPattern.hasMatch(phone)) {
+      setState(() => _isLoading = false);
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Invalid Phone Number'),
+          content: const Text('Please enter a valid Nigerian phone number in the format +23470..., 070..., or 081...'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
       );
       return;
     }
-    setState(() => _isLoading = true);
-    // Check if phone number already exists
-    final phone = _phoneController.text.trim();
+    // Check for duplicate phone number
     final existing = await FirebaseFirestore.instance.collection('users')
       .where('phone', isEqualTo: phone)
       .limit(1)
@@ -94,115 +112,104 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
       );
       return;
     }
-    try {
-      if (widget.isCHW) {
-        // CHW registers patient by email and sends password setup link
-        final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Confirm Registration'),
-            content: const Text('Are you sure you want to register this patient by email?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Confirm'),
-              ),
-            ],
-          ),
-        );
-        if (confirmed != true) {
-          setState(() => _isLoading = false);
-          return;
-        }
-        final email = _emailController.text.trim();
-        final tempPassword = 'Temp${DateTime.now().millisecondsSinceEpoch}';
-        UserCredential? credential;
-        try {
-          credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-            email: email,
-            password: tempPassword,
-          );
-        } catch (e) {
-          setState(() => _isLoading = false);
-          await showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Registration Failed'),
-              content: Text('Could not create user: $e'),
-              actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK'))],
-            ),
-          );
-          return;
-        }
-        final user = credential.user;
-        if (user != null) {
-          await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-            'uid': user.uid,
-            'name': _nameController.text.trim(),
-            'email': email,
-            'address': _addressController.text.trim(),
-            'emergencyContact': _emergencyContactController.text.trim(),
-            'dateOfBirth': _selectedDate != null ? Timestamp.fromDate(_selectedDate!) : null,
-            'gender': _selectedGender,
-            'role': 'patient',
-            'isApproved': true,
-            'registeredBy': 'CHW',
-            'createdBy': FirebaseAuth.instance.currentUser?.uid,
-            'createdAt': FieldValue.serverTimestamp(),
-          });
-          await user.sendEmailVerification();
-          await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Patient registered! Password setup link sent to email.'), backgroundColor: Colors.green),
-            );
-            Navigator.pop(context);
-          }
-        }
-      } else {
-        // Patient self-registration (email/password)
-        final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
-        final user = credential.user;
-        if (user != null) {
-          await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-            'uid': user.uid,
-            'name': _nameController.text.trim(),
-            'email': _emailController.text.trim(),
-            'phone': phone,
-            'address': _addressController.text.trim(),
-            'emergencyContact': _emergencyContactController.text.trim(),
-            'dateOfBirth': _selectedDate != null ? Timestamp.fromDate(_selectedDate!) : null,
-            'gender': _selectedGender,
-            'role': 'patient',
-            'isApproved': true,
-            'registeredBy': 'self',
-            'createdAt': FieldValue.serverTimestamp(),
-            'emailVerified': false,
-          });
-          await user.sendEmailVerification();
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Account created! Please verify your email before logging in.'), backgroundColor: Colors.green),
-            );
-            Navigator.pop(context);
-          }
-        }
-      }
-    } catch (e) {
-      if (mounted) {
+    // Use Firebase Phone Auth for OTP verification
+    await FirebaseAuth.instance.verifyPhoneNumber(
+      phoneNumber: phone,
+      timeout: const Duration(seconds: 60),
+      verificationCompleted: (PhoneAuthCredential credential) async {
+        await FirebaseAuth.instance.signInWithCredential(credential);
+        setState(() => _isLoading = false);
+        await _completeRegistration(phone);
+      },
+      verificationFailed: (FirebaseAuthException e) {
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Registration failed: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Phone verification failed: ${e.message}')),
+        );
+      },
+      codeSent: (String verificationId, int? resendToken) {
+        setState(() => _isLoading = false);
+        _verificationId = verificationId;
+        _showFirebaseCodeDialog(phone);
+      },
+      codeAutoRetrievalTimeout: (String verificationId) {
+        _verificationId = verificationId;
+      },
+    );
+  }
+
+  void _showFirebaseCodeDialog(String phone) {
+    final codeController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Enter Verification Code'),
+        content: TextField(
+          controller: codeController,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(labelText: '6-digit code'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              setState(() => _isLoading = true);
+              try {
+                final credential = PhoneAuthProvider.credential(
+                  verificationId: _verificationId!,
+                  smsCode: codeController.text.trim(),
+                );
+                await FirebaseAuth.instance.signInWithCredential(credential);
+                setState(() => _isLoading = false);
+                Navigator.of(context).pop();
+                await _completeRegistration(phone);
+              } catch (e) {
+                setState(() => _isLoading = false);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error verifying code: $e')),
+                );
+              }
+            },
+            child: const Text('Verify'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _completeRegistration(String phone) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final patientUser = currentUser;
+    if (patientUser != null) {
+      final patientData = {
+        'uid': patientUser.uid,
+        'name': _nameController.text.trim(),
+        'phone': phone,
+        'role': 'patient',
+        'createdAt': FieldValue.serverTimestamp(),
+        'isApproved': true,
+        'registeredBy': widget.isCHW ? 'CHW' : 'self',
+      };
+      if (widget.isCHW && currentUser != null) {
+        patientData['createdBy'] = currentUser.uid;
+      }
+      await FirebaseFirestore.instance.collection('users').doc(patientUser.uid).set(patientData);
+      if (widget.isCHW) {
+        await FirebaseAuth.instance.signOut();
+        // TODO: Sign back in as CHW if credentials are available
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Patient account created successfully!'), backgroundColor: Colors.green),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Account created! Please login.'), backgroundColor: Colors.green),
         );
       }
+      Navigator.pop(context); // close dialog
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Registration failed: No user found.'), backgroundColor: Colors.red),
+      );
     }
-    setState(() => _isLoading = false);
   }
 
   @override
@@ -321,7 +328,7 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
             const SizedBox(height: 20),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, minimumSize: const Size.fromHeight(45)),
-              onPressed: _isLoading ? null : _handleRegister,
+              onPressed: _isLoading ? null : _handlePhoneRegister,
               child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text('Create Account'),
             ),
           ],
@@ -331,13 +338,8 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
   }
 }
 
-
-
-
-
 class PatientRegistrationScreen extends StatelessWidget {
   final bool isCHW;
-  
   const PatientRegistrationScreen({super.key, this.isCHW = true});
 
   @override
@@ -408,9 +410,9 @@ class _CHWPatientPhoneFormState extends State<_CHWPatientPhoneForm> {
   String? _selectedGender;
   DateTime? _selectedDate;
   bool _isLoading = false;
-  String? _verificationId;
   final _codeController = TextEditingController();
   bool _codeSent = false;
+  String? _verificationId;
 
   @override
   void dispose() {
@@ -455,11 +457,12 @@ class _CHWPatientPhoneFormState extends State<_CHWPatientPhoneForm> {
     );
     if (info != true) return;
     setState(() => _isLoading = true);
-    String phone = _phoneController.text.trim();
-    final localPattern = RegExp(r'^(0[789][01]\d{8})$');
+    String phone = _phoneController.text.trim().replaceAll(' ', '');
+    // Normalize Nigerian phone numbers to E.164 format
+    final localPattern = RegExp(r'^0([789][01]\d{8})$');
     final intlPattern = RegExp(r'^\+234[789][01]\d{8}$');
     if (localPattern.hasMatch(phone)) {
-      phone = '+234${phone.substring(1)}';
+      phone = '+234' + phone.substring(1);
     }
     if (!intlPattern.hasMatch(phone)) {
       setState(() => _isLoading = false);
@@ -478,59 +481,41 @@ class _CHWPatientPhoneFormState extends State<_CHWPatientPhoneForm> {
       );
       return;
     }
-    try {
-      await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: phone,
-        verificationCompleted: (credential) async {
-          await FirebaseAuth.instance.signInWithCredential(credential);
-          await _savePatientToFirestorePhone();
-          if (mounted) Navigator.pop(context);
-        },
-        verificationFailed: (e) async {
-          setState(() => _isLoading = false);
-          await showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Verification Failed'),
-              content: Text('Error: ${e.message ?? e.toString()}'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
-          );
-        },
-        codeSent: (verificationId, _) {
-          setState(() {
-            _verificationId = verificationId;
-            _codeSent = true;
-            _isLoading = false;
-          });
-        },
-        codeAutoRetrievalTimeout: (_) {},
-      );
-    } catch (e) {
-      setState(() => _isLoading = false);
-      await showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Verification Error'),
-          content: Text('Error: ${e.toString()}'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
-    }
+    // Use Firebase phone authentication to send OTP and get verificationId
+    // For both web and mobile, just call verifyPhoneNumber. On web, Firebase injects reCAPTCHA automatically if container exists in web/index.html.
+    await FirebaseAuth.instance.verifyPhoneNumber(
+      phoneNumber: phone,
+      verificationCompleted: (credential) async {
+        // Optionally handle auto-verification
+      },
+      verificationFailed: (e) async {
+        setState(() => _isLoading = false);
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('OTP Error'),
+            content: Text('Error sending OTP: ${e.message}'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      },
+      codeSent: (verificationId, _) {
+        setState(() {
+          _verificationId = verificationId;
+          _codeSent = true;
+          _isLoading = false;
+        });
+      },
+      codeAutoRetrievalTimeout: (_) {},
+    );
   }
 
   Future<void> _submitCode() async {
-    if (_verificationId == null) return;
     setState(() => _isLoading = true);
     try {
       final credential = PhoneAuthProvider.credential(
@@ -538,38 +523,51 @@ class _CHWPatientPhoneFormState extends State<_CHWPatientPhoneForm> {
         smsCode: _codeController.text.trim(),
       );
       await FirebaseAuth.instance.signInWithCredential(credential);
-      await _savePatientToFirestorePhone();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Patient registered successfully!'), backgroundColor: Colors.green),
+      setState(() => _isLoading = false);
+      // Proceed with patient registration
+      final phone = _phoneController.text.trim();
+      final generatedEmail = '${phone.replaceAll('+', '').replaceAll(' ', '')}_${DateTime.now().millisecondsSinceEpoch}@lifecare.com';
+      final generatedPassword = UniqueKey().toString();
+      try {
+        final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: generatedEmail,
+          password: generatedPassword,
         );
-        Navigator.pop(context);
+        final user = credential.user;
+        if (user != null) {
+          await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+            'uid': user.uid,
+            'name': _nameController.text.trim(),
+            'phone': phone,
+            'address': _addressController.text.trim(),
+            'emergencyContact': _emergencyContactController.text.trim(),
+            'dateOfBirth': _selectedDate != null ? Timestamp.fromDate(_selectedDate!) : null,
+            'gender': _selectedGender,
+            'role': 'patient',
+            'isApproved': true,
+            'registeredBy': 'CHW',
+            'createdBy': FirebaseAuth.instance.currentUser?.uid,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Patient registered successfully!'), backgroundColor: Colors.green),
+            );
+            Navigator.pop(context);
+          }
+        }
+      } catch (e) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Account creation failed: $e')),
+        );
       }
     } catch (e) {
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Verification failed: $e')),
+        SnackBar(content: Text('Verification error: $e')),
       );
     }
-  }
-
-  Future<void> _savePatientToFirestorePhone() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-    await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-      'uid': user.uid,
-      'name': _nameController.text.trim(),
-      'phone': _phoneController.text.trim(),
-      'address': _addressController.text.trim(),
-      'emergencyContact': _emergencyContactController.text.trim(),
-      'dateOfBirth': _selectedDate != null ? Timestamp.fromDate(_selectedDate!) : null,
-      'gender': _selectedGender,
-      'role': 'patient',
-      'isApproved': true,
-      'registeredBy': 'CHW',
-      'createdBy': FirebaseAuth.instance.currentUser?.uid,
-      'createdAt': FieldValue.serverTimestamp(),
-    });
   }
 
   @override

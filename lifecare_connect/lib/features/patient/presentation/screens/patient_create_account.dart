@@ -2,8 +2,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart';
 
 class PatientRegisterScreen extends StatefulWidget {
   const PatientRegisterScreen({super.key});
@@ -13,36 +16,38 @@ class PatientRegisterScreen extends StatefulWidget {
 }
 
 class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
-  final formKey = GlobalKey<FormState>();
-  final nameController = TextEditingController();
-  final emailController = TextEditingController();
-  final phoneController = TextEditingController();
-  final passwordController = TextEditingController();
-  final confirmPasswordController = TextEditingController();
-  final addressController = TextEditingController();
-  final emergencyContactController = TextEditingController();
-  String? selectedGender;
-  DateTime? selectedDate;
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _emergencyContactController = TextEditingController();
+  String? _selectedGender;
+  DateTime? _selectedDate;
+  bool _isPhoneMode = false;
+  bool _isLoading = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+  String? _verificationId;
+  bool _codeSent = false;
+  final _codeController = TextEditingController();
 
-  String verificationId = '';
-  bool isPhoneMode = false;
-  bool isLoading = false;
-  bool obscurePassword = true;
-  bool obscureConfirmPassword = true;
-
-  void switchMode(bool usePhone) {
-    setState(() => isPhoneMode = usePhone);
+  void _switchMode(bool usePhone) {
+    setState(() => _isPhoneMode = usePhone);
   }
 
   @override
   void dispose() {
-    nameController.dispose();
-    emailController.dispose();
-    phoneController.dispose();
-    passwordController.dispose();
-    confirmPasswordController.dispose();
-    addressController.dispose();
-    emergencyContactController.dispose();
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _addressController.dispose();
+    _emergencyContactController.dispose();
+    _codeController.dispose();
     super.dispose();
   }
 
@@ -54,45 +59,45 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
       lastDate: DateTime.now(),
     );
     if (picked != null) {
-      setState(() => selectedDate = picked);
+      setState(() => _selectedDate = picked);
     }
   }
 
-  Future<void> handleEmailRegister() async {
-    if (!formKey.currentState!.validate()) return;
-    if (selectedDate == null) {
+  Future<void> _handleEmailRegister() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_selectedDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select date of birth')),
       );
       return;
     }
-    if (selectedGender == null) {
+    if (_selectedGender == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select gender')),
       );
       return;
     }
-    if (passwordController.text != confirmPasswordController.text) {
+    if (_passwordController.text != _confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Passwords do not match')),
       );
       return;
     }
-    setState(() => isLoading = true);
+    setState(() => _isLoading = true);
     // Normalize phone number
-    final inputPhone = phoneController.text.trim();
+    final inputPhone = _phoneController.text.trim();
     String normalizedPhone = inputPhone;
     if (inputPhone.startsWith('0')) {
-      normalizedPhone = '+234' + inputPhone.substring(1);
+      normalizedPhone = '+234${inputPhone.substring(1)}';
     } else if (inputPhone.startsWith('234')) {
-      normalizedPhone = '+234' + inputPhone.substring(3);
+      normalizedPhone = '+234${inputPhone.substring(3)}';
     }
     // Check for duplicate phone number
     final existing = await FirebaseFirestore.instance.collection('users')
       .where('phone', isEqualTo: normalizedPhone)
       .get();
     if (existing.docs.isNotEmpty) {
-      setState(() => isLoading = false);
+      setState(() => _isLoading = false);
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -110,20 +115,20 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
     }
     try {
       final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
       );
       final user = credential.user;
       if (user != null) {
         await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
           'uid': user.uid,
-          'name': nameController.text.trim(),
-          'email': emailController.text.trim(),
+          'name': _nameController.text.trim(),
+          'email': _emailController.text.trim(),
           'phone': normalizedPhone,
-          'address': addressController.text.trim(),
-          'emergencyContact': emergencyContactController.text.trim(),
-          'dateOfBirth': Timestamp.fromDate(selectedDate!),
-          'gender': selectedGender,
+          'address': _addressController.text.trim(),
+          'emergencyContact': _emergencyContactController.text.trim(),
+          'dateOfBirth': Timestamp.fromDate(_selectedDate!),
+          'gender': _selectedGender,
           'role': 'patient',
           'isApproved': true,
           'registeredBy': 'self',
@@ -147,31 +152,38 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
         );
       }
     }
-    setState(() => isLoading = false);
+    setState(() => _isLoading = false);
   }
 
-  Future<void> handlePhoneRegister() async {
-    if (!formKey.currentState!.validate()) return;
-    setState(() => isLoading = true);
-    // Normalize phone number
-    final inputPhone = phoneController.text.trim();
-    String normalizedPhone = inputPhone;
-    if (inputPhone.startsWith('0')) {
-      normalizedPhone = '+234' + inputPhone.substring(1);
-    } else if (inputPhone.startsWith('234')) {
-      normalizedPhone = '+234' + inputPhone.substring(3);
+  Future<void> _handlePhoneRegister() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_selectedDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select date of birth')),
+      );
+      return;
     }
-    // Check for duplicate phone number
-    final existing = await FirebaseFirestore.instance.collection('users')
-      .where('phone', isEqualTo: normalizedPhone)
-      .get();
-    if (existing.docs.isNotEmpty) {
-      setState(() => isLoading = false);
-      showDialog(
+    if (_selectedGender == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select gender')),
+      );
+      return;
+    }
+    setState(() => _isLoading = true);
+    // Normalize Nigerian phone numbers to E.164 format
+    String phone = _phoneController.text.trim().replaceAll(' ', '');
+    final localPattern = RegExp(r'^0([789][01]\d{8})$');
+    final intlPattern = RegExp(r'^\+234[789][01]\d{8}$');
+    if (localPattern.hasMatch(phone)) {
+      phone = '+234' + phone.substring(1);
+    }
+    if (!intlPattern.hasMatch(phone)) {
+      setState(() => _isLoading = false);
+      await showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Phone Number Already Used'),
-          content: const Text('This phone number is already registered by someone. Please use a different number.'),
+          title: const Text('Invalid Phone Number'),
+          content: const Text('Please enter a valid Nigerian phone number in the format +23470..., 070..., or 081...'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -182,87 +194,97 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
       );
       return;
     }
-    try {
-      await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: normalizedPhone,
-        verificationCompleted: (credential) async {
-          await FirebaseAuth.instance.signInWithCredential(credential);
-          await _savePatientToFirestorePhone();
-          if (mounted) Navigator.pop(context);
-        },
-        verificationFailed: (e) {
-          setState(() => isLoading = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: ${e.message}')),
-          );
-        },
-        codeSent: (verificationId, _) {
-          setState(() => isLoading = false);
-          _showCodeDialog(verificationId);
-        },
-        codeAutoRetrievalTimeout: (_) {},
+    // Check for duplicate phone number
+    final existing = await FirebaseFirestore.instance.collection('users')
+      .where('phone', isEqualTo: phone)
+      .limit(1)
+      .get();
+    if (existing.docs.isNotEmpty) {
+      setState(() => _isLoading = false);
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Phone Number Exists'),
+          content: const Text('This phone number is already registered. Please use a different number.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
       );
+      return;
+    }
+    // Use Firebase Phone Auth for OTP verification
+    await FirebaseAuth.instance.verifyPhoneNumber(
+      phoneNumber: phone,
+      timeout: const Duration(seconds: 60),
+      verificationCompleted: (PhoneAuthCredential credential) async {
+        await FirebaseAuth.instance.signInWithCredential(credential);
+        setState(() => _isLoading = false);
+        await _completeRegistration(phone);
+      },
+      verificationFailed: (FirebaseAuthException e) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Phone verification failed: ${e.message}')),
+        );
+      },
+      codeSent: (String verificationId, int? resendToken) {
+        setState(() {
+          _verificationId = verificationId;
+          _codeSent = true;
+          _isLoading = false;
+        });
+      },
+      codeAutoRetrievalTimeout: (String verificationId) {
+        _verificationId = verificationId;
+      },
+    );
+  }
+
+  Future<void> _submitCode() async {
+    setState(() => _isLoading = true);
+    try {
+      final credential = PhoneAuthProvider.credential(
+        verificationId: _verificationId!,
+        smsCode: _codeController.text.trim(),
+      );
+      await FirebaseAuth.instance.signInWithCredential(credential);
+      setState(() => _isLoading = false);
+      await _completeRegistration(_phoneController.text.trim());
     } catch (e) {
-      setState(() => isLoading = false);
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text('Error verifying code: $e')),
       );
     }
   }
 
-  void _showCodeDialog(String verificationId) {
-    final codeController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Enter Verification Code'),
-        content: TextField(
-          controller: codeController,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(labelText: '6-digit code'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              setState(() => isLoading = true);
-              try {
-                final credential = PhoneAuthProvider.credential(
-                  verificationId: verificationId,
-                  smsCode: codeController.text.trim(),
-                );
-                await FirebaseAuth.instance.signInWithCredential(credential);
-                await _savePatientToFirestorePhone();
-                Navigator.pop(context); // close dialog
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Phone verification successful')),
-                );
-                setState(() => isLoading = false);
-                Navigator.pop(context); // back to login/home
-              } catch (e) {
-                setState(() => isLoading = false);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Verification failed: $e')),
-                );
-              }
-            },
-            child: const Text('Submit'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _savePatientToFirestorePhone() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-    await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-      'uid': user.uid,
-      'name': nameController.text.trim(),
-      'phone': phoneController.text.trim(),
-      'role': 'patient',
-      'registeredBy': 'self',
-      'createdAt': FieldValue.serverTimestamp(),
-    });
+  Future<void> _completeRegistration(String phone) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final patientUser = currentUser;
+    if (patientUser != null) {
+      final patientData = {
+        'uid': patientUser.uid,
+        'name': _nameController.text.trim(),
+        'phone': phone,
+        'role': 'patient',
+        'createdAt': FieldValue.serverTimestamp(),
+        'isApproved': true,
+        'registeredBy': 'self',
+      };
+      await FirebaseFirestore.instance.collection('users').doc(patientUser.uid).set(patientData);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Account created! Please login.'), backgroundColor: Colors.green),
+      );
+      Navigator.pop(context); // close dialog
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Registration failed: No user found.'), backgroundColor: Colors.red),
+      );
+    }
   }
 
   @override
@@ -279,8 +301,8 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
           child: Column(
             children: [
               ToggleButtons(
-                isSelected: [!isPhoneMode, isPhoneMode],
-                onPressed: (index) => switchMode(index == 1),
+                isSelected: [!_isPhoneMode, _isPhoneMode],
+                onPressed: (index) => _switchMode(index == 1),
                 borderRadius: BorderRadius.circular(8),
                 selectedColor: Colors.white,
                 fillColor: Colors.teal,
@@ -297,49 +319,52 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
               ),
               const SizedBox(height: 20),
               Form(
-                key: formKey,
+                key: _formKey,
                 child: Column(
                   children: [
                     TextFormField(
-                      controller: nameController,
+                      controller: _nameController,
                       decoration: const InputDecoration(labelText: 'Full Name'),
                       validator: (val) => val == null || val.isEmpty ? 'Enter your name' : null,
                     ),
                     const SizedBox(height: 10),
                     TextFormField(
-                      controller: phoneController,
+                      controller: _phoneController,
                       decoration: const InputDecoration(
                         labelText: 'Phone Number',
-                        hintText: 'e.g. 08012345678, 08123456789, 2348012345678, +2348012345678',
+                        hintText: 'e.g. 07012345678, +2347012345678',
                       ),
                       keyboardType: TextInputType.phone,
                       validator: (val) {
                         if (val == null || val.isEmpty) return 'Enter phone number';
-                        final regex = RegExp(r'^(0[789][01]\d{8}|234[789][01]\d{8}|\+234[789][01]\d{8})$');
-                        if (!regex.hasMatch(val)) return 'Enter a valid Nigerian phone number.';
+                        final localPattern = RegExp(r'^(0[789][01]\d{8})$');
+                        final intlPattern = RegExp(r'^\+234[789][01]\d{8}$');
+                        if (!localPattern.hasMatch(val) && !intlPattern.hasMatch(val)) {
+                          return 'Enter a valid Nigerian phone number (e.g. 070..., +23470...)';
+                        }
                         return null;
                       },
                     ),
                     const SizedBox(height: 10),
-                    if (!isPhoneMode) ...[
+                    if (!_isPhoneMode) ...[
                       TextFormField(
-                        controller: emailController,
+                        controller: _emailController,
                         decoration: const InputDecoration(labelText: 'Email'),
                         validator: (val) => val != null && val.contains('@') ? null : 'Enter a valid email',
                       ),
                       const SizedBox(height: 10),
                       TextFormField(
-                        controller: passwordController,
-                        obscureText: obscurePassword,
+                        controller: _passwordController,
+                        obscureText: _obscurePassword,
                         decoration: const InputDecoration(labelText: 'Password'),
                         validator: (val) => val != null && val.length >= 6 ? null : 'Minimum 6 characters',
                       ),
                       const SizedBox(height: 10),
                       TextFormField(
-                        controller: confirmPasswordController,
-                        obscureText: obscureConfirmPassword,
+                        controller: _confirmPasswordController,
+                        obscureText: _obscureConfirmPassword,
                         decoration: const InputDecoration(labelText: 'Confirm Password'),
-                        validator: (val) => val != passwordController.text ? 'Passwords do not match' : null,
+                        validator: (val) => val != _passwordController.text ? 'Passwords do not match' : null,
                       ),
                     ],
                     const SizedBox(height: 10),
@@ -351,18 +376,18 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
                           border: OutlineInputBorder(),
                         ),
                         child: Text(
-                          selectedDate == null
+                          _selectedDate == null
                               ? 'Select date of birth'
-                              : '${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}',
+                              : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
                           style: TextStyle(
-                            color: selectedDate == null ? Colors.grey : Colors.black,
+                            color: _selectedDate == null ? Colors.grey : Colors.black,
                           ),
                         ),
                       ),
                     ),
                     const SizedBox(height: 10),
                     DropdownButtonFormField<String>(
-                      value: selectedGender,
+                      value: _selectedGender,
                       decoration: const InputDecoration(
                         labelText: 'Gender',
                         border: OutlineInputBorder(),
@@ -370,18 +395,18 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
                       items: ['Male', 'Female', 'Other'].map((gender) {
                         return DropdownMenuItem(value: gender, child: Text(gender));
                       }).toList(),
-                      onChanged: (value) => setState(() => selectedGender = value),
+                      onChanged: (value) => setState(() => _selectedGender = value),
                       validator: (value) => value == null ? 'Please select gender' : null,
                     ),
                     const SizedBox(height: 10),
                     TextFormField(
-                      controller: addressController,
+                      controller: _addressController,
                       maxLines: 2,
                       decoration: const InputDecoration(labelText: 'Address'),
                     ),
                     const SizedBox(height: 10),
                     TextFormField(
-                      controller: emergencyContactController,
+                      controller: _emergencyContactController,
                       decoration: const InputDecoration(labelText: 'Emergency Contact (optional)'),
                       keyboardType: TextInputType.phone,
                     ),
@@ -391,7 +416,7 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
                         backgroundColor: Colors.teal,
                         minimumSize: const Size.fromHeight(45),
                       ),
-                      onPressed: isLoading
+                      onPressed: _isLoading
                           ? null
                           : () async {
                               final confirmed = await showDialog<bool>(
@@ -412,15 +437,40 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
                                 ),
                               );
                               if (confirmed == true) {
-                                isPhoneMode
-                                  ? await handlePhoneRegister()
-                                  : await handleEmailRegister();
+                                _isPhoneMode
+                                  ? await _handlePhoneRegister()
+                                  : await _handleEmailRegister();
                               }
                             },
-                      child: isLoading
+                      child: _isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
                           : const Text('Create Account'),
                     ),
+                    const SizedBox(height: 20),
+                    // In phone registration mode, show code input after code is sent
+                    if (_isPhoneMode && _codeSent) ...[
+                      TextField(
+                        controller: _codeController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: "Enter verification code",
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.verified_user),
+                        onPressed: _isLoading ? null : _submitCode,
+                        label: _isLoading
+                          ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3))
+                          : const Text("Verify Code"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.teal,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

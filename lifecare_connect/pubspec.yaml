@@ -1,6 +1,6 @@
 name: lifecare_connect
 description: A mobile app for CHWs and healthcare providers to manage patients.
-version: 1.0.8+8
+version: 1.0.14+14
 publish_to: "none"
 
 environment:

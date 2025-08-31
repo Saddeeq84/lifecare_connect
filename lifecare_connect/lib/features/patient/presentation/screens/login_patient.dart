@@ -5,6 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'login_patient_phone.dart';
 import 'login_patient_register.dart';
 
@@ -16,20 +18,26 @@ class LoginPatient extends StatefulWidget {
 }
 
 class _LoginPatientState extends State<LoginPatient> with SingleTickerProviderStateMixin {
-  final _auth = FirebaseAuth.instance;
-  final _formKey = GlobalKey<FormState>();
-
+  // Removed Twilio OTP state and methods
+  final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-
   bool _isLoading = false;
   bool _obscurePassword = true;
   late TabController _tabController;
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+  }
+
+  void _navigateToPhoneLogin() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginPatientPhone()),
+    );
   }
 
   Future<void> _loginWithEmailPassword() async {
@@ -39,7 +47,7 @@ class _LoginPatientState extends State<LoginPatient> with SingleTickerProviderSt
 
 
     try {
-      final credential = await _auth.signInWithEmailAndPassword(
+      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
@@ -51,7 +59,7 @@ class _LoginPatientState extends State<LoginPatient> with SingleTickerProviderSt
         final registeredBy = userData != null ? userData['registeredBy'] : null;
         final emailVerified = credential.user!.emailVerified;
         if (registeredBy == 'self' && !emailVerified) {
-          await _auth.signOut();
+          await FirebaseAuth.instance.signOut();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Please verify your email before logging in. Check your inbox.')),
           );
@@ -123,13 +131,6 @@ class _LoginPatientState extends State<LoginPatient> with SingleTickerProviderSt
     }
   }
 
-  void _navigateToPhoneLogin() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginPatientPhone()),
-    );
-  }
-
   @override
   void dispose() {
     _emailController.dispose();
@@ -160,117 +161,112 @@ class _LoginPatientState extends State<LoginPatient> with SingleTickerProviderSt
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildEmailLoginForm(),
+          _buildEmailLoginTab(),
           _buildPhoneLoginShortcut(),
         ],
       ),
     );
   }
 
-  Widget _buildEmailLoginForm() {
+  Widget _buildEmailLoginTab() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 24),
-      child: SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Form(
+        key: _formKey,
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _headerBox(),
-            SizedBox(height: 30),
-            Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      labelText: "Email",
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) =>
-                        value == null || !value.contains('@') ? 'Enter a valid email' : null,
-                  ),
-                  SizedBox(height: 15),
-                  TextFormField(
-                    controller: _passwordController,
-                    obscureText: _obscurePassword,
-                    decoration: InputDecoration(
-                      labelText: "Password",
-                      border: OutlineInputBorder(),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
+            TextFormField(
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(labelText: 'Email'),
+              validator: (value) {
+                if (value == null || value.isEmpty || !value.contains('@')) {
+                  return 'Enter a valid email';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 10),
+            TextFormField(
+              controller: _passwordController,
+              obscureText: _obscurePassword,
+              decoration: InputDecoration(
+                labelText: 'Password',
+                suffixIcon: IconButton(
+                  icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
+                  onPressed: () {
+                    setState(() {
+                      _obscurePassword = !_obscurePassword;
+                    });
+                  },
+                ),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty || value.length < 6) {
+                  return 'Enter at least 6 characters';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: _isLoading ? null : _loginWithEmailPassword,
+              icon: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
                       ),
-                    ),
-                    validator: (value) =>
-                        value == null || value.length < 6 ? 'Minimum 6 characters' : null,
-                  ),
-                  SizedBox(height: 20),
-                  ElevatedButton.icon(
-                    onPressed: _isLoading ? null : _loginWithEmailPassword,
-                    icon: _isLoading
-                        ? SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 3,
-                            ),
-                          )
-                        : Icon(Icons.login),
-                    label: Text("Login"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal,
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: 14),
-                    ),
-                  ),
-                  SizedBox(height: 12),
-                  TextButton(
-                    onPressed: () async {
-                      final email = _emailController.text.trim();
-                      if (email.isEmpty || !email.contains('@')) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Enter a valid email to reset password.')),
-                        );
-                        return;
-                      }
-                      try {
-                        await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Password reset email sent.')),
-                        );
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Failed to send reset email: $e')),
-                        );
-                      }
-                    },
-                    child: Text(
-                      "Forgot Password?",
-                      style: TextStyle(
-                        color: Colors.teal,
-                        decoration: TextDecoration.underline,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
+                    )
+                  : const Icon(Icons.login),
+              label: const Text("Login"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.teal,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
               ),
             ),
-            SizedBox(height: 30),
-            Divider(thickness: 1.2),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () async {
+                final email = _emailController.text.trim();
+                if (email.isEmpty || !email.contains('@')) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Enter a valid email to reset password.')),
+                  );
+                  return;
+                }
+                try {
+                  await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Password reset email sent.')),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to send reset email: $e')),
+                  );
+                }
+              },
+              child: const Text(
+                "Forgot Password?",
+                style: TextStyle(
+                  color: Colors.teal,
+                  decoration: TextDecoration.underline,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            const SizedBox(height: 30),
+            const Divider(thickness: 1.2),
             TextButton(
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => PatientRegisterScreen()),
               ),
-              child: Text(
+              child: const Text(
                 "Don't have a patient account? Create patient account",
                 style: TextStyle(
                   fontSize: 16,
@@ -287,72 +283,35 @@ class _LoginPatientState extends State<LoginPatient> with SingleTickerProviderSt
   }
 
   Widget _buildPhoneLoginShortcut() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(30),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _headerBox(),
-            SizedBox(height: 40),
-            ElevatedButton.icon(
-              icon: Icon(Icons.phone_android),
-              label: Text("Continue to Phone Login"),
-              onPressed: _navigateToPhoneLogin,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-              ),
-            ),
-            SizedBox(height: 40),
-            Divider(thickness: 1.2),
-            TextButton(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => PatientRegisterScreen()),
-              ),
-              child: Text(
-                "Don't have an account? Create one",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.teal,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _headerBox() {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.teal,
-        borderRadius: BorderRadius.circular(12),
-      ),
+    return Padding(
+      padding: const EdgeInsets.all(24),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            'LifeCare Connect',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+          ElevatedButton(
+            onPressed: _navigateToPhoneLogin,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.teal,
+              foregroundColor: Colors.white,
+              minimumSize: const Size.fromHeight(45),
             ),
+            child: const Text('Login with Phone Number'),
           ),
-          SizedBox(height: 8),
-          Text(
-            'Connecting communities to quality healthcare',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.white70,
+          const SizedBox(height: 30),
+          const Divider(thickness: 1.2),
+          TextButton(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => PatientRegisterScreen()),
+            ),
+            child: const Text(
+              "Don't have an account? Create one",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.teal,
+                decoration: TextDecoration.underline,
+              ),
             ),
           ),
         ],

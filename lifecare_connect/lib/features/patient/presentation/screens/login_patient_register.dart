@@ -1,6 +1,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 
@@ -250,66 +252,63 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
   }
 
   Future<void> verifyPhoneAndRegister() async {
-  if (!formKey.currentState!.validate()) return;
-  setState(() => isLoading = true);
-  // Check for duplicate phone number
-  final inputPhone = phoneController.text.trim();
-  String normalizedPhone = inputPhone;
-  if (inputPhone.startsWith('0')) {
-    normalizedPhone = '+234' + inputPhone.substring(1);
-  } else if (inputPhone.startsWith('234')) {
-    normalizedPhone = '+234' + inputPhone.substring(3);
-  }
-  // Query Firestore for existing phone
-  final existing = await FirebaseFirestore.instance.collection('users')
-    .where('phone', isEqualTo: normalizedPhone)
-    .get();
-  if (existing.docs.isNotEmpty) {
-    setState(() => isLoading = false);
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Phone Number Already Used'),
-        content: const Text('This phone number is already registered by someone. Please use a different number.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-    return;
-  }
-  try {
-    await FirebaseAuth.instance.verifyPhoneNumber(
-      phoneNumber: normalizedPhone,
-      verificationCompleted: (credential) async {
-        await FirebaseAuth.instance.signInWithCredential(credential);
-        await _savePatientToFirestorePhone();
-        if (mounted) Navigator.pop(context);
-      },
-      verificationFailed: (e) {
+    if (!formKey.currentState!.validate()) return;
+    setState(() => isLoading = true);
+    // Normalize phone number
+    final inputPhone = phoneController.text.trim();
+    String normalizedPhone = inputPhone;
+    if (inputPhone.startsWith('0')) {
+      normalizedPhone = '+234${inputPhone.substring(1)}';
+    } else if (inputPhone.startsWith('234')) {
+      normalizedPhone = '+234${inputPhone.substring(3)}';
+    }
+    // Query Firestore for existing phone
+    final existing = await FirebaseFirestore.instance.collection('users')
+      .where('phone', isEqualTo: normalizedPhone)
+      .get();
+    if (existing.docs.isNotEmpty) {
+      setState(() => isLoading = false);
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Phone Number Already Used'),
+          content: const Text('This phone number is already registered by someone. Please use a different number.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+    // Twilio OTP integration (replace URL with your backend when ready)
+    final twilioApiUrl = 'https://your-twilio-backend.com';
+    try {
+      final sendResponse = await http.post(
+        Uri.parse('$twilioApiUrl/send-otp'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'phone': normalizedPhone}),
+      );
+      if (sendResponse.statusCode == 200) {
+        setState(() => isLoading = false);
+        _showTwilioCodeDialog(normalizedPhone);
+      } else {
         setState(() => isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.message}')),
+          SnackBar(content: Text('Failed to send OTP: ${sendResponse.body}')),
         );
-      },
-      codeSent: (verificationId, _) {
-        setState(() => isLoading = false);
-        _showCodeDialog(verificationId);
-      },
-      codeAutoRetrievalTimeout: (_) {},
-    );
-  } catch (e) {
-    setState(() => isLoading = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error: $e')),
-    );
-  }
+      }
+    } catch (e) {
+      setState(() => isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error sending OTP: $e')),
+      );
+    }
   }
 
-  void _showCodeDialog(String verificationId) {
+  void _showTwilioCodeDialog(String phone) {
     final codeController = TextEditingController();
     showDialog(
       context: context,
@@ -324,23 +323,31 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
           TextButton(
             onPressed: () async {
               setState(() => isLoading = true);
+              final twilioApiUrl = 'https://your-twilio-backend.com';
               try {
-                final credential = PhoneAuthProvider.credential(
-                  verificationId: verificationId,
-                  smsCode: codeController.text.trim(),
+                final verifyResponse = await http.post(
+                  Uri.parse('$twilioApiUrl/verify-otp'),
+                  headers: {'Content-Type': 'application/json'},
+                  body: jsonEncode({'phone': phone, 'code': codeController.text.trim()}),
                 );
-                await FirebaseAuth.instance.signInWithCredential(credential);
-                await _savePatientToFirestorePhone();
-                Navigator.pop(context); // close dialog
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('✅ Phone verification successful')),
-                );
-                setState(() => isLoading = false);
-                Navigator.pop(context); // back to login/home
+                if (verifyResponse.statusCode == 200 && jsonDecode(verifyResponse.body)['success'] == true) {
+                  await _savePatientToFirestorePhone();
+                  Navigator.pop(context); // close dialog
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('✅ Phone verification successful')),
+                  );
+                  setState(() => isLoading = false);
+                  Navigator.pop(context); // back to login/home
+                } else {
+                  setState(() => isLoading = false);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Verification failed: ${verifyResponse.body}')),
+                  );
+                }
               } catch (e) {
                 setState(() => isLoading = false);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Verification failed: $e')),
+                  SnackBar(content: Text('Verification error: $e')),
                 );
               }
             },
@@ -350,6 +357,7 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
       ),
     );
   }
+
 
   Future<void> _savePatientToFirestorePhone() async {
     final user = FirebaseAuth.instance.currentUser;

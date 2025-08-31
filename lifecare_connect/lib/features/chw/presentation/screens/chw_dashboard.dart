@@ -1,8 +1,7 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'chw_ask_ai_screen.dart';
 
 class CHWDashboard extends StatefulWidget {
   const CHWDashboard({super.key});
@@ -62,6 +61,12 @@ class _CHWDashboardState extends State<CHWDashboard> {
         'title': 'Training',
         'route': '/chw_dashboard/training',
         'subtitle': 'Access training resources',
+      },
+      {
+        'icon': Icons.smart_toy,
+        'title': 'Ask AI',
+        'route': '/chw_dashboard/ask_ai',
+        'subtitle': 'Get instant answers from AI (Coming Soon)',
       },
     ];
 
@@ -157,7 +162,14 @@ class _CHWDashboardState extends State<CHWDashboard> {
                 subtitle: Text(item['subtitle'] as String),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 18, color: Colors.teal),
                 onTap: () {
+                  if (item['route'] == '/chw_dashboard/ask_ai') {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const CHWAskAIScreen()),
+                    );
+                  } else {
                     context.go(item['route'] as String);
+                  }
                 },
               ),
             );

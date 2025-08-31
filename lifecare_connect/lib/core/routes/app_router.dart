@@ -16,6 +16,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 // Import actual screens from features
 import '../../features/doctor/presentation/screens/doctor_settings_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/auth/presentation/screens/privacy_screen.dart';
 // Ensure that LoginScreen is defined as a class in login_screen.dart
 import '../../features/admin/presentation/screens/admin_dashboard.dart';
 import '../../features/doctor/presentation/screens/doctor_patient_list_screen.dart';
@@ -55,6 +56,11 @@ class AppRouter {
     initialLocation: '/login',
     redirect: _redirect,
     routes: [
+      GoRoute(
+        path: '/privacy',
+        name: 'privacy',
+        builder: (context, state) => const PrivacyScreen(),
+      ),
       GoRoute(
         path: '/patientMessaging',
         name: 'patient-messaging',
@@ -421,18 +427,24 @@ class AppRouter {
     final user = FirebaseAuth.instance.currentUser;
     final isLoggedIn = user != null;
     final isOnLoginPage = state.fullPath == '/login';
-    
+    final isPrivacyPage = state.fullPath == '/privacy';
+
+    // Always allow access to privacy page
+    if (isPrivacyPage) {
+      return null;
+    }
+
     // If not logged in and not on login page, redirect to login
     if (!isLoggedIn && !isOnLoginPage) {
       return '/login';
     }
-    
+
     // If logged in and on login page, redirect based on user role
     if (isLoggedIn && isOnLoginPage) {
       // Use a more sophisticated role resolution approach
       return _getRouteForUserRole(user);
     }
-    
+
     return null; // No redirect needed
   }
   
