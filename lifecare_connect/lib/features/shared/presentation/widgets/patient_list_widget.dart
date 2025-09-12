@@ -51,6 +51,8 @@ class _PatientListWidgetState extends State<PatientListWidget> {
   final TextEditingController _searchController = TextEditingController();
   List<DocumentSnapshot> _filteredPatients = [];
   List<DocumentSnapshot> _allPatients = [];
+  final int _batchSize = 10;
+  int _currentBatch = 1;
   Timer? _debounceTimer;
   String _searchQuery = '';
 
@@ -72,26 +74,30 @@ class _PatientListWidgetState extends State<PatientListWidget> {
     _debounceTimer = Timer(const Duration(milliseconds: 300), () {
       setState(() {
         _searchQuery = _searchController.text.toLowerCase();
-        _filterPatients();
+          _currentBatch = 1;
+          _filterPatients();
       });
     });
   }
 
   void _filterPatients() {
+    List<DocumentSnapshot> filtered;
     if (_searchQuery.isEmpty) {
-      _filteredPatients = List.from(_allPatients);
+      filtered = List.from(_allPatients);
     } else {
-      _filteredPatients = _allPatients.where((patient) {
+      filtered = _allPatients.where((patient) {
         final data = patient.data() as Map<String, dynamic>;
         final name = (data['name'] ?? data['fullName'] ?? '').toString().toLowerCase();
         final phone = (data['phone'] ?? '').toString().toLowerCase();
         final nationalId = (data['nationalId'] ?? '').toString().toLowerCase();
-        
         return name.contains(_searchQuery) ||
                phone.contains(_searchQuery) ||
                nationalId.contains(_searchQuery);
       }).toList();
     }
+    int end = _currentBatch * _batchSize;
+    if (end > filtered.length) end = filtered.length;
+    _filteredPatients = filtered.sublist(0, end);
   }
 
   Widget _buildEmptyState(BuildContext context) {
@@ -267,45 +273,74 @@ class _PatientListWidgetState extends State<PatientListWidget> {
                 return _buildEmptyState(context);
               }
 
-              return ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: patients.length,
-                itemBuilder: (context, index) {
-                  final patient = patients[index];
-                  final patientData = patient.data() as Map<String, dynamic>;
-                  final patientName = patientData['name'] ?? 
-                                    patientData['fullName'] ?? 
-                                    'Unknown Patient';
+              return Column(
+                children: [
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: patients.length,
+                      itemBuilder: (context, index) {
+                        final patient = patients[index];
+                        final patientData = patient.data() as Map<String, dynamic>;
+                        final patientName = patientData['name'] ?? 
+                                          patientData['fullName'] ?? 
+                                          'Unknown Patient';
 
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    child: ListTile(
-                      leading: const CircleAvatar(
-                        backgroundColor: Colors.teal,
-                        child: Icon(Icons.person, color: Colors.white),
-                      ),
-                      title: Text(
-                        patientName,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (patientData['gender'] != null)
-                            Text('Gender: ${patientData['gender']}'),
-                          if (patientData['phone'] != null)
-                            Text('Phone: ${patientData['phone']}'),
-                          if (patientData['email'] != null)
-                            Text('Email: ${patientData['email']}'),
-                          if (patientData['address'] != null)
-                            Text('Address: ${patientData['address']}'),
-                        ],
-                      ),
-                      trailing: const Icon(Icons.arrow_forward_ios),
-                      onTap: () => widget.onPatientTap(patient),
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          child: ListTile(
+                            leading: const CircleAvatar(
+                              backgroundColor: Colors.teal,
+                              child: Icon(Icons.person, color: Colors.white),
+                            ),
+                            title: Text(
+                              patientName,
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (patientData['gender'] != null)
+                                  Text('Gender: ${patientData['gender']}'),
+                                if (patientData['phone'] != null)
+                                  Text('Phone: ${patientData['phone']}'),
+                                if (patientData['email'] != null)
+                                  Text('Email: ${patientData['email']}'),
+                                if (patientData['address'] != null)
+                                  Text('Address: ${patientData['address']}'),
+                              ],
+                            ),
+                            trailing: const Icon(Icons.arrow_forward_ios),
+                            onTap: () => widget.onPatientTap(patient),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
+                  ),
+                  if (_filteredPatients.length < (_allPatients.where((patient) {
+                        final data = patient.data() as Map<String, dynamic>;
+                        final name = (data['name'] ?? data['fullName'] ?? '').toString().toLowerCase();
+                        final phone = (data['phone'] ?? '').toString().toLowerCase();
+                        final nationalId = (data['nationalId'] ?? '').toString().toLowerCase();
+                        return _searchQuery.isEmpty ||
+                          name.contains(_searchQuery) ||
+                          phone.contains(_searchQuery) ||
+                          nationalId.contains(_searchQuery);
+                      }).length)
+                  )
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            _currentBatch++;
+                            _filterPatients();
+                          });
+                        },
+                        child: const Text('View More'),
+                      ),
+                    ),
+                ],
               );
             },
           ),

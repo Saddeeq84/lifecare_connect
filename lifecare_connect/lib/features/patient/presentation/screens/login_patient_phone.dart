@@ -19,9 +19,15 @@ class _LoginPatientPhoneState extends State<LoginPatientPhone> {
   final _phoneController = TextEditingController();
   String formatPhoneNumber(String input) {
     String phone = input.replaceAll(RegExp(r'\s+|-'), '');
-    if (phone.startsWith('0') && phone.length == 11) {
-      return '+234${phone.substring(1)}';
+    // Always convert 11-digit local Nigerian numbers to E.164 format
+    if (RegExp(r'^0\d{10}$').hasMatch(phone)) {
+      phone = '+234${phone.substring(1)}';
+    } else if (RegExp(r'^234\d{10}$').hasMatch(phone)) {
+      phone = '+234${phone.substring(3)}';
     }
+    // If already in E.164 format, keep as is
+    // If not valid, return as is (Firebase will reject invalid format)
+    print('DEBUG: Sending phone number to Firebase: $phone');
     return phone;
   }
   final _codeController = TextEditingController();
@@ -31,12 +37,16 @@ class _LoginPatientPhoneState extends State<LoginPatientPhone> {
 
   void _verifyPhone() async {
     setState(() => _loading = true);
-    setState(() => _loading = true);
     await FirebaseAuth.instance.verifyPhoneNumber(
       phoneNumber: formatPhoneNumber(_phoneController.text.trim()),
       verificationCompleted: (credential) async {
         await FirebaseAuth.instance.signInWithCredential(credential);
-        if (mounted) Navigator.pushReplacementNamed(context, '/patient_dashboard');
+        // Wait for auth state to emit a non-null user before navigating
+        FirebaseAuth.instance.authStateChanges().listen((user) {
+          if (user != null && mounted) {
+            Navigator.pushReplacementNamed(context, '/patient_dashboard');
+          }
+        });
       },
       verificationFailed: (e) {
         setState(() => _loading = false);
@@ -56,52 +66,121 @@ class _LoginPatientPhoneState extends State<LoginPatientPhone> {
   }
 
   void _signInWithCode() async {
-    if (_verificationId == null) return;
+    if (_verificationId == null || _verificationId!.isEmpty) {
+      debugPrint('[LOGIN] Verification ID is null or empty.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Login failed: Verification code not sent or expired. Please try again.')),
+      );
+      return;
+    }
+
+    final smsCode = _codeController.text.trim();
+    if (smsCode.isEmpty) {
+      debugPrint('[LOGIN] SMS code is empty.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter the verification code.')),
+      );
+      return;
+    }
 
     final credential = PhoneAuthProvider.credential(
       verificationId: _verificationId!,
-      smsCode: _codeController.text.trim(),
+      smsCode: smsCode,
     );
 
     try {
+      debugPrint('[LOGIN] Attempting signInWithCredential for verificationId=$_verificationId, smsCode=$smsCode');
       final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      debugPrint('[LOGIN] signInWithCredential result: $userCredential');
       final user = userCredential.user;
-      if (user != null) {
-        // Fetch user role from Firestore
+      if (user == null) {
+        debugPrint('[LOGIN] FirebaseAuth returned null user for credential.');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Login failed: No user found for this phone number. (Auth user is null)')),
+        );
+        return;
+      }
+      debugPrint('[LOGIN] Authenticated user UID: ${user.uid}, phone: ${user.phoneNumber}');
+      // Fetch user role from Firestore
         final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-        String role = 'patient';
-        if (userDoc.exists) {
-          final userData = userDoc.data()!;
-          role = userData['role']?.toString().toLowerCase() ?? 'patient';
-        }
-        // Save role to SharedPreferences
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('user_role', role);
-        // Redirect based on role
-        if (mounted) {
-          switch (role) {
-            case 'admin':
-              Navigator.pushReplacementNamed(context, '/admin_dashboard');
-              break;
-            case 'doctor':
-              Navigator.pushReplacementNamed(context, '/doctor_dashboard');
-              break;
-            case 'chw':
-              Navigator.pushReplacementNamed(context, '/chw_dashboard');
-              break;
-            case 'facility':
-              Navigator.pushReplacementNamed(context, '/facility_dashboard');
-              break;
-            case 'patient':
-            default:
-              Navigator.pushReplacementNamed(context, '/patient_dashboard');
-              break;
+        debugPrint('[LOGIN] Firestore userDoc.exists: ${userDoc.exists}');
+        Map<String, dynamic>? userData;
+        if (!userDoc.exists) {
+          debugPrint('[LOGIN] No Firestore profile found for UID: ${user.uid}. Attempting phone lookup...');
+          // Try to find user by phone number in E.164 format
+          final phone = user.phoneNumber ?? '';
+          final phoneQuery = await FirebaseFirestore.instance.collection('users')
+              .where('phone', isEqualTo: phone)
+              .limit(1)
+              .get();
+          if (phoneQuery.docs.isNotEmpty) {
+            userData = phoneQuery.docs.first.data();
+            debugPrint('[LOGIN] Found Firestore user by phone: $userData');
+            // Optionally, migrate this user to correct UID
+            await FirebaseFirestore.instance.collection('users').doc(user.uid).set(userData);
+          } else {
+            debugPrint('[LOGIN] No Firestore profile found for phone: $phone');
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Login failed: No profile found for this user in Firestore. UID: ${user.uid}, phone: $phone. Please contact support.')),
+            );
+            return;
           }
+        } else {
+          userData = userDoc.data();
+          if (userData == null) {
+            debugPrint('[LOGIN] Firestore user data is null for UID: ${user.uid}');
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Login failed: Firestore user data is null for UID: ${user.uid}.')),
+            );
+            return;
+          }
+          debugPrint('[LOGIN] Firestore user data: $userData');
+        }
+      // Defensive: fallback to 'patient' if role is missing or null
+      String role = (userData['role'] ?? 'patient').toString().toLowerCase();
+      if (role.isEmpty) role = 'patient';
+      debugPrint('[LOGIN] Resolved role: $role');
+      // Save role to SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_role', role);
+      debugPrint('[LOGIN] Saved role to SharedPreferences: $role');
+      // Redirect based on role
+      if (mounted) {
+        debugPrint('[LOGIN] Redirecting user to dashboard for role: $role');
+        switch (role) {
+          case 'admin':
+            Navigator.pushReplacementNamed(context, '/admin_dashboard');
+            break;
+          case 'doctor':
+            Navigator.pushReplacementNamed(context, '/doctor_dashboard');
+            break;
+          case 'chw':
+            Navigator.pushReplacementNamed(context, '/chw_dashboard');
+            break;
+          case 'facility':
+            Navigator.pushReplacementNamed(context, '/facility_dashboard');
+            break;
+          case 'patient':
+          default:
+            Navigator.pushReplacementNamed(context, '/patient_dashboard');
+            break;
         }
       }
+    } on FirebaseAuthException catch (e) {
+      String errorMsg = 'Login failed: ';
+      if (e.code == 'invalid-verification-code') {
+        errorMsg += 'Invalid verification code. Please check and try again.';
+      } else if (e.code == 'session-expired') {
+        errorMsg += 'Session expired. Please request a new code.';
+      } else {
+        errorMsg += e.message ?? e.toString();
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMsg)),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login failed: $e')),
+        SnackBar(content: Text('Login failed: ${e.toString()}')),
       );
     }
   }

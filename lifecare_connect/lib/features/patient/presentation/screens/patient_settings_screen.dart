@@ -538,11 +538,23 @@ class _PatientSettingsScreenState extends State<PatientSettingsScreen> {
                       try {
                         final user = FirebaseAuth.instance.currentUser;
                         final cred = EmailAuthProvider.credential(
-                          email: user!.email!,
+                          email: user?.email ?? '',
                           password: currentPassword,
                         );
-                        await user.reauthenticateWithCredential(cred);
-                        await user.updatePassword(newPassword);
+                        if (user != null) {
+                          await user.reauthenticateWithCredential(cred);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('User not found. Cannot reauthenticate.'), backgroundColor: Colors.red),
+                          );
+                        }
+                        if (user != null) {
+                          await user.updatePassword(newPassword);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('User not found. Cannot update password.'), backgroundColor: Colors.red),
+                          );
+                        }
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Password changed successfully'), backgroundColor: Colors.green),
@@ -622,8 +634,20 @@ class _PatientSettingsScreenState extends State<PatientSettingsScreen> {
                       setState(() => isDeleting = true);
                       try {
                         final user = FirebaseAuth.instance.currentUser;
-                        await FirebaseFirestore.instance.collection('users').doc(user!.uid).delete();
-                        await user.delete();
+                        if (user?.uid != null) {
+                          await FirebaseFirestore.instance.collection('users').doc(user!.uid).delete();
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('User not found. Cannot delete account.'), backgroundColor: Colors.red),
+                          );
+                        }
+                        if (user != null) {
+                          await user.delete();
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('User not found. Cannot delete account.'), backgroundColor: Colors.red),
+                          );
+                        }
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Account deleted successfully'), backgroundColor: Colors.green),

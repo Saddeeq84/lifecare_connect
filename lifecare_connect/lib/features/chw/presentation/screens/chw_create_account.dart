@@ -218,7 +218,7 @@ class _CHWCreateAccountScreenState extends State<CHWCreateAccountScreen> {
                         await showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
-                            content: const Text('Your email has been verified. Your account will require admin approval before it becomes active. You will receive another email once your account is approved.'),
+                            content: const Text('Account created! Please verify your email (check spam folder if not in inbox). Your account will be active after admin approval. You will receive an email once approved.'),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.of(context).pop(),

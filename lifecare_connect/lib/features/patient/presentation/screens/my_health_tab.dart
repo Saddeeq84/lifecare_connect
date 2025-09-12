@@ -338,9 +338,7 @@ class _MyHealthTabState extends State<MyHealthTab> with SingleTickerProviderStat
   }
   late TabController _tabController;
   Widget _buildMedicalRecordsTab() {
-    final debugCurrentUser = FirebaseAuth.instance.currentUser;
-    debugPrint('Building MedicalRecordsTab for currentUser UID: ${debugCurrentUser?.uid}');
-    debugPrint('Current widget.patientId: \'${widget.patientId}\'');
+    final currentUser = FirebaseAuth.instance.currentUser;
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -355,55 +353,28 @@ class _MyHealthTabState extends State<MyHealthTab> with SingleTickerProviderStat
             ),
           ),
           const SizedBox(height: 16),
-          // ...existing code...
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('health_records')
-                  .orderBy('timestamp', descending: true)
-                  .snapshots(),
+        stream: FirebaseFirestore.instance
+          .collection('health_records')
+          .where('patientId', isEqualTo: widget.patientId)
+          .orderBy('timestamp', descending: true)
+          .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
-                  return Center(child: Text('Error: {snapshot.error}'));
+                  return Center(child: Text('Error: ${snapshot.error}'));
                 }
                 final records = snapshot.data?.docs ?? [];
-                final filteredRecords = records.where((record) {
-                  final data = record.data() as Map<String, dynamic>;
-                  final accessibleBy = (data['accessibleBy'] is List) ? (data['accessibleBy'] as List).map((e) => e.toString().toLowerCase()).toList() : [];
-                  final patientId = (data['patientId'] ?? '').toString();
-                  final userId = (data['userId'] ?? '').toString();
-                  final chwUid = (data['chwUid'] ?? '').toString();
-                  final chwId = (data['chwId'] ?? '').toString();
-                  final providerTypeRaw = (data['providerType'] ?? '').toString();
-                  final providerType = providerTypeRaw.toLowerCase();
-                  final nested = data['data'] is Map<String, dynamic> ? data['data'] as Map<String, dynamic> : {};
-                  final nestedPatientId = (nested['patientId'] ?? '').toString();
-                  // Existing logic
-                  final cond_accessibleBy = accessibleBy.contains('patient');
-                  final cond_patientId = patientId == widget.patientId;
-                  final cond_nestedPatientId = nestedPatientId == widget.patientId;
-                  final cond_userId = userId == widget.patientId;
-                  bool match = cond_accessibleBy || cond_patientId || cond_nestedPatientId || cond_userId;
-                  // Additional logic for CHW records (case-insensitive, fallback to chwUid/chwId)
-                  bool cond_isCHW = providerType.trim().toLowerCase() == 'chw' || chwUid.isNotEmpty || chwId.isNotEmpty;
-                  bool cond_chwPatientMatch = patientId == widget.patientId || nestedPatientId == widget.patientId;
-                  if (!match && cond_isCHW && cond_chwPatientMatch) {
-                    match = true;
-                  }
-                  debugPrint('[RECORD RAW] id=${record.id} type=${data['type']} providerType=${data['providerType']} patientId=$patientId chwId=$chwId chwUid=$chwUid nestedPatientId=$nestedPatientId accessibleBy=$accessibleBy');
-                  debugPrint('[RECORD FILTER] id=${record.id} MATCH=$match | accessibleBy=$cond_accessibleBy | patientId=$cond_patientId | nestedPatientId=$cond_nestedPatientId | userId=$cond_userId | isCHW=$cond_isCHW | chwPatientMatch=$cond_chwPatientMatch');
-                  return match;
-                }).toList();
-                if (filteredRecords.isEmpty) {
+                if (records.isEmpty) {
                   return Center(child: Text('No medical records found'));
                 }
                 return ListView.builder(
-                  itemCount: filteredRecords.length,
+                  itemCount: records.length,
                   itemBuilder: (context, index) {
-                    final record = filteredRecords[index];
+                    final record = records[index];
                     final data = record.data() as Map<String, dynamic>;
                     final rawType = data['type']?.toString() ?? '';
                     final type = rawType.toLowerCase();
@@ -623,7 +594,13 @@ class _MyHealthTabState extends State<MyHealthTab> with SingleTickerProviderStat
     if (result == null || result.files.isEmpty) return;
     final file = File(result.files.single.path!);
     final fileName = result.files.single.name;
-    final userId = currentUser!.uid;
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('User not logged in. Cannot upload lab result.'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+  final userId = currentUser?.uid;
     final ref = FirebaseStorage.instance.ref().child('lab_results/$userId/$fileName');
     final uploadTask = ref.putFile(file);
     final snapshot = await uploadTask;

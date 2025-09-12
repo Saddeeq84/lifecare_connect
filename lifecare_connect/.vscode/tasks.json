@@ -8,6 +8,20 @@
 			"group": "build",
 			"problemMatcher": [],
 			"isBackground": false
+		},
+		{
+			"label": "Flutter Web Build + Font Fix",
+			"type": "shell",
+			"command": "flutter build web --release && ./scripts/post_build_fix_fonts.sh",
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "Flutter Web Build + Font Fix",
+			"type": "shell",
+			"command": "flutter build web --release && ./scripts/post_build_fix_fonts.sh",
+			"isBackground": false,
+			"group": "build"
 		}
 	]
 }

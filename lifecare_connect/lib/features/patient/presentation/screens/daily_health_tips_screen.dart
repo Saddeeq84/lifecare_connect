@@ -44,7 +44,7 @@ class _DailyHealthTipsScreenState extends State<DailyHealthTipsScreen> {
 
       final bookmarksSnapshot = await FirebaseFirestore.instance
           .collection('users')
-          .doc(user!.uid)
+          .doc(user?.uid ?? '')
           .collection('bookmarked_tips')
           .get();
 
@@ -74,7 +74,7 @@ class _DailyHealthTipsScreenState extends State<DailyHealthTipsScreen> {
   Future<void> _toggleBookmark(int index, String text) async {
     final docRef = FirebaseFirestore.instance
         .collection('users')
-        .doc(user!.uid)
+  .doc(user?.uid ?? '')
         .collection('bookmarked_tips')
         .doc(index.toString());
 
@@ -104,14 +104,20 @@ class _DailyHealthTipsScreenState extends State<DailyHealthTipsScreen> {
       notificationsEnabled = value;
     });
 
-    await FirebaseFirestore.instance.collection('users').doc(user!.uid).set({
-      'settings': {'daily_tip_notifications': value}
-    }, SetOptions(merge: true));
-
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(value ? "Notifications enabled" : "Notifications disabled"),
-      duration: const Duration(seconds: 1),
-    ));
+    if (user?.uid != null) {
+      await FirebaseFirestore.instance.collection('users').doc(user!.uid).set(
+        {'settings': {'daily_tip_notifications': value}},
+        SetOptions(merge: true),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(value ? "Notifications enabled" : "Notifications disabled"),
+        duration: const Duration(seconds: 1),
+      ));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('User not found. Cannot save health tips.'), backgroundColor: Colors.red),
+      );
+    }
   }
 
   @override

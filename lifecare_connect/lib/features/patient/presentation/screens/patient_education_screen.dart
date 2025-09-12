@@ -51,33 +51,39 @@ class _PatientEducationScreenState extends State<PatientEducationScreen> with Si
         await _videoController!.dispose();
       }
       _videoController = VideoPlayerController.network(url);
-      await _videoController!.initialize();
+      await _videoController?.initialize();
       setState(() {
         // No need to assign _currentVideoUrl
       });
       if (mounted) {
-        showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: Text(title),
-              content: AspectRatio(
-                aspectRatio: _videoController!.value.aspectRatio,
-                child: VideoPlayer(_videoController!),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    _videoController?.pause();
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('Close'),
+        if (_videoController != null) {
+          showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: Text(title),
+                content: AspectRatio(
+                  aspectRatio: _videoController!.value.aspectRatio,
+                  child: VideoPlayer(_videoController!),
                 ),
-              ],
-            );
-          },
-        );
-        _videoController!.play();
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      _videoController?.pause();
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('Close'),
+                  ),
+                ],
+              );
+            },
+          );
+          _videoController!.play();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Video failed to load.'), backgroundColor: Colors.red),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {

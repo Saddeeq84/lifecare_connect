@@ -85,7 +85,13 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
             email: email,
             password: password,
           );
-          await userCred.user!.linkWithCredential(emailCred);
+          if (userCred.user != null) {
+            await userCred.user!.linkWithCredential(emailCred);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('User not found. Cannot link credentials.'), backgroundColor: Colors.red),
+            );
+          }
         } catch (e) {
           // email already linked or weak password
         }
@@ -94,10 +100,10 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
       // Save user data in Firestore
       await FirebaseFirestore.instance
           .collection('users')
-          .doc(userCred.user!.uid)
+          .doc(userCred.user?.uid ?? '')
           .set({
-        'uid': userCred.user!.uid,
-        'phone': userCred.user!.phoneNumber,
+  'uid': userCred.user?.uid ?? '',
+  'phone': userCred.user?.phoneNumber ?? '',
         'email': email.isNotEmpty ? email : null,
         'role': 'patient',
         'createdAt': FieldValue.serverTimestamp(),

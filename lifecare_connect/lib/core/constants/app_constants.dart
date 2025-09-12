@@ -2,7 +2,7 @@
 class AppConstants {
   // App Info
   static const String appName = 'LifeCare Connect';
-  static const String appVersion = '1.0.0';
+  static const String appVersion = '15.0.0';
   
   // API Constants
   static const String baseUrl = 'https://api.lifecare.com';

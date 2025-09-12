@@ -66,76 +66,87 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
       return;
     }
     setState(() => _isLoading = true);
-    // Normalize phone number
+    // Normalize phone number only for self-registration (not CHW email registration)
     String phone = _phoneController.text.trim().replaceAll(' ', '');
-    final localPattern = RegExp(r'^0([789][01]\d{8})$');
-    final intlPattern = RegExp(r'^\+234[789][01]\d{8}$');
-    if (localPattern.hasMatch(phone)) {
-      phone = '+234' + phone.substring(1);
-    }
-    if (!intlPattern.hasMatch(phone)) {
-      setState(() => _isLoading = false);
-      await showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Invalid Phone Number'),
-          content: const Text('Please enter a valid Nigerian phone number in the format +23470..., 070..., or 081...'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
-    // Check for duplicate phone number
-    final existing = await FirebaseFirestore.instance.collection('users')
-      .where('phone', isEqualTo: phone)
-      .limit(1)
-      .get();
-    if (existing.docs.isNotEmpty) {
-      setState(() => _isLoading = false);
-      await showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Phone Number Exists'),
-          content: const Text('This phone number is already registered. Please use a different number.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
-    // Use Firebase Phone Auth for OTP verification
-    await FirebaseAuth.instance.verifyPhoneNumber(
-      phoneNumber: phone,
-      timeout: const Duration(seconds: 60),
-      verificationCompleted: (PhoneAuthCredential credential) async {
-        await FirebaseAuth.instance.signInWithCredential(credential);
+    if (!widget.isCHW) {
+      // Accept any 11-digit starting with 0, 13-digit starting with 234, or 14-digit starting with +234
+      final regex = RegExp(r'^(0\d{10}|234\d{10}|\+234\d{10})$');
+      if (regex.hasMatch(phone)) {
+        if (phone.length == 11 && phone.startsWith('0')) {
+          phone = '+234${phone.substring(1)}';
+        } else if (phone.length == 13 && phone.startsWith('234')) {
+          phone = '+234${phone.substring(3)}';
+        }
+        // already in correct format if 14 and starts with +234
+      } else {
         setState(() => _isLoading = false);
-        await _completeRegistration(phone);
-      },
-      verificationFailed: (FirebaseAuthException e) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Phone verification failed: ${e.message}')),
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Invalid Phone Number'),
+            content: const Text('Please enter a valid Nigerian phone number'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
         );
-      },
-      codeSent: (String verificationId, int? resendToken) {
+        return;
+      }
+    }
+    // Check for duplicate phone number only for self-registration
+    if (!widget.isCHW) {
+      final existing = await FirebaseFirestore.instance.collection('users')
+        .where('phone', isEqualTo: phone)
+        .limit(1)
+        .get();
+      if (existing.docs.isNotEmpty) {
         setState(() => _isLoading = false);
-        _verificationId = verificationId;
-        _showFirebaseCodeDialog(phone);
-      },
-      codeAutoRetrievalTimeout: (String verificationId) {
-        _verificationId = verificationId;
-      },
-    );
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Phone Number Exists'),
+            content: const Text('This phone number is already registered. Please use a different number.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+      // Use Firebase Phone Auth for OTP verification
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: phone,
+        timeout: const Duration(seconds: 60),
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          await FirebaseAuth.instance.signInWithCredential(credential);
+          setState(() => _isLoading = false);
+          await _completeRegistration(phone);
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Phone verification failed: ${e.message}')),
+          );
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          setState(() => _isLoading = false);
+          _verificationId = verificationId;
+          _showFirebaseCodeDialog(phone);
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          _verificationId = verificationId;
+        },
+      );
+    } else {
+      // For CHW email registration, skip phone verification and proceed to registration
+      await _completeRegistration(phone);
+    }
   }
 
   void _showFirebaseCodeDialog(String phone) {
@@ -177,38 +188,87 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
   }
 
   Future<void> _completeRegistration(String phone) async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    final patientUser = currentUser;
-    if (patientUser != null) {
-      final patientData = {
-        'uid': patientUser.uid,
-        'name': _nameController.text.trim(),
-        'phone': phone,
-        'role': 'patient',
-        'createdAt': FieldValue.serverTimestamp(),
-        'isApproved': true,
-        'registeredBy': widget.isCHW ? 'CHW' : 'self',
-      };
-      if (widget.isCHW && currentUser != null) {
-        patientData['createdBy'] = currentUser.uid;
-      }
-      await FirebaseFirestore.instance.collection('users').doc(patientUser.uid).set(patientData);
-      if (widget.isCHW) {
-        await FirebaseAuth.instance.signOut();
-        // TODO: Sign back in as CHW if credentials are available
+    if (widget.isCHW) {
+      // CHW registers patient by email, patient receives password setup link, CHW stays logged in
+      final email = _emailController.text.trim();
+      try {
+        // Create Firebase Auth user for patient with a temporary password
+        final tempPassword = UniqueKey().toString();
+        final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: email,
+          password: tempPassword,
+        );
+        final patientUid = userCredential.user?.uid;
+        // Create patient Firestore document
+        await FirebaseFirestore.instance.collection('users').doc(patientUid).set({
+          'uid': patientUid,
+          'name': _nameController.text.trim(),
+          'email': email,
+          'phone': phone,
+          'role': 'patient',
+          'createdAt': FieldValue.serverTimestamp(),
+          'isApproved': true,
+          'registeredBy': 'CHW',
+          'createdBy': FirebaseAuth.instance.currentUser?.uid,
+        });
+        // Send password setup link to patient email
+        await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Patient account created successfully!'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('Patient registered! Password setup link sent to their email.'), backgroundColor: Colors.green),
+        );
+        Navigator.pop(context);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error creating patient account: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } else {
+      // Self-registration or phone registration logic (unchanged)
+      // Always use the UID of the currently signed-in phone user
+      final phoneUser = FirebaseAuth.instance.currentUser;
+      if (phoneUser != null) {
+        final patientData = {
+          'uid': phoneUser.uid,
+          'fullName': _nameController.text.trim(),
+          'phone': phone,
+          'role': 'patient',
+          'createdBy': FirebaseAuth.instance.currentUser?.uid ?? 'self',
+          'createdAt': FieldValue.serverTimestamp(),
+          'isApproved': true,
+          'isActive': true,
+          'registrationMethod': 'phone',
+          'registeredBy': 'self',
+          'address': _addressController.text.trim(),
+          'emergencyContact': _emergencyContactController.text.trim(),
+          'gender': _selectedGender ?? '',
+          'dateOfBirth': _selectedDate,
+        };
+        await FirebaseFirestore.instance.collection('users').doc(phoneUser.uid).set(patientData);
+        // Sign out the patient user
+        await FirebaseAuth.instance.signOut();
+        // Show dialog to CHW to log back in
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            title: const Text('CHW Login Required'),
+            content: const Text('Patient account created successfully. Please log back in to continue as CHW.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.pushReplacementNamed(context, '/chw_login');
+                },
+                child: const Text('Log in as CHW'),
+              ),
+            ],
+          ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Account created! Please login.'), backgroundColor: Colors.green),
+          SnackBar(content: Text('Registration failed: No user found.'), backgroundColor: Colors.red),
         );
       }
-      Navigator.pop(context); // close dialog
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Registration failed: No user found.'), backgroundColor: Colors.red),
-      );
     }
   }
 
@@ -322,13 +382,47 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
             const SizedBox(height: 10),
             TextFormField(
               controller: _emergencyContactController,
-              decoration: const InputDecoration(labelText: 'Emergency Contact', border: OutlineInputBorder()),
+              decoration: const InputDecoration(labelText: 'Emergency Contact (optional)', border: OutlineInputBorder()),
               keyboardType: TextInputType.phone,
+              validator: (val) {
+                if (val == null || val.trim().isEmpty) return null; // Optional field, no error if blank
+                final localPattern = RegExp(r'^(0(70|80|81|90|91|71)\d{8})$');
+                final intlPattern = RegExp(r'^\+234(70|80|81|90|91|71)\d{8}$');
+                if (localPattern.hasMatch(val.trim()) || intlPattern.hasMatch(val.trim())) return null;
+                return 'Enter a valid Nigerian phone number';
+              },
             ),
             const SizedBox(height: 20),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, minimumSize: const Size.fromHeight(45)),
-              onPressed: _isLoading ? null : _handlePhoneRegister,
+              onPressed: _isLoading
+                  ? null
+                  : () async {
+                      if (widget.isCHW) {
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Confirm Patient Registration'),
+                            content: const Text('Are you sure you want to register this patient? They will receive an email to set their password.'),
+                            actions: [
+                              TextButton(
+                                child: const Text('Cancel'),
+                                onPressed: () => Navigator.of(context).pop(false),
+                              ),
+                              ElevatedButton(
+                                child: const Text('Confirm'),
+                                onPressed: () => Navigator.of(context).pop(true),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirmed == true) {
+                          await _handlePhoneRegister();
+                        }
+                      } else {
+                        await _handlePhoneRegister();
+                      }
+                    },
               child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text('Create Account'),
             ),
           ],
@@ -437,40 +531,25 @@ class _CHWPatientPhoneFormState extends State<_CHWPatientPhoneForm> {
   }
 
   Future<void> _verifyPhone() async {
-    if (!_formKey.currentState!.validate()) return;
-    final info = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Phone Number Verification Required'),
-        content: const Text('To register a patient by phone, you must verify their phone number first. A verification code will be sent to the number provided. Please enter the code to complete registration.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Continue'),
-          ),
-        ],
-      ),
-    );
-    if (info != true) return;
-    setState(() => _isLoading = true);
+    // Check if phone number already exists in Firestore
     String phone = _phoneController.text.trim().replaceAll(' ', '');
-    // Normalize Nigerian phone numbers to E.164 format
-    final localPattern = RegExp(r'^0([789][01]\d{8})$');
+    // Accept and normalize any standard Nigerian phone number
+    final localPattern = RegExp(r'^0[789][01]\d{8}$');
     final intlPattern = RegExp(r'^\+234[789][01]\d{8}$');
+    final altIntlPattern = RegExp(r'^234[789][01]\d{8}$');
     if (localPattern.hasMatch(phone)) {
-      phone = '+234' + phone.substring(1);
+      phone = '+234${phone.substring(1)}';
+    } else if (altIntlPattern.hasMatch(phone)) {
+      phone = '+$phone';
     }
+    // Validate final phone format
     if (!intlPattern.hasMatch(phone)) {
       setState(() => _isLoading = false);
       await showDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Invalid Phone Number'),
-          content: const Text('Please enter a valid Nigerian phone number in the format +23470..., 070..., or 081...'),
+          content: const Text('Please enter a valid Nigerian phone number in the format 070..., 080..., 090..., or +23470..., +23480..., +23490...'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -481,20 +560,91 @@ class _CHWPatientPhoneFormState extends State<_CHWPatientPhoneForm> {
       );
       return;
     }
+    // Check if phone number already exists in Firestore
+    final existing = await FirebaseFirestore.instance.collection('users')
+      .where('phone', isEqualTo: phone)
+      .limit(1)
+      .get();
+    if (existing.docs.isNotEmpty) {
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Phone Number Exists'),
+          content: const Text('This phone number is already registered. Please use a different number.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      setState(() => _isLoading = false);
+      return;
+    }
+    if (!_formKey.currentState!.validate()) return;
+    final info = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Phone Number Verification'),
+        content: const Text('A verification code will be sent to the provided phone number. Please enter the code below and submit to complete patient registration.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+    if (info != true) return;
+  setState(() => _isLoading = true);
     // Use Firebase phone authentication to send OTP and get verificationId
     // For both web and mobile, just call verifyPhoneNumber. On web, Firebase injects reCAPTCHA automatically if container exists in web/index.html.
-    await FirebaseAuth.instance.verifyPhoneNumber(
-      phoneNumber: phone,
-      verificationCompleted: (credential) async {
-        // Optionally handle auto-verification
-      },
-      verificationFailed: (e) async {
+    bool otpSent = false;
+    try {
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: phone,
+        verificationCompleted: (credential) async {
+          // Optionally handle auto-verification
+        },
+        verificationFailed: (e) async {
+          setState(() => _isLoading = false);
+          await showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('OTP Error'),
+              content: Text('Error sending OTP: ${e.message}\nPossible reasons: invalid phone format, quota exceeded, or Firebase Auth not enabled for phone.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        },
+        codeSent: (verificationId, _) {
+          setState(() {
+            _verificationId = verificationId;
+            _codeSent = true;
+            _isLoading = false;
+          });
+          otpSent = true;
+        },
+        codeAutoRetrievalTimeout: (_) {},
+      );
+      // If codeSent is never called, show error dialog
+      if (!otpSent) {
         setState(() => _isLoading = false);
         await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('OTP Error'),
-            content: Text('Error sending OTP: ${e.message}'),
+            title: const Text('OTP Not Sent'),
+            content: const Text('No verification code was sent to this phone number. Please check the number and try again.'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -503,16 +653,23 @@ class _CHWPatientPhoneFormState extends State<_CHWPatientPhoneForm> {
             ],
           ),
         );
-      },
-      codeSent: (verificationId, _) {
-        setState(() {
-          _verificationId = verificationId;
-          _codeSent = true;
-          _isLoading = false;
-        });
-      },
-      codeAutoRetrievalTimeout: (_) {},
-    );
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('OTP Error'),
+          content: Text('Error sending OTP: $e'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   Future<void> _submitCode() async {
@@ -624,8 +781,15 @@ class _CHWPatientPhoneFormState extends State<_CHWPatientPhoneForm> {
             const SizedBox(height: 10),
             TextFormField(
               controller: _emergencyContactController,
-              decoration: const InputDecoration(labelText: 'Emergency Contact', border: OutlineInputBorder()),
+              decoration: const InputDecoration(labelText: 'Emergency Contact (optional)', border: OutlineInputBorder()),
               keyboardType: TextInputType.phone,
+              validator: (val) {
+                if (val == null || val.trim().isEmpty) return null; // Optional field, no error if blank
+                final localPattern = RegExp(r'^(0(70|80|81|90|91|71)\d{8})$');
+                final intlPattern = RegExp(r'^\+234(70|80|81|90|91|71)\d{8}$');
+                if (localPattern.hasMatch(val.trim()) || intlPattern.hasMatch(val.trim())) return null;
+                return 'Enter a valid Nigerian phone number';
+              },
             ),
             const SizedBox(height: 20),
             if (!_codeSent) ...[

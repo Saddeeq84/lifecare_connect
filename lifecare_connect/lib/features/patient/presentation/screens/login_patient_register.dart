@@ -1,8 +1,6 @@
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+// ...existing code...
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 
@@ -26,6 +24,8 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
   DateTime? selectedDate;
 
   String verificationId = '';
+  final codeController = TextEditingController();
+  bool codeSent = false;
   bool isPhoneMode = false; // Always default to email mode
   bool isLoading = false;
   bool obscurePassword = true;
@@ -80,13 +80,12 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
                       controller: phoneController,
                       decoration: const InputDecoration(
                         labelText: 'Phone Number',
-                        hintText: 'e.g. 08012345678, 08123456789, 2348012345678, +2348012345678',
                       ),
                       keyboardType: TextInputType.phone,
                       validator: (val) {
                         if (val == null || val.isEmpty) return 'Enter phone number';
-                        // Accept 080..., 081..., 090..., 070..., 23480..., +23480..., etc.
-                        final regex = RegExp(r'^(0[789][01]\d{8}|234[789][01]\d{8}|\+234[789][01]\d{8})$');
+                        // Accept any 11-digit starting with 0, 13-digit starting with 234, or 14-digit starting with +234
+                        final regex = RegExp(r'^(0\d{10}|234\d{10}|\+234\d{10})$');
                         if (!regex.hasMatch(val)) return 'Enter a valid Nigerian phone number.';
                         return null;
                       },
@@ -152,41 +151,203 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
                       decoration: const InputDecoration(labelText: 'Emergency Contact (optional)'),
                     ),
                     const SizedBox(height: 20),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal,
-                        minimumSize: const Size.fromHeight(45),
+                    if (isPhoneMode && !codeSent) ...[
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.teal,
+                          minimumSize: const Size.fromHeight(45),
+                        ),
+                        onPressed: isLoading
+                            ? null
+                            : () async {
+                                final confirmed = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Confirm Account Creation'),
+                                    content: const Text('A verification code will be sent to your phone. Proceed?'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.of(context).pop(false),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () => Navigator.of(context).pop(true),
+                                        child: const Text('Confirm'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                if (confirmed != true) return;
+                                if (!formKey.currentState!.validate()) return;
+                                setState(() => isLoading = true);
+                                // Normalize phone number
+                                final inputPhone = phoneController.text.trim();
+                                String normalizedPhone = inputPhone;
+                                if (inputPhone.startsWith('0')) {
+                                  normalizedPhone = '+234${inputPhone.substring(1)}';
+                                } else if (inputPhone.startsWith('234')) {
+                                  normalizedPhone = '+234${inputPhone.substring(3)}';
+                                }
+                                // Query Firestore for existing phone
+                                final existing = await FirebaseFirestore.instance.collection('users')
+                                  .where('phone', isEqualTo: normalizedPhone)
+                                  .get();
+                                if (existing.docs.isNotEmpty) {
+                                  setState(() => isLoading = false);
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: const Text('Phone Number Already Used'),
+                                      content: const Text('This phone number is already registered by someone. Please use a different number.'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.of(context).pop(),
+                                          child: const Text('OK'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  return;
+                                }
+                                // Send OTP
+                                try {
+                                  await FirebaseAuth.instance.verifyPhoneNumber(
+                                    phoneNumber: normalizedPhone,
+                                    verificationCompleted: (credential) async {
+                                      await FirebaseAuth.instance.signInWithCredential(credential);
+                                      await _savePatientToFirestorePhone();
+                                      setState(() => isLoading = false);
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          title: const Text('Success'),
+                                          content: const Text('✅ Patient account created and phone verified!'),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Navigator.of(context).pop(),
+                                              child: const Text('Proceed to Login'),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                      Navigator.pop(context);
+                                    },
+                                    verificationFailed: (e) async {
+                                      setState(() => isLoading = false);
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Error sending OTP: ${e.message}')),
+                                      );
+                                    },
+                                    codeSent: (vId, forceResend) {
+                                      setState(() {
+                                        verificationId = vId;
+                                        codeSent = true;
+                                        isLoading = false;
+                                      });
+                                    },
+                                    codeAutoRetrievalTimeout: (vId) {
+                                      setState(() {
+                                        verificationId = vId;
+                                      });
+                                    },
+                                  );
+                                } catch (e) {
+                                  setState(() => isLoading = false);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Error sending OTP: $e')),
+                                  );
+                                }
+                              },
+                        child: isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text('Create Account'),
                       ),
-                      onPressed: isLoading
-                          ? null
-                          : () async {
-                              final confirmed = await showDialog<bool>(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: const Text('Confirm Account Creation'),
-                                  content: const Text('Are you sure you want to create this patient account?'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.of(context).pop(false),
-                                      child: const Text('Cancel'),
-                                    ),
-                                    ElevatedButton(
-                                      onPressed: () => Navigator.of(context).pop(true),
-                                      child: const Text('Confirm'),
-                                    ),
-                                  ],
-                                ),
-                              );
-                              if (confirmed == true) {
-                                isPhoneMode
-                                  ? verifyPhoneAndRegister()
-                                  : handleEmailRegister();
-                              }
-                            },
-                      child: isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text('Create Account'),
-                    ),
+                    ],
+                    if (isPhoneMode && codeSent) ...[
+                      TextFormField(
+                        controller: codeController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: 'Enter verification code'),
+                      ),
+                      const SizedBox(height: 10),
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.verified_user),
+                        onPressed: isLoading ? null : () async {
+                          setState(() => isLoading = true);
+                          try {
+                            final credential = PhoneAuthProvider.credential(
+                              verificationId: verificationId,
+                              smsCode: codeController.text.trim(),
+                            );
+                            await FirebaseAuth.instance.signInWithCredential(credential);
+                            await _savePatientToFirestorePhone();
+                            setState(() => isLoading = false);
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Success'),
+                                content: const Text('✅ Patient account created and phone verified!'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(),
+                                    child: const Text('Proceed to Login'),
+                                  ),
+                                ],
+                              ),
+                            );
+                            Navigator.pop(context); // back to login/home
+                          } catch (e) {
+                            setState(() => isLoading = false);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Verification error: $e')),
+                            );
+                          }
+                        },
+                        label: isLoading
+                          ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3))
+                          : const Text('Submit'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.teal,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                      ),
+                    ],
+                    if (!isPhoneMode) ...[
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.teal,
+                          minimumSize: const Size.fromHeight(45),
+                        ),
+                        onPressed: isLoading
+                            ? null
+                            : () async {
+                                final confirmed = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Confirm Account Creation'),
+                                    content: const Text('Are you sure you want to create this patient account?'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.of(context).pop(false),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () => Navigator.of(context).pop(true),
+                                        child: const Text('Confirm'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                if (confirmed == true) {
+                                  handleEmailRegister();
+                                }
+                              },
+                        child: isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text('Create Account'),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -238,8 +399,20 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
           'createdAt': FieldValue.serverTimestamp(),
         });
         await user.sendEmailVerification();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('✅ Patient account created! Please verify your email.')),
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Account Created'),
+            content: const Text(
+              'Your account was created successfully! Please verify your email using the link sent to your inbox. If you do not see the email, check your spam folder.'
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
         );
         Navigator.pop(context);
       }
@@ -283,23 +456,38 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
       );
       return;
     }
-    // Twilio OTP integration (replace URL with your backend when ready)
-    final twilioApiUrl = 'https://your-twilio-backend.com';
+    // Use Firebase phone authentication for OTP
     try {
-      final sendResponse = await http.post(
-        Uri.parse('$twilioApiUrl/send-otp'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'phone': normalizedPhone}),
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: normalizedPhone,
+        verificationCompleted: (credential) async {
+          await FirebaseAuth.instance.signInWithCredential(credential);
+          await _savePatientToFirestorePhone();
+          setState(() => isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('✅ Patient account created and phone verified!')),
+          );
+          Navigator.pop(context);
+        },
+        verificationFailed: (e) async {
+          setState(() => isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error sending OTP: ${e.message}')),
+          );
+        },
+        codeSent: (vId, forceResend) {
+          setState(() {
+            verificationId = vId;
+            codeSent = true;
+            isLoading = false;
+          });
+        },
+        codeAutoRetrievalTimeout: (vId) {
+          setState(() {
+            verificationId = vId;
+          });
+        },
       );
-      if (sendResponse.statusCode == 200) {
-        setState(() => isLoading = false);
-        _showTwilioCodeDialog(normalizedPhone);
-      } else {
-        setState(() => isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to send OTP: ${sendResponse.body}')),
-        );
-      }
     } catch (e) {
       setState(() => isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -308,67 +496,84 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
     }
   }
 
-  void _showTwilioCodeDialog(String phone) {
-    final codeController = TextEditingController();
+  Future<void> _savePatientToFirestorePhone() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Registration Error'),
+          content: const Text('Authentication failed. Please try again.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+    // Always store phone in E.164 format
+    String phone = phoneController.text.trim().replaceAll(' ', '');
+    String e164Phone;
+    if (RegExp(r'^0\d{10}$').hasMatch(phone)) {
+      e164Phone = '+234${phone.substring(1)}';
+    } else if (RegExp(r'^234\d{10}$').hasMatch(phone)) {
+      e164Phone = '+234${phone.substring(3)}';
+    } else if (RegExp(r'^\+234\d{10}$').hasMatch(phone)) {
+      e164Phone = phone;
+    } else {
+      e164Phone = phone;
+    }
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+      'uid': user.uid,
+      'fullName': nameController.text.trim(),
+      'phone': e164Phone,
+      'role': 'patient',
+      'createdBy': 'self',
+      'createdAt': FieldValue.serverTimestamp(),
+      'isApproved': true,
+      'isActive': true,
+      'registrationMethod': 'phone',
+      'address': addressController.text.trim(),
+      'emergencyContact': emergencyContactController.text.trim(),
+      'gender': selectedGender ?? '',
+      'dateOfBirth': selectedDate,
+    });
+    // Clear form fields and reset state
+    nameController.clear();
+    phoneController.clear();
+    emailController.clear();
+    addressController.clear();
+    emergencyContactController.clear();
+    passwordController.clear();
+    confirmPasswordController.clear();
+    codeController.clear();
+    setState(() {
+      selectedGender = null;
+      selectedDate = null;
+      codeSent = false;
+      verificationId = '';
+      isLoading = false;
+    });
+    // Show success dialog and navigate to login
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Enter Verification Code'),
-        content: TextField(
-          controller: codeController,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(labelText: '6-digit code'),
-        ),
+      builder: (context) => AlertDialog(
+        title: const Text('Success'),
+        content: const Text('✅ Your patient account has been created and phone verified!'),
         actions: [
           TextButton(
-            onPressed: () async {
-              setState(() => isLoading = true);
-              final twilioApiUrl = 'https://your-twilio-backend.com';
-              try {
-                final verifyResponse = await http.post(
-                  Uri.parse('$twilioApiUrl/verify-otp'),
-                  headers: {'Content-Type': 'application/json'},
-                  body: jsonEncode({'phone': phone, 'code': codeController.text.trim()}),
-                );
-                if (verifyResponse.statusCode == 200 && jsonDecode(verifyResponse.body)['success'] == true) {
-                  await _savePatientToFirestorePhone();
-                  Navigator.pop(context); // close dialog
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('✅ Phone verification successful')),
-                  );
-                  setState(() => isLoading = false);
-                  Navigator.pop(context); // back to login/home
-                } else {
-                  setState(() => isLoading = false);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Verification failed: ${verifyResponse.body}')),
-                  );
-                }
-              } catch (e) {
-                setState(() => isLoading = false);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Verification error: $e')),
-                );
-              }
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.pop(context); // Go back to login screen
             },
-            child: const Text('Submit'),
+            child: const Text('Go to Login'),
           ),
         ],
       ),
     );
-  }
-
-
-  Future<void> _savePatientToFirestorePhone() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-    await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-      'fullName': nameController.text.trim(),
-      'phone': phoneController.text.trim(),
-      'role': 'patient',
-      'createdBy': 'self',
-      'createdAt': FieldValue.serverTimestamp(),
-    });
   }
 }
 /// Patient registration screen supporting email and phone registration modes.

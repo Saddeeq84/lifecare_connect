@@ -5,8 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'login_patient_phone.dart';
 import 'login_patient_register.dart';
 
@@ -54,10 +52,10 @@ class _LoginPatientState extends State<LoginPatient> with SingleTickerProviderSt
 
       if (credential.user != null) {
         // Check email verification for self-registered patients
-        final userDoc = await FirebaseFirestore.instance.collection('users').doc(credential.user!.uid).get();
+  final userDoc = await FirebaseFirestore.instance.collection('users').doc(credential.user?.uid ?? '').get();
         final userData = userDoc.data();
         final registeredBy = userData != null ? userData['registeredBy'] : null;
-        final emailVerified = credential.user!.emailVerified;
+  final emailVerified = credential.user?.emailVerified ?? false;
         if (registeredBy == 'self' && !emailVerified) {
           await FirebaseAuth.instance.signOut();
           ScaffoldMessenger.of(context).showSnackBar(
@@ -67,7 +65,13 @@ class _LoginPatientState extends State<LoginPatient> with SingleTickerProviderSt
           return;
         }
         // Save user role and navigate based on role
-        await _saveUserRoleAndNavigate(credential.user!.uid);
+        if (credential.user?.uid != null) {
+          await _saveUserRoleAndNavigate(credential.user!.uid);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('User not found. Cannot navigate.'), backgroundColor: Colors.red),
+          );
+        }
       }
     } on FirebaseAuthException catch (e) {
       String message = 'Login failed. Please try again.';

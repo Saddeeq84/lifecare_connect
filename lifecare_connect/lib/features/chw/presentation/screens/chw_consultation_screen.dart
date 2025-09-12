@@ -1,3 +1,4 @@
+import '../../../consultation/presentation/screens/consultation_screen.dart';
 // ignore_for_file: prefer_const_constructors, depend_on_referenced_packages
 
 import 'package:flutter/material.dart';
@@ -188,39 +189,29 @@ class CHWConsultationScreen extends StatelessWidget {
                           },
                         ),
                         IconButton(
-                          icon: Icon(Icons.videocam, color: Colors.grey),
+                          icon: Icon(Icons.videocam, color: Colors.indigo),
                           tooltip: 'Video Call',
                           onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: Text('Video Call'),
-                                content: Text('Coming soon!'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.of(context).pop(),
-                                    child: const Text('Close'),
-                                  ),
-                                ],
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => ConsultationScreen(
+                                  channelName: appointmentId,
+                                  isVideo: true,
+                                ),
                               ),
                             );
                           },
                         ),
                         IconButton(
-                          icon: Icon(Icons.call, color: Colors.grey),
+                          icon: Icon(Icons.call, color: Colors.indigo),
                           tooltip: 'Audio Call',
                           onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: Text('Audio Call'),
-                                content: Text('Coming soon!'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.of(context).pop(),
-                                    child: const Text('Close'),
-                                  ),
-                                ],
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => ConsultationScreen(
+                                  channelName: appointmentId,
+                                  isVideo: false,
+                                ),
                               ),
                             );
                           },

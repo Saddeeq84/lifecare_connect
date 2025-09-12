@@ -6,8 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../../../shared/presentation/screens/messages_screen.dart';
+import '../../../consultation/presentation/screens/consultation_screen.dart';
 import '../../../shared/data/services/message_service.dart';
+import '../../../shared/presentation/screens/messages_screen.dart';
+// ...existing code...
 
 Widget _buildInfoRow(String label, String value) {
   return Padding(
@@ -174,6 +176,7 @@ class _PendingConsultationTab extends StatelessWidget {
                                             user2Name: appointment['patientName'] ?? 'Unknown Patient',
                                             user2Role: 'patient',
                                           );
+                                          // ...existing code...
                                           Navigator.of(context).push(
                                             MaterialPageRoute(
                                               builder: (context) => const MessagesScreen(),
@@ -187,17 +190,37 @@ class _PendingConsultationTab extends StatelessWidget {
                                           );
                                         },
                                       ),
-                                      const ListTile(
-                                        leading: Icon(Icons.videocam, color: Colors.grey),
+                                      ListTile(
+                                        leading: Icon(Icons.videocam, color: Colors.indigo),
                                         title: Text('Video Call'),
-                                        subtitle: Text('Coming soon'),
-                                        enabled: false,
+                                        subtitle: Text('Start video consultation'),
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) => ConsultationScreen(
+                                                channelName: appointment['id'] ?? appointment['appointmentId'] ?? '',
+                                                isVideo: true,
+                                              ),
+                                            ),
+                                          );
+                                        },
                                       ),
-                                      const ListTile(
-                                        leading: Icon(Icons.call, color: Colors.grey),
+                                      ListTile(
+                                        leading: Icon(Icons.call, color: Colors.indigo),
                                         title: Text('Audio Call'),
-                                        subtitle: Text('Coming soon'),
-                                        enabled: false,
+                                        subtitle: Text('Start audio consultation'),
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) => ConsultationScreen(
+                                                channelName: appointment['id'] ?? appointment['appointmentId'] ?? '',
+                                                isVideo: false,
+                                              ),
+                                            ),
+                                          );
+                                        },
                                       ),
                                       ListTile(
                                         leading: const Icon(Icons.local_hospital, color: Colors.teal),
