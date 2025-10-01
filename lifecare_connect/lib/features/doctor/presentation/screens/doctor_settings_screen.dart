@@ -219,7 +219,7 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
         subtitle: Text(subtitle),
         value: value,
         onChanged: onChanged,
-        activeColor: Colors.indigo,
+        activeThumbColor: Colors.indigo,
       ),
     );
   }

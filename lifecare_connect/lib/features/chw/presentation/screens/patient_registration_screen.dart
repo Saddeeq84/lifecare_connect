@@ -365,7 +365,7 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
             ),
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
-              value: _selectedGender,
+              initialValue: _selectedGender,
               decoration: const InputDecoration(labelText: 'Gender', border: OutlineInputBorder()),
               items: ['Male', 'Female', 'Other'].map((gender) {
                 return DropdownMenuItem(value: gender, child: Text(gender));
@@ -764,7 +764,7 @@ class _CHWPatientPhoneFormState extends State<_CHWPatientPhoneForm> {
             ),
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
-              value: _selectedGender,
+              initialValue: _selectedGender,
               decoration: const InputDecoration(labelText: 'Gender', border: OutlineInputBorder()),
               items: ['Male', 'Female', 'Other'].map((gender) {
                 return DropdownMenuItem(value: gender, child: Text(gender));

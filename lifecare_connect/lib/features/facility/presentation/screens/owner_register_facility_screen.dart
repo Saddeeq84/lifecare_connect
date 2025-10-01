@@ -201,7 +201,7 @@ class _OwnerRegisterFacilityScreenState extends State<OwnerRegisterFacilityScree
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  value: _selectedFacilityType,
+                  initialValue: _selectedFacilityType,
                   decoration: const InputDecoration(
                     labelText: 'Facility Type',
                     border: OutlineInputBorder(),

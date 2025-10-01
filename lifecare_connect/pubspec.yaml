@@ -48,7 +48,7 @@ dependencies:
   open_file: ^3.3.2
 
   # ✅ Real-time Communication
-  # agora_rtc_engine: ^6.5.2
+  agora_rtc_engine: ^6.5.2
 dev_dependencies:
   flutter_lints: ^6.0.0
 

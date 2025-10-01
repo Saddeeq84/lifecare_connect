@@ -503,7 +503,7 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
               const SizedBox(height: 10),
               DropdownButtonFormField<String>(
                 decoration: const InputDecoration(labelText: 'Specialization'),
-                value: selectedSpecialization,
+                initialValue: selectedSpecialization,
                 items: specializations
                     .map((spec) => DropdownMenuItem(value: spec, child: Text(spec)))
                     .toList(),
@@ -536,7 +536,7 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
               const SizedBox(height: 10),
               DropdownButtonFormField<String>(
                 decoration: const InputDecoration(labelText: 'Gender'),
-                value: selectedGender,
+                initialValue: selectedGender,
                 items: ['Male', 'Female', 'Other']
                     .map((g) => DropdownMenuItem(value: g, child: Text(g)))
                     .toList(),

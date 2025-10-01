@@ -130,7 +130,7 @@ class _PatientSettingsScreenState extends State<PatientSettingsScreen> {
         trailing: Switch(
           value: value,
           onChanged: onChanged,
-          activeColor: Colors.green.shade700,
+          activeThumbColor: Colors.green.shade700,
         ),
       ),
     );

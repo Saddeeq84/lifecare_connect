@@ -82,7 +82,7 @@ class _FacilityStaffCreateAccountScreenState extends State<FacilityStaffCreateAc
               TextFormField(controller: _departmentController, decoration: InputDecoration(labelText: 'Department'), validator: (v) => v!.isEmpty ? 'Required' : null),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: _selectedProfession,
+                initialValue: _selectedProfession,
                 decoration: InputDecoration(labelText: 'Profession'),
                 items: _professions.map((profession) => DropdownMenuItem(
                   value: profession,

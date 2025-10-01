@@ -58,7 +58,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
           ),
           const SizedBox(height: 20),
           DropdownButtonFormField<String>(
-            value: selectedLanguage,
+            initialValue: selectedLanguage,
             items: languages
                 .map((lang) => DropdownMenuItem(
                       value: lang,
@@ -133,7 +133,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
                 const Text('Category:'),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
-                  value: selectedCategory,
+                  initialValue: selectedCategory,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                   ),
@@ -153,7 +153,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
                 const Text('Priority:'),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
-                  value: selectedPriority,
+                  initialValue: selectedPriority,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                   ),

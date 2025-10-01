@@ -839,7 +839,7 @@ class _DoctorConsultationDetailScreenState extends State<DoctorConsultationDetai
                       labelText: 'Select medication',
                       border: OutlineInputBorder(),
                     ),
-                    value: null,
+                    initialValue: null,
                     items: prescriptionOptions.map((option) {
                       return DropdownMenuItem<String>(
                         value: option,
@@ -1052,7 +1052,7 @@ class _DoctorConsultationDetailScreenState extends State<DoctorConsultationDetai
                       labelText: 'Select laboratory test',
                       border: OutlineInputBorder(),
                     ),
-                    value: null,
+                    initialValue: null,
                     items: labOptions.map((option) {
                       return DropdownMenuItem<String>(
                         value: option,
@@ -1134,7 +1134,7 @@ class _DoctorConsultationDetailScreenState extends State<DoctorConsultationDetai
                       labelText: 'Select radiology test',
                       border: OutlineInputBorder(),
                     ),
-                    value: null,
+                    initialValue: null,
                     items: radiologyOptions.map((option) {
                       return DropdownMenuItem<String>(
                         value: option,

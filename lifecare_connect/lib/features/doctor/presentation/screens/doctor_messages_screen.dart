@@ -184,7 +184,7 @@ class _DoctorMessagesScreenState extends State<DoctorMessagesScreen> with Ticker
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButtonFormField<String>(
-                  value: selectedType,
+                  initialValue: selectedType,
                   decoration: const InputDecoration(labelText: 'Message Type'),
                   items: const [
                     DropdownMenuItem(value: 'broadcast', child: Text('Broadcast')),
@@ -202,7 +202,7 @@ class _DoctorMessagesScreenState extends State<DoctorMessagesScreen> with Ticker
                 const SizedBox(height: 16),
                 if (selectedType == 'direct')
                   DropdownButtonFormField<String>(
-                    value: selectedTarget,
+                    initialValue: selectedTarget,
                     decoration: const InputDecoration(labelText: 'Send To'),
                     items: const [
                       DropdownMenuItem(value: 'chw', child: Text('CHWs')),

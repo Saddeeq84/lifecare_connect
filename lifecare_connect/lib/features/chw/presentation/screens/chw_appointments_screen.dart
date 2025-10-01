@@ -378,7 +378,7 @@ class _BookAppointmentWithDoctorScreenState extends State<_BookAppointmentWithDo
               _isLoadingPatients
                   ? Center(child: CircularProgressIndicator())
                   : DropdownButtonFormField<String>(
-                      value: _selectedPatientId,
+                      initialValue: _selectedPatientId,
                       isExpanded: true,
                       decoration: InputDecoration(
                         labelText: 'Related Patient (optional)',

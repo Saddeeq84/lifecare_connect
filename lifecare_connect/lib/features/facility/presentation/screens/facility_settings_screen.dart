@@ -293,7 +293,7 @@ class _FacilitySettingsScreenState extends State<FacilitySettingsScreen> {
       subtitle: Text(subtitle),
       value: value,
       onChanged: onChanged,
-      activeColor: Colors.teal,
+      activeThumbColor: Colors.teal,
     );
   }
 

@@ -361,7 +361,7 @@ class _AdminTrainingUploadScreenState extends State<AdminTrainingUploadScreen> w
             // Material Type dropdown (hidden for patients - always video)
             if (!isPatient) ...[
               DropdownButtonFormField<String>(
-                value: _selectedType,
+                initialValue: _selectedType,
                 decoration: const InputDecoration(labelText: 'Material Type'),
                 items: ['pdf', 'video'].map((type) {
                   return DropdownMenuItem(

@@ -218,7 +218,7 @@ class _AdminRegisterFacilityScreenState
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _typeController.text.isEmpty ? null : _typeController.text,
+                initialValue: _typeController.text.isEmpty ? null : _typeController.text,
                 decoration: const InputDecoration(
                   labelText: 'Facility Type',
                   border: OutlineInputBorder(),

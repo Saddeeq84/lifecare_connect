@@ -227,7 +227,7 @@ class _MakeReferralFormState extends State<_MakeReferralForm> {
                     return role.contains('doctor');
                   }).toList();
                   return DropdownButtonFormField<String>(
-                    value: _selectedDoctorId,
+                    initialValue: _selectedDoctorId,
                     decoration: const InputDecoration(
                       labelText: 'Select Doctor *',
                       prefixIcon: Icon(Icons.local_hospital),
@@ -254,7 +254,7 @@ class _MakeReferralFormState extends State<_MakeReferralForm> {
               const SizedBox(height: 16),
 
               DropdownButtonFormField<String>(
-                value: _selectedSpecialty,
+                initialValue: _selectedSpecialty,
                 decoration: const InputDecoration(
                   labelText: 'Specialty *',
                   prefixIcon: Icon(Icons.medical_services),
@@ -269,7 +269,7 @@ class _MakeReferralFormState extends State<_MakeReferralForm> {
               const SizedBox(height: 16),
 
               DropdownButtonFormField<String>(
-                value: _selectedUrgency,
+                initialValue: _selectedUrgency,
                 decoration: const InputDecoration(
                   labelText: 'Urgency Level *',
                   prefixIcon: Icon(Icons.priority_high),
