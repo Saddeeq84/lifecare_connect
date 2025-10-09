@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class AgoraTokenService {
-  static const String _tokenServerUrl = 'https://your-production-token-server.com/rtcToken'; // TODO: Replace with your deployed server URL
+  static const String _tokenServerUrl = 'https://lifecaremobileapp.onrender.com/rtcToken'; // Production token server URL
 
   static Future<String?> fetchToken({
     required String channelName,

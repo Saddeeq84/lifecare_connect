@@ -44,6 +44,37 @@ class DoctorAppointmentsList extends StatelessWidget {
 
 
   void _showPreConsultationDetails(BuildContext context, Map<String, dynamic> checklistData) {
+    // Support both top-level and nested (healthAssessment/data) structures
+    Map<String, dynamic> data = checklistData;
+    if (data.containsKey('healthAssessment') && data['healthAssessment'] is Map<String, dynamic>) {
+      data = {...data, ...data['healthAssessment']};
+    } else if (data.containsKey('data') && data['data'] is Map<String, dynamic>) {
+      data = {...data, ...data['data']};
+      if (data.containsKey('healthAssessment') && data['healthAssessment'] is Map<String, dynamic>) {
+        data = {...data, ...data['healthAssessment']};
+      }
+    }
+
+    final fields = <String, String?>{
+      'Appointment Type': data['appointmentType'] ?? data['type'],
+      'Appointment Date': data['appointmentDate'] != null
+          ? (data['appointmentDate'] is String
+              ? data['appointmentDate']
+              : (data['appointmentDate'] is DateTime
+                  ? (data['appointmentDate'] as DateTime).toLocal().toString()
+                  : data['appointmentDate'].toString()))
+          : null,
+      'Consultation Method': data['consultationChannel'] ?? data['channel'],
+      'Main Complaint': data['mainComplaint'] ?? data['reason'],
+      'Symptoms': data['symptoms'],
+      'Duration': data['duration'],
+      'Severity': data['severity'],
+      'Current Medications': data['medications'] ?? data['currentMedications'] ?? data['medicationsTaken'],
+      'Allergies': data['allergies'],
+      'Medical History': data['medicalHistory'],
+      'Additional Notes': data['additionalNotes'] ?? data['notes'],
+    };
+
     showDialog(
       context: context,
       builder: (context) {
@@ -52,12 +83,30 @@ class DoctorAppointmentsList extends StatelessWidget {
           content: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: checklistData.entries.map((entry) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4.0),
-                  child: Text('${entry.key}: ${entry.value}'),
-                );
-              }).toList(),
+              children: fields.entries
+                  .where((entry) => entry.value != null && entry.value.toString().trim().isNotEmpty)
+                  .map((entry) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              width: 140,
+                              child: Text(
+                                '${entry.key}:',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.blueGrey,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(entry.value!),
+                            ),
+                          ],
+                        ),
+                      ))
+                  .toList(),
             ),
           ),
           actions: [

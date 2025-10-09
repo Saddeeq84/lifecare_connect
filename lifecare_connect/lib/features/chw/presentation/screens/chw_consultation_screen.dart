@@ -39,8 +39,7 @@ void _showCallConfirmationDialog(BuildContext context, VoidCallback onContinue, 
 }
 
 class CHWConsultationScreen extends StatelessWidget {
-  // Agora test credentials (shared for all roles)
-  final String agoraChannel = 'test_lifecare'; // updated channel name
+  // Use dynamic channel names for production (e.g., based on patient or appointment)
   const CHWConsultationScreen({super.key});
 
   @override
@@ -108,6 +107,37 @@ class CHWConsultationScreen extends StatelessWidget {
                           tooltip: 'View Detail',
                           onPressed: () {
                             if (preConsultationData != null && preConsultationData.isNotEmpty) {
+                              // Use same logic as doctor to extract fields from nested structures
+                              Map<String, dynamic> data = preConsultationData;
+                              if (data.containsKey('healthAssessment') && data['healthAssessment'] is Map<String, dynamic>) {
+                                data = {...data, ...data['healthAssessment']};
+                              } else if (data.containsKey('data') && data['data'] is Map<String, dynamic>) {
+                                data = {...data, ...data['data']};
+                                if (data.containsKey('healthAssessment') && data['healthAssessment'] is Map<String, dynamic>) {
+                                  data = {...data, ...data['healthAssessment']};
+                                }
+                              }
+
+                              final fields = <String, String?>{
+                                'Appointment Type': data['appointmentType'] ?? data['type'],
+                                'Appointment Date': data['appointmentDate'] != null
+                                    ? (data['appointmentDate'] is String
+                                        ? data['appointmentDate']
+                                        : (data['appointmentDate'] is DateTime
+                                            ? (data['appointmentDate'] as DateTime).toLocal().toString()
+                                            : data['appointmentDate'].toString()))
+                                    : null,
+                                'Consultation Method': data['consultationChannel'] ?? data['channel'],
+                                'Main Complaint': data['mainComplaint'] ?? data['reason'],
+                                'Symptoms': data['symptoms'],
+                                'Duration': data['duration'],
+                                'Severity': data['severity'],
+                                'Current Medications': data['medications'] ?? data['currentMedications'] ?? data['medicationsTaken'],
+                                'Allergies': data['allergies'],
+                                'Medical History': data['medicalHistory'],
+                                'Additional Notes': data['additionalNotes'] ?? data['notes'],
+                              };
+
                               showDialog(
                                 context: context,
                                 builder: (context) {
@@ -116,14 +146,30 @@ class CHWConsultationScreen extends StatelessWidget {
                                     content: SingleChildScrollView(
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          for (final entry in preConsultationData.entries)
-                                            if (entry.value != null && entry.value.toString().isNotEmpty)
-                                              Padding(
-                                                padding: const EdgeInsets.symmetric(vertical: 2),
-                                                child: Text('${entry.key}: ${entry.value}', style: const TextStyle(fontSize: 15)),
-                                              ),
-                                        ],
+                                        children: fields.entries
+                                            .where((entry) => entry.value != null && entry.value.toString().trim().isNotEmpty)
+                                            .map((entry) => Padding(
+                                                  padding: const EdgeInsets.only(bottom: 10),
+                                                  child: Row(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      SizedBox(
+                                                        width: 140,
+                                                        child: Text(
+                                                          '${entry.key}:',
+                                                          style: const TextStyle(
+                                                            fontWeight: FontWeight.w600,
+                                                            color: Colors.blueGrey,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      Expanded(
+                                                        child: Text(entry.value!),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ))
+                                            .toList(),
                                       ),
                                     ),
                                     actions: [
@@ -222,6 +268,11 @@ class CHWConsultationScreen extends StatelessWidget {
                           icon: Icon(Icons.videocam, color: Colors.indigo),
                           tooltip: 'Video Call',
                           onPressed: () {
+              final channelName = appointmentId.isNotEmpty
+                ? appointmentId
+                : patientId.isNotEmpty
+                  ? patientId
+                  : chwUid;
                             if (kIsWeb) {
                               openWebCallPage();
                             } else {
@@ -231,7 +282,7 @@ class CHWConsultationScreen extends StatelessWidget {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
                                       builder: (context) => ConsultationScreen(
-                                        channelName: agoraChannel,
+                                        channelName: channelName,
                                         isVideo: true,
                                       ),
                                     ),
@@ -246,6 +297,11 @@ class CHWConsultationScreen extends StatelessWidget {
                           icon: Icon(Icons.call, color: Colors.indigo),
                           tooltip: 'Audio Call',
                           onPressed: () {
+              final channelName = appointmentId.isNotEmpty
+                ? appointmentId
+                : patientId.isNotEmpty
+                  ? patientId
+                  : chwUid;
                             if (kIsWeb) {
                               openWebCallPage();
                             } else {
@@ -255,7 +311,7 @@ class CHWConsultationScreen extends StatelessWidget {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
                                       builder: (context) => ConsultationScreen(
-                                        channelName: agoraChannel,
+                                        channelName: channelName,
                                         isVideo: false,
                                       ),
                                     ),

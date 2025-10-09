@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:intl/intl.dart';
 
 class PatientConsultationsScreen extends StatelessWidget {
@@ -88,6 +89,54 @@ class _ConsultationDetailsDialog extends StatelessWidget {
             _buildDetailRow('Urgency', data['urgency'] ?? 'Normal'),
             if (data['preConsultationData'] != null && data['preConsultationData']['mainComplaint'] != null)
               _buildDetailRow('Main Complaint', data['preConsultationData']['mainComplaint']),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.videocam),
+                  label: const Text('Join Video Call'),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo, foregroundColor: Colors.white),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Consultation Completed'),
+                        content: const Text('This consultation is completed. To speak with a provider, please book a new appointment.'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text('OK'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.call),
+                  label: const Text('Join Audio Call'),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, foregroundColor: Colors.white),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Consultation Completed'),
+                        content: const Text('This consultation is completed. To speak with a provider, please book a new appointment.'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text('OK'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
           ],
         ),
       ),
