@@ -322,7 +322,7 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
       // Show success message and info dialog
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Account created! Registration requires admin approval before your account is active.'),
             backgroundColor: Colors.green,
           ),
@@ -378,7 +378,7 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
       if (userCred != null && userCred.user != null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Text('Registration successful! Your account requires admin approval before it is active.'),
               backgroundColor: Colors.green,
             ),

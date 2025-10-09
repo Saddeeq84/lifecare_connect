@@ -573,7 +573,7 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
                 children: [
                   const Icon(Icons.check_circle, color: Colors.green),
                   const SizedBox(width: 8),
-                  Expanded(
+                  const Expanded(
                     child: Text('Document uploaded', style: TextStyle(color: Colors.green, fontWeight: FontWeight.w500)),
                   ),
                   TextButton(
@@ -587,11 +587,11 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
                 ],
               )
             else
-              Row(
+              const Row(
                 children: [
-                  const Icon(Icons.warning, color: Colors.orange),
-                  const SizedBox(width: 8),
-                  const Expanded(
+                  Icon(Icons.warning, color: Colors.orange),
+                  SizedBox(width: 8),
+                  Expanded(
                     child: Text('No document uploaded', style: TextStyle(color: Colors.orange, fontWeight: FontWeight.w500)),
                   ),
                 ],

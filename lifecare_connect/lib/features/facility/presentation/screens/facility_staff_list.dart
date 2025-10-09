@@ -10,7 +10,7 @@ class FacilityStaffListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final collection = '${facilityName.toLowerCase().replaceAll(' ', '_')}_users';
     return Scaffold(
-      appBar: AppBar(title: Text('All Staff'), leading: BackButton()),
+      appBar: AppBar(title: const Text('All Staff'), leading: const BackButton()),
       body: Column(
         children: [
           Padding(
@@ -18,8 +18,8 @@ class FacilityStaffListScreen extends StatelessWidget {
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                icon: Icon(Icons.person_add),
-                label: Text('Register Staff'),
+                icon: const Icon(Icons.person_add),
+                label: const Text('Register Staff'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.teal.shade800,
                   foregroundColor: Colors.white,
@@ -39,9 +39,9 @@ class FacilityStaffListScreen extends StatelessWidget {
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance.collection(collection).snapshots(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
+                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
                 final docs = snapshot.data!.docs;
-                if (docs.isEmpty) return Center(child: Text('No staff found'));
+                if (docs.isEmpty) return const Center(child: Text('No staff found'));
                 return ListView(
                   children: docs.map((doc) {
                     final data = doc.data() as Map<String, dynamic>;

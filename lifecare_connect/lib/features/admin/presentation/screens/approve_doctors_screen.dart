@@ -70,7 +70,7 @@ class ApproveDoctorsScreen extends StatelessWidget {
                     showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
-                        title: Text('Doctor Details'),
+                        title: const Text('Doctor Details'),
                         content: SingleChildScrollView(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,7 +95,7 @@ class ApproveDoctorsScreen extends StatelessWidget {
                                           width: 400,
                                           height: 500,
                                           child: licenseUrl.endsWith('.pdf')
-                                              ? Center(child: Text('PDF viewing not supported in dialog. Open in browser.'))
+                                              ? const Center(child: Text('PDF viewing not supported in dialog. Open in browser.'))
                                               : Image.network(licenseUrl),
                                         ),
                                         actions: [

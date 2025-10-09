@@ -2,13 +2,41 @@
 
 
 
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../consultation/presentation/screens/consultation_screen.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import '../../../../utils/web_open_call_page_stub.dart'
+  if (dart.library.html) '../../../../utils/web_open_call_page_web.dart';
 import '../../../shared/data/services/message_service.dart';
 import '../../../shared/presentation/screens/messages_screen.dart';
+
+// Confirmation dialog for mobile call
+void _showCallConfirmationDialog(BuildContext context, VoidCallback onContinue, {required bool isVideo}) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text('Join Consultation'),
+      content: Text('Do you want to continue to the ${isVideo ? 'video' : 'audio'} call?'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel', style: TextStyle(color: Colors.red)),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+            onContinue();
+          },
+          child: const Text('Continue'),
+        ),
+      ],
+    ),
+  );
+}
 // ...existing code...
 
 Widget _buildInfoRow(String label, String value) {
@@ -191,35 +219,55 @@ class _PendingConsultationTab extends StatelessWidget {
                                         },
                                       ),
                                       ListTile(
-                                        leading: Icon(Icons.videocam, color: Colors.indigo),
-                                        title: Text('Video Call'),
-                                        subtitle: Text('Start video consultation'),
+                                        leading: const Icon(Icons.videocam, color: Colors.indigo),
+                                        title: const Text('Video Call'),
+                                        subtitle: const Text('Start video consultation'),
                                         onTap: () {
                                           Navigator.pop(context);
-                                          Navigator.of(context).push(
-                                            MaterialPageRoute(
-                                              builder: (context) => ConsultationScreen(
-                                                channelName: appointment['id'] ?? appointment['appointmentId'] ?? '',
-                                                isVideo: true,
-                                              ),
-                                            ),
-                                          );
+                                          if (kIsWeb) {
+                                            openWebCallPage();
+                                          } else {
+                                            _showCallConfirmationDialog(
+                                              context,
+                                              () {
+                                                Navigator.of(context).push(
+                                                  MaterialPageRoute(
+                                                    builder: (context) => ConsultationScreen(
+                                                      channelName: appointment['id'] ?? appointment['appointmentId'] ?? '',
+                                                      isVideo: true,
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                              isVideo: true,
+                                            );
+                                          }
                                         },
                                       ),
                                       ListTile(
-                                        leading: Icon(Icons.call, color: Colors.indigo),
-                                        title: Text('Audio Call'),
-                                        subtitle: Text('Start audio consultation'),
+                                        leading: const Icon(Icons.call, color: Colors.indigo),
+                                        title: const Text('Audio Call'),
+                                        subtitle: const Text('Start audio consultation'),
                                         onTap: () {
                                           Navigator.pop(context);
-                                          Navigator.of(context).push(
-                                            MaterialPageRoute(
-                                              builder: (context) => ConsultationScreen(
-                                                channelName: appointment['id'] ?? appointment['appointmentId'] ?? '',
-                                                isVideo: false,
-                                              ),
-                                            ),
-                                          );
+                                          if (kIsWeb) {
+                                            openWebCallPage();
+                                          } else {
+                                            _showCallConfirmationDialog(
+                                              context,
+                                              () {
+                                                Navigator.of(context).push(
+                                                  MaterialPageRoute(
+                                                    builder: (context) => ConsultationScreen(
+                                                      channelName: appointment['id'] ?? appointment['appointmentId'] ?? '',
+                                                      isVideo: false,
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                              isVideo: false,
+                                            );
+                                          }
                                         },
                                       ),
                                       ListTile(

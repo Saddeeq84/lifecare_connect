@@ -225,7 +225,7 @@ class _CHWTrainingScreenState extends State<CHWTrainingScreen>
         }
 
         final resources = snapshot.data!.docs;
-        final showMax = 3;
+        const showMax = 3;
         bool showAll = type == 'video' ? _showAllVideos : _showAllMaterials;
         final showList = showAll ? resources : (resources.length > showMax ? resources.sublist(0, showMax) : resources);
 

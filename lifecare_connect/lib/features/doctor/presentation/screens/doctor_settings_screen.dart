@@ -300,7 +300,7 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                         } catch (e) {
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Failed to delete account: e.toString()}'), backgroundColor: Colors.red),
+                              const SnackBar(content: Text('Failed to delete account: e.toString()}'), backgroundColor: Colors.red),
                             );
                           }
                         } finally {

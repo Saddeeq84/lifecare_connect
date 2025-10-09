@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LifeCare Video Call</title>
+  <script src="https://download.agora.io/sdk/release/AgoraRTC_N.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #e0e7ff 0%, #f4f4f4 100%);
+      margin: 0;
+      min-height: 100vh;
+    }
+    .dialog-backdrop {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;
+    }
+    .dialog {
+      background: #fff; border-radius: 12px; box-shadow: 0 4px 24px #0002; padding: 32px 40px; text-align: center; max-width: 90vw;
+    }
+    .dialog h2 { margin-top: 0; color: #2d3a5a; }
+    .dialog button { background: #2563eb; color: #fff; border: none; border-radius: 6px; padding: 12px 32px; font-size: 1.1em; cursor: pointer; margin-top: 24px; }
+    .dialog button:hover { background: #1e40af; }
+    .header {
+      background: #2563eb; color: #fff; padding: 24px 0 16px 0; text-align: center; box-shadow: 0 2px 8px #0001;
+    }
+    .header h1 { margin: 0; font-size: 2.2em; letter-spacing: 1px; }
+    #video-container {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;
+      margin: 40px auto 0 auto; max-width: 1100px; min-height: 320px;
+    }
+    .video-box { background: #111; border-radius: 10px; overflow: hidden; position: relative; }
+    .video-label {
+      position: absolute; left: 0; bottom: 0; background: #2563ebcc; color: #fff; padding: 2px 10px; font-size: 0.95em; border-radius: 0 8px 0 0;
+    }
+    video { width: 100%; height: 320px; background: #000; display: block; }
+    #controls { margin: 32px auto 0 auto; text-align: center; }
+    .btn {
+      padding: 12px 32px; margin: 0 12px; font-size: 1.1em; border-radius: 6px; border: none; background: #2563eb; color: #fff; cursor: pointer; transition: background 0.2s;
+    }
+    .btn:hover { background: #1e40af; }
+    @media (max-width: 700px) {
+      #video-container { grid-template-columns: 1fr; }
+      .header h1 { font-size: 1.3em; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>LifeCare Video/Audio Call</h1>
+    <p style="margin: 8px 0 0 0; font-size:1.1em; color:#e0e7ff;">Secure, high-quality video calls for your consultation</p>
+  </div>
+  <div id="controls" style="display:none;">
+    <button class="btn" onclick="leaveCall()">Leave Call</button>
+  </div>
+  <div id="video-container"></div>
+  <div id="entry-dialog" class="dialog-backdrop">
+    <div class="dialog">
+      <h2>Ready to join your consultation?</h2>
+      <p>Click continue to proceed to the secure video/audio call. Your privacy is protected.</p>
+  <button onclick="proceedToCall()">Continue</button>
+  <button onclick="cancelCall()" style="background:#e11d48; margin-left:16px;">Cancel</button>
+    </div>
+  </div>
+  <script>
+    // Credentials (hidden from UI)
+    const APP_ID = 'a105462abb1746fc9075e6c2f81f5ac5';
+    const TOKEN = '007eJxTYGju0nctnuo4Qd12ZXTmqdvFkyI3WORkhJz3fsxVKVjR56TAkGhoYGpiZpSYlGRobmKWlmxpYG6aapZslGZhmGaamGyqmfM8oyGQkeG7PwMzIwMEgvi8DCWpxSXxOZlpqcmJRakMDADpGSFP';
+    const CHANNEL = 'test_lifecare';
+    let client, localTracks = [], joined = false;
+    let remoteUsers = {};
+
+    function proceedToCall() {
+      document.getElementById('entry-dialog').style.display = 'none';
+      document.getElementById('controls').style.display = 'block';
+      joinCall();
+    }
+
+    function cancelCall() {
+      // Try to close the tab/window if possible, otherwise go back or to home
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.close();
+        // If window.close() fails (most browsers), redirect to home
+        setTimeout(function() {
+          window.location.href = '/';
+        }, 300);
+      }
+    }
+
+    async function joinCall() {
+      client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+      client.on('user-published', handleUserPublished);
+      client.on('user-unpublished', handleUserUnpublished);
+      await client.join(APP_ID, CHANNEL, TOKEN, null);
+      localTracks = await AgoraRTC.createMicrophoneAndCameraTracks();
+      addVideoBox('local', 'You');
+      localTracks[1].play('video-local');
+      await client.publish(localTracks);
+      joined = true;
+    }
+
+    function addVideoBox(uid, label) {
+      let box = document.getElementById('video-' + uid);
+      if (!box) {
+        box = document.createElement('div');
+        box.className = 'video-box';
+        box.id = 'video-' + uid;
+        let video = document.createElement('div');
+        video.id = 'video-' + uid;
+        box.appendChild(video);
+        let tag = document.createElement('div');
+        tag.className = 'video-label';
+        tag.innerText = label;
+        box.appendChild(tag);
+        document.getElementById('video-container').appendChild(box);
+      }
+    }
+
+    async function handleUserPublished(user, mediaType) {
+      await client.subscribe(user, mediaType);
+      if (mediaType === 'video') {
+        addVideoBox(user.uid, 'Participant');
+        user.videoTrack.play('video-' + user.uid);
+      }
+      if (mediaType === 'audio') {
+        user.audioTrack.play();
+      }
+      remoteUsers[user.uid] = user;
+    }
+
+    function handleUserUnpublished(user) {
+      delete remoteUsers[user.uid];
+      let box = document.getElementById('video-' + user.uid);
+      if (box) box.remove();
+    }
+
+    async function leaveCall() {
+      if (!joined) return;
+      for (let track of localTracks) {
+        track.close();
+      }
+      await client.leave();
+      document.getElementById('video-container').innerHTML = '';
+      document.getElementById('controls').style.display = 'none';
+      joined = false;
+      // Optionally, show dialog again or redirect
+      document.getElementById('entry-dialog').style.display = 'flex';
+    }
+  </script>
+</body>
+</html>

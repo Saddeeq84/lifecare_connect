@@ -58,7 +58,7 @@ class _FacilityStaffCreateAccountScreenState extends State<FacilityStaffCreateAc
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Create Staff Account'), leading: BackButton()),
+      appBar: AppBar(title: const Text('Create Staff Account'), leading: const BackButton()),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Form(
@@ -67,23 +67,23 @@ class _FacilityStaffCreateAccountScreenState extends State<FacilityStaffCreateAc
             children: [
               // Facility selection removed as per new requirements
               const SizedBox(height: 12),
-              TextFormField(controller: _nameController, decoration: InputDecoration(labelText: 'Full Name'), validator: (v) => v!.isEmpty ? 'Required' : null),
+              TextFormField(controller: _nameController, decoration: const InputDecoration(labelText: 'Full Name'), validator: (v) => v!.isEmpty ? 'Required' : null),
               const SizedBox(height: 12),
               InkWell(
                 onTap: _selectDate,
                 child: InputDecorator(
-                  decoration: InputDecoration(labelText: 'Date of Birth'),
+                  decoration: const InputDecoration(labelText: 'Date of Birth'),
                   child: Text(_dob == null ? 'Select date' : '${_dob!.day}/${_dob!.month}/${_dob!.year}'),
                 ),
               ),
               const SizedBox(height: 12),
-              TextFormField(controller: _staffIdController, decoration: InputDecoration(labelText: 'Staff ID'), validator: (v) => v!.isEmpty ? 'Required' : null),
+              TextFormField(controller: _staffIdController, decoration: const InputDecoration(labelText: 'Staff ID'), validator: (v) => v!.isEmpty ? 'Required' : null),
               const SizedBox(height: 12),
-              TextFormField(controller: _departmentController, decoration: InputDecoration(labelText: 'Department'), validator: (v) => v!.isEmpty ? 'Required' : null),
+              TextFormField(controller: _departmentController, decoration: const InputDecoration(labelText: 'Department'), validator: (v) => v!.isEmpty ? 'Required' : null),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 initialValue: _selectedProfession,
-                decoration: InputDecoration(labelText: 'Profession'),
+                decoration: const InputDecoration(labelText: 'Profession'),
                 items: _professions.map((profession) => DropdownMenuItem(
                   value: profession,
                   child: Text(profession),
@@ -95,20 +95,20 @@ class _FacilityStaffCreateAccountScreenState extends State<FacilityStaffCreateAc
                       builder: (context) {
                         String input = '';
                         return AlertDialog(
-                          title: Text('Enter Profession'),
+                          title: const Text('Enter Profession'),
                           content: TextField(
                             autofocus: true,
-                            decoration: InputDecoration(hintText: 'Profession name'),
+                            decoration: const InputDecoration(hintText: 'Profession name'),
                             onChanged: (v) => input = v,
                           ),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.of(context).pop(),
-                              child: Text('Cancel'),
+                              child: const Text('Cancel'),
                             ),
                             ElevatedButton(
                               onPressed: () => Navigator.of(context).pop(input.trim()),
-                              child: Text('OK'),
+                              child: const Text('OK'),
                             ),
                           ],
                         );
@@ -135,9 +135,9 @@ class _FacilityStaffCreateAccountScreenState extends State<FacilityStaffCreateAc
                 validator: (value) => value == null ? 'Required' : null,
               ),
               const SizedBox(height: 12),
-              TextFormField(controller: _phoneController, decoration: InputDecoration(labelText: 'Phone Number'), keyboardType: TextInputType.phone, validator: (v) => v!.isEmpty ? 'Required' : null),
+              TextFormField(controller: _phoneController, decoration: const InputDecoration(labelText: 'Phone Number'), keyboardType: TextInputType.phone, validator: (v) => v!.isEmpty ? 'Required' : null),
               const SizedBox(height: 12),
-              TextFormField(controller: _emailController, decoration: InputDecoration(labelText: 'Email'), keyboardType: TextInputType.emailAddress, validator: (v) => v!.isEmpty ? 'Required' : null),
+              TextFormField(controller: _emailController, decoration: const InputDecoration(labelText: 'Email'), keyboardType: TextInputType.emailAddress, validator: (v) => v!.isEmpty ? 'Required' : null),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _isLoading ? null : () async {
@@ -145,16 +145,16 @@ class _FacilityStaffCreateAccountScreenState extends State<FacilityStaffCreateAc
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: Text('Confirm Registration'),
-                      content: Text('Are you sure you want to submit this staff registration?'),
+                      title: const Text('Confirm Registration'),
+                      content: const Text('Are you sure you want to submit this staff registration?'),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(false),
-                          child: Text('Cancel'),
+                          child: const Text('Cancel'),
                         ),
                         ElevatedButton(
                           onPressed: () => Navigator.of(context).pop(true),
-                          child: Text('Confirm'),
+                          child: const Text('Confirm'),
                         ),
                       ],
                     ),
@@ -184,7 +184,7 @@ class _FacilityStaffCreateAccountScreenState extends State<FacilityStaffCreateAc
                     );
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Account request submitted. Staff will receive an email to set up their password.'), backgroundColor: Colors.green),
+                        const SnackBar(content: Text('Account request submitted. Staff will receive an email to set up their password.'), backgroundColor: Colors.green),
                       );
                       Navigator.pop(context);
                     }
@@ -197,7 +197,7 @@ class _FacilityStaffCreateAccountScreenState extends State<FacilityStaffCreateAc
                   }
                   setState(() => _isLoading = false);
                 },
-                child: _isLoading ? CircularProgressIndicator() : Text('Submit Registration'),
+                child: _isLoading ? const CircularProgressIndicator() : const Text('Submit Registration'),
               ),
             ],
           ),

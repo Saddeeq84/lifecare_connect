@@ -1,4 +1,7 @@
 import '../../../consultation/presentation/screens/consultation_screen.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import '../../../../utils/web_open_call_page_stub.dart'
+  if (dart.library.html) '../../../../utils/web_open_call_page_web.dart';
 // ignore_for_file: prefer_const_constructors, depend_on_referenced_packages
 
 import 'package:flutter/material.dart';
@@ -8,9 +11,36 @@ import 'package:go_router/go_router.dart';
 import 'chw_anc_pnc_consultation_screen.dart';
 import './chw_create_referral_screen.dart';
 import 'chw_consultation_details_screen.dart';
+
 import 'package:lifecare_connect/features/shared/data/services/message_service.dart';
 
+// Confirmation dialog for mobile call
+void _showCallConfirmationDialog(BuildContext context, VoidCallback onContinue, {required bool isVideo}) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text('Join Consultation'),
+      content: Text('Do you want to continue to the ${isVideo ? 'video' : 'audio'} call?'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel', style: TextStyle(color: Colors.red)),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+            onContinue();
+          },
+          child: const Text('Continue'),
+        ),
+      ],
+    ),
+  );
+}
+
 class CHWConsultationScreen extends StatelessWidget {
+  // Agora test credentials (shared for all roles)
+  final String agoraChannel = 'test_lifecare'; // updated channel name
   const CHWConsultationScreen({super.key});
 
   @override
@@ -192,28 +222,48 @@ class CHWConsultationScreen extends StatelessWidget {
                           icon: Icon(Icons.videocam, color: Colors.indigo),
                           tooltip: 'Video Call',
                           onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => ConsultationScreen(
-                                  channelName: appointmentId,
-                                  isVideo: true,
-                                ),
-                              ),
-                            );
+                            if (kIsWeb) {
+                              openWebCallPage();
+                            } else {
+                              _showCallConfirmationDialog(
+                                context,
+                                () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => ConsultationScreen(
+                                        channelName: agoraChannel,
+                                        isVideo: true,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                isVideo: true,
+                              );
+                            }
                           },
                         ),
                         IconButton(
                           icon: Icon(Icons.call, color: Colors.indigo),
                           tooltip: 'Audio Call',
                           onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => ConsultationScreen(
-                                  channelName: appointmentId,
-                                  isVideo: false,
-                                ),
-                              ),
-                            );
+                            if (kIsWeb) {
+                              openWebCallPage();
+                            } else {
+                              _showCallConfirmationDialog(
+                                context,
+                                () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => ConsultationScreen(
+                                        channelName: agoraChannel,
+                                        isVideo: false,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                isVideo: false,
+                              );
+                            }
                           },
                         ),
                         IconButton(

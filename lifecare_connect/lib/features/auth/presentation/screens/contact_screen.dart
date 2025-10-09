@@ -36,14 +36,14 @@ class _ContactScreenState extends State<ContactScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Contact Us'),
+        title: const Text('Contact Us'),
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: _submitted
-            ? Center(
+            ? const Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -59,13 +59,13 @@ class _ContactScreenState extends State<ContactScreen> {
                 key: _formKey,
                 child: ListView(
                   children: [
-                    Text('Contact Us', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.teal)),
-                    SizedBox(height: 18),
-                    Text('For any inquiries, please fill out the form below.', style: TextStyle(fontSize: 16)),
-                    SizedBox(height: 24),
+                    const Text('Contact Us', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.teal)),
+                    const SizedBox(height: 18),
+                    const Text('For any inquiries, please fill out the form below.', style: TextStyle(fontSize: 16)),
+                    const SizedBox(height: 24),
                     TextFormField(
                       controller: _nameController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Name',
                         border: OutlineInputBorder(),
                       ),
@@ -76,10 +76,10 @@ class _ContactScreenState extends State<ContactScreen> {
                         return null;
                       },
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     TextFormField(
                       controller: _emailController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Email',
                         border: OutlineInputBorder(),
                       ),
@@ -94,10 +94,10 @@ class _ContactScreenState extends State<ContactScreen> {
                         return null;
                       },
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     TextFormField(
                       controller: _messageController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Message',
                         border: OutlineInputBorder(),
                       ),
@@ -109,16 +109,16 @@ class _ContactScreenState extends State<ContactScreen> {
                         return null;
                       },
                     ),
-                    SizedBox(height: 24),
+                    const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: _submitForm,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.teal,
                         foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: 14),
-                        textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
-                      child: Text('Send Message'),
+                      child: const Text('Send Message'),
                     ),
                   ],
                 ),

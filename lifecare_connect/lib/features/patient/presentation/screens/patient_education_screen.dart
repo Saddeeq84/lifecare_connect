@@ -108,7 +108,7 @@ class _PatientEducationScreenState extends State<PatientEducationScreen> with Si
         }
 
         final content = snapshot.data!.docs;
-        final showMax = 3;
+        const showMax = 3;
         bool showAll = type == 'video' ? _showAllVideos : _showAllHealthTips;
         final showList = showAll ? content : (content.length > showMax ? content.sublist(0, showMax) : content);
 

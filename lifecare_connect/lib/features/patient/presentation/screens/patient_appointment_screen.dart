@@ -7,6 +7,10 @@ import 'package:intl/intl.dart';
 import '../../../shared/data/services/appointment_service.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'patient_staff_selection_screen.dart';
+import '../../../../../features/consultation/presentation/screens/consultation_screen.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import '../../../../utils/web_open_call_page_stub.dart'
+  if (dart.library.html) '../../../../utils/web_open_call_page_web.dart';
 // import 'patient_referrals_screen.dart';
 // import 'patient_consultations_screen.dart';
 import 'package:go_router/go_router.dart';
@@ -19,6 +23,10 @@ class PatientAppointmentsScreen extends StatefulWidget {
 }
 
 class _PatientAppointmentsScreenState extends State<PatientAppointmentsScreen> with TickerProviderStateMixin {
+  // Agora test credentials (shared with doctor)
+  final String agoraAppId = 'a105462abb1746fc9075e6c2f81f5ac5';
+  final String agoraToken = '007eJxTYEiPO/3VpV5yutbEA61To/LDPxRoWObxabmfqCs5wRXbOkGBIdHQwNTEzCgxKcnQ3MQsLdnSwNw01SzZKM3CMM00Mdk0y+95RkMgI0POjkYGRigE8TkYSlKLS5ITc3IYGABuPCAN';
+  final String agoraChannel = 'test_lifecare';
   late TabController _tabController;
   late String _userId;
 
@@ -79,6 +87,39 @@ class _PatientAppointmentsScreenState extends State<PatientAppointmentsScreen> w
 // ------------------------ 🩺 Appointments List ------------------------
 
 class _AppointmentsList extends StatelessWidget {
+  // Confirmation dialog for mobile call
+  void _showCallConfirmationDialog(BuildContext context, bool isVideo) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Join Consultation'),
+        content: Text('Do you want to continue to the \\${isVideo ? 'video' : 'audio'} call?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel', style: TextStyle(color: Colors.red)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ConsultationScreen(
+                    channelName: agoraChannel,
+                    isVideo: isVideo,
+                  ),
+                ),
+              );
+            },
+            child: const Text('Continue'),
+          ),
+        ],
+      ),
+    );
+  }
+  // Agora test credentials (shared with doctor)
+  final String agoraChannel = 'test_lifecare'; // updated channel name
   final String statusFilter;
   final String userId;
 
@@ -393,13 +434,26 @@ class PatientConsultationsScreen extends StatelessWidget {
                   IconButton(
                     icon: const Icon(Icons.videocam, color: Colors.blue),
                     tooltip: 'Video Call',
-                    onPressed: () => _showComingSoonDialog(context, 'Video Call'),
+                    onPressed: () {
+                      if (kIsWeb) {
+                        openWebCallPage();
+                      } else {
+                        _showCallConfirmationDialog(context, true);
+                      }
+                    },
                   ),
                   IconButton(
                     icon: const Icon(Icons.call, color: Colors.green),
                     tooltip: 'Audio Call',
-                    onPressed: () => _showComingSoonDialog(context, 'Audio Call'),
+                    onPressed: () {
+                      if (kIsWeb) {
+                        openWebCallPage();
+                      } else {
+                        _showCallConfirmationDialog(context, false);
+                      }
+                    },
                   ),
+                  // ...rest of the row
                   IconButton(
                     icon: const Icon(Icons.chat, color: Colors.orange),
                     tooltip: 'Chat',

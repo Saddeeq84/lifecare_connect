@@ -10,10 +10,19 @@
     "setup": "node admin-utils.js all",
     "test": "echo \"No tests specified\" && exit 0"
   },
-  "keywords": ["firebase", "admin", "healthcare", "lifecare"],
+  "keywords": [
+    "firebase",
+    "admin",
+    "healthcare",
+    "lifecare"
+  ],
   "author": "LifeCare Connect Team",
   "license": "MIT",
   "dependencies": {
+    "agora-access-token": "^2.0.4",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
     "firebase-admin": "^13.4.0"
   }
 }

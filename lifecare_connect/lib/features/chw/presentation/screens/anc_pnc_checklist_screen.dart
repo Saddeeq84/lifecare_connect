@@ -241,14 +241,14 @@ class _AncPncChecklistScreenState extends State<AncPncChecklistScreen> {
 							],
 						)),
 						const SizedBox(height: 16),
-						Text('Follow-up Plan:', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+						const Text('Follow-up Plan:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
 						TextField(
 							controller: followUpPlanController,
 							decoration: const InputDecoration(hintText: 'Describe follow-up actions or advice', border: OutlineInputBorder()),
 							maxLines: 2,
 						),
 						const SizedBox(height: 8),
-									Text('Next Visit Date:', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+									const Text('Next Visit Date:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
 									InkWell(
 										onTap: () async {
 											final picked = await showDatePicker(
@@ -277,7 +277,7 @@ class _AncPncChecklistScreenState extends State<AncPncChecklistScreen> {
 										),
 									),
 						const SizedBox(height: 8),
-						Text('Additional Notes:', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+						const Text('Additional Notes:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
 						TextField(
 							controller: followUpNotesController,
 							decoration: const InputDecoration(hintText: 'Any extra notes', border: OutlineInputBorder()),

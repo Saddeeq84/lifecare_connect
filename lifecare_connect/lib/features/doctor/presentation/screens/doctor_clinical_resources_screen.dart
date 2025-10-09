@@ -52,7 +52,7 @@ class _DoctorClinicalResourcesScreenState extends State<DoctorClinicalResourcesS
         // On web, show a message that download is not supported in mobile build
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Web download is not supported in mobile build.')),
+            const SnackBar(content: Text('Web download is not supported in mobile build.')),
           );
         }
       } else {
@@ -71,7 +71,7 @@ class _DoctorClinicalResourcesScreenState extends State<DoctorClinicalResourcesS
         } else {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Failed to download PDF.')),
+              const SnackBar(content: Text('Failed to download PDF.')),
             );
           }
         }
@@ -388,7 +388,7 @@ class _DoctorClinicalResourcesScreenState extends State<DoctorClinicalResourcesS
                     return _buildEmptyState('video');
                   }
                   final resources = snapshot.data!.docs;
-                  final showMax = 3;
+                  const showMax = 3;
                   final showList = _showAllVideos ? resources : (resources.length > showMax ? resources.sublist(0, showMax) : resources);
                   return Column(
                     children: [
@@ -436,7 +436,7 @@ class _DoctorClinicalResourcesScreenState extends State<DoctorClinicalResourcesS
                     return _buildEmptyState('pdf');
                   }
                   final resources = snapshot.data!.docs;
-                  final showMax = 3;
+                  const showMax = 3;
                   final showList = _showAllMaterials ? resources : (resources.length > showMax ? resources.sublist(0, showMax) : resources);
                   return Column(
                     children: [

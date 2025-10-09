@@ -145,7 +145,7 @@ class _ApprovalList extends StatelessWidget {
                               context: context,
                               builder: (context) {
                                 return AlertDialog(
-                                  title: Text('Review Account Details'),
+                                  title: const Text('Review Account Details'),
                                   content: SingleChildScrollView(
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,

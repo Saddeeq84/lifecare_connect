@@ -8,19 +8,19 @@ class FacilityStaffDashboardScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Staff Dashboard'),
-        leading: BackButton(),
+        leading: const BackButton(),
         actions: [
-          IconButton(icon: Icon(Icons.person), onPressed: () {}),
-          IconButton(icon: Icon(Icons.settings), onPressed: () {}),
-          IconButton(icon: Icon(Icons.logout), onPressed: () {}),
+          IconButton(icon: const Icon(Icons.person), onPressed: () {}),
+          IconButton(icon: const Icon(Icons.settings), onPressed: () {}),
+          IconButton(icon: const Icon(Icons.logout), onPressed: () {}),
         ],
       ),
       body: ListView(
         children: [
-          ListTile(leading: Icon(Icons.calendar_today), title: Text('Appointments'), onTap: () {}),
-          ListTile(leading: Icon(Icons.people), title: Text('My Patients'), onTap: () {}),
-          ListTile(leading: Icon(Icons.medical_services), title: Text('Consultations'), onTap: () {}),
-          ListTile(leading: Icon(Icons.bar_chart), title: Text('Reports & Analytics'), onTap: () {}),
+          ListTile(leading: const Icon(Icons.calendar_today), title: const Text('Appointments'), onTap: () {}),
+          ListTile(leading: const Icon(Icons.people), title: const Text('My Patients'), onTap: () {}),
+          ListTile(leading: const Icon(Icons.medical_services), title: const Text('Consultations'), onTap: () {}),
+          ListTile(leading: const Icon(Icons.bar_chart), title: const Text('Reports & Analytics'), onTap: () {}),
         ],
       ),
     );

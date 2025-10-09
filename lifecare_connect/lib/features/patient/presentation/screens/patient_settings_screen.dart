@@ -253,7 +253,7 @@ class _PatientSettingsScreenState extends State<PatientSettingsScreen> {
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => PrivacyScreen()));
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const PrivacyScreen()));
                 },
               ),
             ),

@@ -266,7 +266,7 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Registration failed: No user found.'), backgroundColor: Colors.red),
+          const SnackBar(content: Text('Registration failed: No user found.'), backgroundColor: Colors.red),
         );
       }
     }
@@ -280,7 +280,7 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
         key: _formKey,
         child: ListView(
           children: [
-            Text(widget.isCHW ? 'Patient Registration by Email' : 'Patient Self Registration', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(widget.isCHW ? 'Patient Registration by Email' : 'Patient Self Registration', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             TextFormField(
               controller: _nameController,
@@ -326,7 +326,7 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
                   labelText: 'Password',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
                     onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
@@ -340,7 +340,7 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
                 obscureText: _obscureConfirmPassword,
                 decoration: InputDecoration(
                   labelText: 'Confirm Password',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(_obscureConfirmPassword ? Icons.visibility : Icons.visibility_off),
                     onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
@@ -442,13 +442,13 @@ class PatientRegistrationScreen extends StatelessWidget {
       // For self-registration, show only the form
       return Scaffold(
         appBar: AppBar(
-          title: Text('Create Account'),
+          title: const Text('Create Account'),
           backgroundColor: Colors.teal,
           foregroundColor: Colors.white,
           centerTitle: true,
           elevation: 2,
         ),
-        body: SafeArea(
+        body: const SafeArea(
           child: _PatientRegistrationForm(isCHW: false),
         ),
       );
@@ -458,12 +458,12 @@ class PatientRegistrationScreen extends StatelessWidget {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Register New Patient'),
+          title: const Text('Register New Patient'),
           backgroundColor: Colors.teal,
           foregroundColor: Colors.white,
           centerTitle: true,
           elevation: 2,
-          bottom: TabBar(
+          bottom: const TabBar(
             tabs: [
               Tab(text: 'Email Registration'),
               Tab(text: 'Phone Registration'),
@@ -472,7 +472,7 @@ class PatientRegistrationScreen extends StatelessWidget {
         ),
         body: TabBarView(
           children: [
-            SafeArea(child: _PatientRegistrationForm(isCHW: true)),
+            const SafeArea(child: _PatientRegistrationForm(isCHW: true)),
             SafeArea(child: _CHWPatientPhoneRegistration()),
           ],
         ),
@@ -735,7 +735,7 @@ class _CHWPatientPhoneFormState extends State<_CHWPatientPhoneForm> {
         key: _formKey,
         child: ListView(
           children: [
-            Text('Patient Registration by Phone', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text('Patient Registration by Phone', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             TextFormField(
               controller: _nameController,

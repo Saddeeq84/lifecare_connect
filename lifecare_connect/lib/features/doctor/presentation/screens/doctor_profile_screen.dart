@@ -272,11 +272,11 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                 ],
               )
             else
-              Row(
+              const Row(
                 children: [
-                  const Icon(Icons.warning, color: Colors.orange),
-                  const SizedBox(width: 8),
-                  const Expanded(
+                  Icon(Icons.warning, color: Colors.orange),
+                  SizedBox(width: 8),
+                  Expanded(
                     child: Text('No license uploaded', style: TextStyle(color: Colors.orange, fontWeight: FontWeight.w500)),
                   ),
                 ],

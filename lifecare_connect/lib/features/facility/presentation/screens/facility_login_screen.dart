@@ -22,7 +22,7 @@ class _FacilityLoginScreenState extends State<FacilityLoginScreen> {
     setState(() => loading = true);
     final staffId = staffIdController.text.trim();
     final password = staffPasswordController.text.trim();
-    final facilityName = 'chana health center'; // TODO: Replace with actual selected facility
+    const facilityName = 'chana health center'; // TODO: Replace with actual selected facility
     final collection = '${facilityName.toLowerCase().replaceAll(' ', '_')}_users';
     try {
       final query = await FirebaseFirestore.instance.collection(collection)
@@ -32,14 +32,14 @@ class _FacilityLoginScreenState extends State<FacilityLoginScreen> {
         .get();
       if (query.docs.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Staff not found or not approved.')),
+          const SnackBar(content: Text('Staff not found or not approved.')),
         );
         return;
       }
       final staff = query.docs.first.data();
       if (staff['password'] != password) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Incorrect password.')),
+          const SnackBar(content: Text('Incorrect password.')),
         );
         return;
       }
@@ -164,13 +164,13 @@ class _FacilityLoginScreenState extends State<FacilityLoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ChoiceChip(
-                  label: Text('Admin Login'),
+                  label: const Text('Admin Login'),
                   selected: isAdminLogin,
                   onSelected: (v) => setState(() => isAdminLogin = true),
                 ),
                 const SizedBox(width: 12),
                 ChoiceChip(
-                  label: Text('Staff Login'),
+                  label: const Text('Staff Login'),
                   selected: !isAdminLogin,
                   onSelected: (v) => setState(() => isAdminLogin = false),
                 ),

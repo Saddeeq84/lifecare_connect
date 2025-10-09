@@ -10,10 +10,10 @@ class CHWAskAIScreen extends StatelessWidget {
         title: const Text('Ask AI'),
         backgroundColor: Colors.teal,
       ),
-      body: Center(
+      body: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Icon(Icons.smart_toy, size: 80, color: Colors.teal),
             SizedBox(height: 24),
             Text(
