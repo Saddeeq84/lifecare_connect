@@ -1,0 +1,15 @@
+# Ignore Google Cloud SDK and other large files
+lifecare_connect/google-cloud-sdk/
+lifecare_connect/google-cloud-sdk-438.0.0-darwin-x86_64.tar.gz
+lifecare_connect/google-cloud-sdk/data/cli/gcloud.json
+*.tar.gz
+*.bin
+*.exe
+*.dmg
+*.iso
+*.img
+*.zip
+*.7z
+*.rar
+*.log
+build/
