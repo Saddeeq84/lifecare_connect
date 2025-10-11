@@ -2,8 +2,8 @@ const express = require('express');
 const { RtcTokenBuilder, RtcRole } = require('agora-access-token');
 
 const app = express();
-const APP_ID = 'a105462abb1746fc9075e6c2f81f5ac5';
-const APP_CERTIFICATE = '740decce67ba417abc4a25458802d1e7'; // Use primary certificate
+const APP_ID = process.env.AGORA_APP_ID;
+const APP_CERTIFICATE = process.env.AGORA_APP_CERTIFICATE;
 
 app.get('/agora-token', (req, res) => {
   const channelName = req.query.channelName; // appointment ID from your app
@@ -11,6 +11,9 @@ app.get('/agora-token', (req, res) => {
   const role = RtcRole.PUBLISHER;
   const expireTime = 3600; // 1 hour
 
+  if (!APP_ID || !APP_CERTIFICATE) {
+    return res.status(500).json({ error: 'Agora credentials not set' });
+  }
   if (!channelName) {
     return res.status(400).json({ error: 'Missing channelName' });
   }
@@ -21,4 +24,5 @@ app.get('/agora-token', (req, res) => {
   res.json({ token });
 });
 
-app.listen(3000, () => console.log('Agora token server running on port 3000'));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Agora token server running on port ${PORT}`));
