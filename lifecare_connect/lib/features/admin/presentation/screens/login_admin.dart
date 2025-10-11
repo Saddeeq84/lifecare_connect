@@ -32,27 +32,26 @@ class _LoginAdminScreenState extends State<LoginAdminScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => isLoading = true);
 
-
     try {
       final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
-      
+
       final user = credential.user;
       if (user != null) {
         // Check and fix admin role in Firestore
         await _ensureAdminRole(user.uid);
-        
+
         // Navigate to admin dashboard using GoRouter
         if (mounted) {
           context.go('/admin_dashboard');
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login failed: ${e.toString()}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Login failed: ${e.toString()}')));
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -69,15 +68,12 @@ class _LoginAdminScreenState extends State<LoginAdminScreen> {
       if (userDoc.exists) {
         final data = userDoc.data()!;
         final currentRole = data['role']?.toString().toLowerCase();
-        
+
         print('🔍 Current role in Firestore: $currentRole');
-        
+
         // Update role to admin if it's not already
         if (currentRole != 'admin') {
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(uid)
-              .update({
+          await FirebaseFirestore.instance.collection('users').doc(uid).update({
             'role': 'admin',
             'isApproved': true,
             'updatedAt': FieldValue.serverTimestamp(),
@@ -86,10 +82,7 @@ class _LoginAdminScreenState extends State<LoginAdminScreen> {
         }
       } else {
         // Create admin document if it doesn't exist
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(uid)
-            .set({
+        await FirebaseFirestore.instance.collection('users').doc(uid).set({
           'uid': uid,
           'email': emailController.text.trim(),
           'role': 'admin',
@@ -98,7 +91,7 @@ class _LoginAdminScreenState extends State<LoginAdminScreen> {
         });
         print('🆕 Created admin user document');
       }
-      
+
       // Force refresh the cached role in SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('user_role', 'admin');
@@ -155,8 +148,9 @@ class _LoginAdminScreenState extends State<LoginAdminScreen> {
                 controller: emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(labelText: 'Email'),
-                validator: (value) =>
-                    value == null || !value.contains('@') ? 'Enter a valid email' : null,
+                validator: (value) => value == null || !value.contains('@')
+                    ? 'Enter a valid email'
+                    : null,
               ),
               const SizedBox(height: 10),
               TextFormField(
@@ -168,11 +162,13 @@ class _LoginAdminScreenState extends State<LoginAdminScreen> {
                     icon: Icon(
                       obscurePassword ? Icons.visibility_off : Icons.visibility,
                     ),
-                    onPressed: () => setState(() => obscurePassword = !obscurePassword),
+                    onPressed: () =>
+                        setState(() => obscurePassword = !obscurePassword),
                   ),
                 ),
-                validator: (value) =>
-                    value == null || value.length < 6 ? 'Enter 6+ character password' : null,
+                validator: (value) => value == null || value.length < 6
+                    ? 'Enter 6+ character password'
+                    : null,
               ),
               const SizedBox(height: 20),
               ElevatedButton(

@@ -100,7 +100,9 @@ class Message {
       'priority': priority,
       'createdAt': Timestamp.fromDate(createdAt),
       'readAt': readAt != null ? Timestamp.fromDate(readAt!) : null,
-      'deliveredAt': deliveredAt != null ? Timestamp.fromDate(deliveredAt!) : null,
+      'deliveredAt': deliveredAt != null
+          ? Timestamp.fromDate(deliveredAt!)
+          : null,
       'metadata': metadata,
     };
   }
@@ -170,8 +172,12 @@ class Message {
   String get formattedTime {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final messageDate = DateTime(createdAt.year, createdAt.month, createdAt.day);
-    
+    final messageDate = DateTime(
+      createdAt.year,
+      createdAt.month,
+      createdAt.day,
+    );
+
     if (messageDate == today) {
       return '${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}';
     } else if (messageDate == today.subtract(Duration(days: 1))) {
@@ -240,8 +246,12 @@ class Conversation {
     return Conversation(
       id: doc.id,
       participantIds: List<String>.from(data['participantIds'] ?? []),
-      participantNames: Map<String, String>.from(data['participantNames'] ?? {}),
-      participantRoles: Map<String, String>.from(data['participantRoles'] ?? {}),
+      participantNames: Map<String, String>.from(
+        data['participantNames'] ?? {},
+      ),
+      participantRoles: Map<String, String>.from(
+        data['participantRoles'] ?? {},
+      ),
       title: data['title'],
       type: data['type'] ?? 'direct',
       relatedId: data['relatedId'],
@@ -267,7 +277,9 @@ class Conversation {
       'relatedId': relatedId,
       'lastMessageId': lastMessageId,
       'lastMessage': lastMessage,
-      'lastMessageTime': lastMessageTime != null ? Timestamp.fromDate(lastMessageTime!) : null,
+      'lastMessageTime': lastMessageTime != null
+          ? Timestamp.fromDate(lastMessageTime!)
+          : null,
       'lastSenderId': lastSenderId,
       'unreadCounts': unreadCounts,
       'isActive': isActive,
@@ -280,9 +292,11 @@ class Conversation {
   // Utility methods
   int getUnreadCount(String userId) => unreadCounts[userId] ?? 0;
   bool hasUnreadMessages(String userId) => getUnreadCount(userId) > 0;
-  
+
   String getOtherParticipantName(String currentUserId) {
-    final otherParticipants = participantIds.where((id) => id != currentUserId).toList();
+    final otherParticipants = participantIds
+        .where((id) => id != currentUserId)
+        .toList();
     if (otherParticipants.isNotEmpty) {
       return participantNames[otherParticipants.first] ?? 'Unknown';
     }
@@ -290,7 +304,9 @@ class Conversation {
   }
 
   String getOtherParticipantRole(String currentUserId) {
-    final otherParticipants = participantIds.where((id) => id != currentUserId).toList();
+    final otherParticipants = participantIds
+        .where((id) => id != currentUserId)
+        .toList();
     if (otherParticipants.isNotEmpty) {
       return participantRoles[otherParticipants.first] ?? 'USER';
     }

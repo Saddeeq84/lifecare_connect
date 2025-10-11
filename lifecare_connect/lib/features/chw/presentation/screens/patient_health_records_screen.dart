@@ -85,7 +85,8 @@ class PatientHealthRecordsScreen extends StatelessWidget {
                       context.push(
                         '/chw_anc_pnc_consultation',
                         extra: {
-                          'appointmentId': '', // New record, so no appointmentId yet
+                          'appointmentId':
+                              '', // New record, so no appointmentId yet
                           'patientId': patientId,
                           'patientName': patientName,
                           'appointmentType': 'ANC',
@@ -132,7 +133,11 @@ class PatientHealthRecordsScreen extends StatelessWidget {
         .snapshots();
   }
 
-  Widget _buildHealthRecordCard(BuildContext context, String recordId, Map<String, dynamic> recordData) {
+  Widget _buildHealthRecordCard(
+    BuildContext context,
+    String recordId,
+    Map<String, dynamic> recordData,
+  ) {
     final type = recordData['type'] ?? 'Unknown';
     final date = recordData['createdAt'] as Timestamp?;
     final providerName = recordData['providerName'] ?? 'Unknown Provider';
@@ -151,11 +156,7 @@ class PatientHealthRecordsScreen extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(
-                    _getRecordIcon(type),
-                    color: Colors.teal,
-                    size: 24,
-                  ),
+                  Icon(_getRecordIcon(type), color: Colors.teal, size: 24),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -187,19 +188,13 @@ class PatientHealthRecordsScreen extends StatelessWidget {
                         date != null
                             ? DateFormat('MMM dd, yyyy').format(date.toDate())
                             : 'Unknown date',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       ),
                       Text(
                         date != null
                             ? DateFormat('hh:mm a').format(date.toDate())
                             : '',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[500],
-                        ),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                       ),
                     ],
                   ),
@@ -212,12 +207,11 @@ class PatientHealthRecordsScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton.icon(
-                    onPressed: () => _showRecordDetails(context, recordId, recordData),
+                    onPressed: () =>
+                        _showRecordDetails(context, recordId, recordData),
                     icon: const Icon(Icons.visibility, size: 16),
                     label: const Text('View Details'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.teal,
-                    ),
+                    style: TextButton.styleFrom(foregroundColor: Colors.teal),
                   ),
                 ],
               ),
@@ -246,9 +240,12 @@ class PatientHealthRecordsScreen extends StatelessWidget {
       summaryItems.add(_buildSummaryItem('BMI', '$bmi ($category)'));
     }
     if (data['bloodSugar'] != null) {
-      summaryItems.add(_buildSummaryItem('Blood Sugar', '${data['bloodSugar']} mg/dL'));
+      summaryItems.add(
+        _buildSummaryItem('Blood Sugar', '${data['bloodSugar']} mg/dL'),
+      );
     }
-    if (data['urineAnalysis'] != null && data['urineAnalysis'].toString().isNotEmpty) {
+    if (data['urineAnalysis'] != null &&
+        data['urineAnalysis'].toString().isNotEmpty) {
       summaryItems.add(_buildSummaryItem('Urine', data['urineAnalysis']));
     }
 
@@ -259,11 +256,7 @@ class PatientHealthRecordsScreen extends StatelessWidget {
       );
     }
 
-    return Wrap(
-      spacing: 16,
-      runSpacing: 8,
-      children: summaryItems,
-    );
+    return Wrap(spacing: 16, runSpacing: 8, children: summaryItems);
   }
 
   Widget _buildSummaryItem(String label, String value) {
@@ -317,7 +310,11 @@ class PatientHealthRecordsScreen extends StatelessWidget {
     }
   }
 
-  void _showRecordDetails(BuildContext context, String recordId, Map<String, dynamic> recordData) {
+  void _showRecordDetails(
+    BuildContext context,
+    String recordId,
+    Map<String, dynamic> recordData,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -428,18 +425,33 @@ class PatientHealthRecordsScreen extends StatelessWidget {
     // Always show all available fields for any user (doctor, CHW, etc.)
     // Group by sections if possible, otherwise just list all fields
     if (data.isEmpty) {
-      items.add(const Text('No details available', style: TextStyle(color: Colors.grey)));
+      items.add(
+        const Text(
+          'No details available',
+          style: TextStyle(color: Colors.grey),
+        ),
+      );
       return items;
     }
 
     // Provider Section
     if (data['providerName'] != null) {
-      items.add(_DetailItem(label: 'Provider', value: _safeToString(data['providerName'])));
+      items.add(
+        _DetailItem(
+          label: 'Provider',
+          value: _safeToString(data['providerName']),
+        ),
+      );
     }
     // Diagnosis Section
     if (data['diagnosis'] != null) {
       items.add(const _SectionHeader(title: 'Diagnosis'));
-      items.add(_DetailItem(label: 'Diagnosis', value: _safeToString(data['diagnosis'])));
+      items.add(
+        _DetailItem(
+          label: 'Diagnosis',
+          value: _safeToString(data['diagnosis']),
+        ),
+      );
     }
     if (data['prescription'] != null) {
       items.add(const _SectionHeader(title: 'Prescription'));
@@ -456,47 +468,96 @@ class PatientHealthRecordsScreen extends StatelessWidget {
             if (p['dosage'] != null) line += ' ${p['dosage']}';
             if (p['frequency'] != null) line += ' ${p['frequency']}';
             if (p['duration'] != null) line += ' for ${p['duration']}';
-            if (p['specialInstructions'] != null) line += ' (${p['specialInstructions']})';
+            if (p['specialInstructions'] != null) {
+              line += ' (${p['specialInstructions']})';
+            }
             items.add(_DetailItem(label: 'Prescription', value: line.trim()));
           } else {
-            items.add(_DetailItem(label: 'Prescription', value: _safeToString(p)));
+            items.add(
+              _DetailItem(label: 'Prescription', value: _safeToString(p)),
+            );
           }
         }
       } else if (prescription is String) {
         items.add(_DetailItem(label: 'Prescription', value: prescription));
       } else if (prescription is Map<String, dynamic>) {
         String line = '';
-        if (prescription['medication'] != null) line += prescription['medication'].toString();
-        if (prescription['strength'] != null) line += ' ${prescription['strength']}';
-        if (prescription['dosage'] != null) line += ' ${prescription['dosage']}';
-        if (prescription['frequency'] != null) line += ' ${prescription['frequency']}';
-        if (prescription['duration'] != null) line += ' for ${prescription['duration']}';
-        if (prescription['specialInstructions'] != null) line += ' (${prescription['specialInstructions']})';
+        if (prescription['medication'] != null) {
+          line += prescription['medication'].toString();
+        }
+        if (prescription['strength'] != null) {
+          line += ' ${prescription['strength']}';
+        }
+        if (prescription['dosage'] != null) {
+          line += ' ${prescription['dosage']}';
+        }
+        if (prescription['frequency'] != null) {
+          line += ' ${prescription['frequency']}';
+        }
+        if (prescription['duration'] != null) {
+          line += ' for ${prescription['duration']}';
+        }
+        if (prescription['specialInstructions'] != null) {
+          line += ' (${prescription['specialInstructions']})';
+        }
         items.add(_DetailItem(label: 'Prescription', value: line.trim()));
       } else {
-        items.add(_DetailItem(label: 'Prescription', value: _safeToString(prescription)));
+        items.add(
+          _DetailItem(
+            label: 'Prescription',
+            value: _safeToString(prescription),
+          ),
+        );
       }
     }
     if (data['labRequest'] != null) {
       items.add(const _SectionHeader(title: 'Lab Request'));
-      items.add(_DetailItem(label: 'Lab Request', value: _safeToString(data['labRequest'])));
+      items.add(
+        _DetailItem(
+          label: 'Lab Request',
+          value: _safeToString(data['labRequest']),
+        ),
+      );
     }
     if (data['radiologyRequest'] != null) {
       items.add(const _SectionHeader(title: 'Radiology Request'));
-      items.add(_DetailItem(label: 'Radiology Request', value: _safeToString(data['radiologyRequest'])));
+      items.add(
+        _DetailItem(
+          label: 'Radiology Request',
+          value: _safeToString(data['radiologyRequest']),
+        ),
+      );
     }
     if (data['followUpNote'] != null) {
       items.add(const _SectionHeader(title: 'Follow-up Note'));
-      items.add(_DetailItem(label: 'Follow-up Note', value: _safeToString(data['followUpNote'])));
+      items.add(
+        _DetailItem(
+          label: 'Follow-up Note',
+          value: _safeToString(data['followUpNote']),
+        ),
+      );
     }
     if (data['additionalNotes'] != null) {
       items.add(const _SectionHeader(title: 'Additional Notes'));
-      items.add(_DetailItem(label: 'Additional Notes', value: _safeToString(data['additionalNotes'])));
+      items.add(
+        _DetailItem(
+          label: 'Additional Notes',
+          value: _safeToString(data['additionalNotes']),
+        ),
+      );
     }
-    if (data['bloodPressure'] != null || data['weight'] != null || data['height'] != null || data['bmi'] != null) {
+    if (data['bloodPressure'] != null ||
+        data['weight'] != null ||
+        data['height'] != null ||
+        data['bmi'] != null) {
       items.add(const _SectionHeader(title: 'Vital Signs'));
       if (data['bloodPressure'] != null) {
-        items.add(_DetailItem(label: 'Blood Pressure', value: _safeToString(data['bloodPressure'])));
+        items.add(
+          _DetailItem(
+            label: 'Blood Pressure',
+            value: _safeToString(data['bloodPressure']),
+          ),
+        );
       }
       if (data['weight'] != null) {
         items.add(_DetailItem(label: 'Weight', value: '${data['weight']} kg'));
@@ -513,99 +574,225 @@ class PatientHealthRecordsScreen extends StatelessWidget {
     if (data['bloodSugar'] != null || data['urineAnalysis'] != null) {
       items.add(const _SectionHeader(title: 'Laboratory Results'));
       if (data['bloodSugar'] != null) {
-        items.add(_DetailItem(label: 'Blood Sugar', value: '${data['bloodSugar']} mg/dL'));
+        items.add(
+          _DetailItem(
+            label: 'Blood Sugar',
+            value: '${data['bloodSugar']} mg/dL',
+          ),
+        );
       }
       if (data['urineAnalysis'] != null) {
-        items.add(_DetailItem(label: 'Urine Analysis', value: _safeToString(data['urineAnalysis'])));
+        items.add(
+          _DetailItem(
+            label: 'Urine Analysis',
+            value: _safeToString(data['urineAnalysis']),
+          ),
+        );
       }
     }
-    if (data['symptoms'] != null || data['medications'] != null || data['notes'] != null) {
+    if (data['symptoms'] != null ||
+        data['medications'] != null ||
+        data['notes'] != null) {
       items.add(const _SectionHeader(title: 'Clinical Notes'));
       if (data['symptoms'] != null) {
-        items.add(_DetailItem(label: 'Symptoms', value: _safeToString(data['symptoms'])));
+        items.add(
+          _DetailItem(
+            label: 'Symptoms',
+            value: _safeToString(data['symptoms']),
+          ),
+        );
       }
       if (data['medications'] != null) {
-        items.add(_DetailItem(label: 'Medications', value: _safeToString(data['medications'])));
+        items.add(
+          _DetailItem(
+            label: 'Medications',
+            value: _safeToString(data['medications']),
+          ),
+        );
       }
       if (data['notes'] != null) {
-        items.add(_DetailItem(label: 'Additional Notes', value: _safeToString(data['notes'])));
+        items.add(
+          _DetailItem(
+            label: 'Additional Notes',
+            value: _safeToString(data['notes']),
+          ),
+        );
       }
     }
     if (data['checklistData'] != null) {
       items.add(const _SectionHeader(title: 'ANC Checklist'));
       final checklistData = data['checklistData'] as Map<String, dynamic>;
       if (checklistData['currentSymptoms'] != null) {
-        items.add(_DetailItem(label: 'Current Symptoms', value: _safeToString(checklistData['currentSymptoms'])));
+        items.add(
+          _DetailItem(
+            label: 'Current Symptoms',
+            value: _safeToString(checklistData['currentSymptoms']),
+          ),
+        );
       }
       if (checklistData['pregnancyWeek'] != null) {
-        items.add(_DetailItem(label: 'Pregnancy Week', value: _safeToString(checklistData['pregnancyWeek'])));
+        items.add(
+          _DetailItem(
+            label: 'Pregnancy Week',
+            value: _safeToString(checklistData['pregnancyWeek']),
+          ),
+        );
       }
       if (checklistData['lastMenstrualPeriod'] != null) {
-        items.add(_DetailItem(label: 'Last Menstrual Period', value: _safeToString(checklistData['lastMenstrualPeriod'])));
+        items.add(
+          _DetailItem(
+            label: 'Last Menstrual Period',
+            value: _safeToString(checklistData['lastMenstrualPeriod']),
+          ),
+        );
       }
       if (checklistData['previousPregnancies'] != null) {
-        items.add(_DetailItem(label: 'Previous Pregnancies', value: _safeToString(checklistData['previousPregnancies'])));
+        items.add(
+          _DetailItem(
+            label: 'Previous Pregnancies',
+            value: _safeToString(checklistData['previousPregnancies']),
+          ),
+        );
       }
       if (checklistData['complications'] != null) {
-        items.add(_DetailItem(label: 'Complications', value: _safeToString(checklistData['complications'])));
+        items.add(
+          _DetailItem(
+            label: 'Complications',
+            value: _safeToString(checklistData['complications']),
+          ),
+        );
       }
       if (checklistData['currentMedications'] != null) {
-        items.add(_DetailItem(label: 'Current Medications', value: _safeToString(checklistData['currentMedications'])));
+        items.add(
+          _DetailItem(
+            label: 'Current Medications',
+            value: _safeToString(checklistData['currentMedications']),
+          ),
+        );
       }
     }
     final healthAssessment = data['healthAssessment'] as Map<String, dynamic>?;
-    final hasPreConsultTop = data['reason'] != null || data['symptoms'] != null || data['currentMedications'] != null || data['allergies'] != null || data['appointmentType'] != null || data['durationOfSymptoms'] != null || data['appointmentDate'] != null || data['consultationChannel'] != null || data['medicalHistory'] != null;
-    final hasPreConsultNested = healthAssessment != null && healthAssessment.isNotEmpty;
+    final hasPreConsultTop =
+        data['reason'] != null ||
+        data['symptoms'] != null ||
+        data['currentMedications'] != null ||
+        data['allergies'] != null ||
+        data['appointmentType'] != null ||
+        data['durationOfSymptoms'] != null ||
+        data['appointmentDate'] != null ||
+        data['consultationChannel'] != null ||
+        data['medicalHistory'] != null;
+    final hasPreConsultNested =
+        healthAssessment != null && healthAssessment.isNotEmpty;
     bool addedAny = false;
     if (hasPreConsultTop || hasPreConsultNested) {
       items.add(const _SectionHeader(title: 'Pre-Consultation Information'));
-      final ignored = {'providerName','providerType','appointmentId','createdAt','updatedAt','userId','patientUid','type','healthAssessment','attachments','source','submissionTimestamp'};
+      final ignored = {
+        'providerName',
+        'providerType',
+        'appointmentId',
+        'createdAt',
+        'updatedAt',
+        'userId',
+        'patientUid',
+        'type',
+        'healthAssessment',
+        'attachments',
+        'source',
+        'submissionTimestamp',
+      };
       data.forEach((key, value) {
-        if (!ignored.contains(key) && value != null && key != 'healthAssessment') {
-          items.add(_DetailItem(label: _formatFieldName(key), value: _safeToString(value)));
+        if (!ignored.contains(key) &&
+            value != null &&
+            key != 'healthAssessment') {
+          items.add(
+            _DetailItem(
+              label: _formatFieldName(key),
+              value: _safeToString(value),
+            ),
+          );
           addedAny = true;
         }
       });
       if (healthAssessment != null) {
         healthAssessment.forEach((key, value) {
           if (value != null) {
-            items.add(_DetailItem(label: _formatFieldName(key), value: _safeToString(value)));
+            items.add(
+              _DetailItem(
+                label: _formatFieldName(key),
+                value: _safeToString(value),
+              ),
+            );
             addedAny = true;
           }
         });
       }
       if (!addedAny) {
-        items.add(const Padding(
-          padding: EdgeInsets.symmetric(vertical: 8),
-          child: Text('No pre-consultation details available.', style: TextStyle(color: Colors.grey)),
-        ));
+        items.add(
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: Text(
+              'No pre-consultation details available.',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ),
+        );
       }
     }
     if (data['nextVisitDate'] != null) {
       items.add(const _SectionHeader(title: 'Follow-up'));
       final nextVisit = data['nextVisitDate'] as Timestamp;
-      items.add(_DetailItem(
-        label: 'Next Visit Date',
-        value: DateFormat('MMMM dd, yyyy').format(nextVisit.toDate()),
-      ));
+      items.add(
+        _DetailItem(
+          label: 'Next Visit Date',
+          value: DateFormat('MMMM dd, yyyy').format(nextVisit.toDate()),
+        ),
+      );
     }
     final handledFields = {
-      'providerName', 'diagnosis', 'prescription', 'labRequest', 'radiologyRequest', 'followUpNote', 'additionalNotes',
-      'bloodPressure', 'weight', 'height', 'bmi', 'bmiCategory',
-      'bloodSugar', 'urineAnalysis', 'symptoms', 'medications', 'notes',
-      'checklistData', 'reason', 'allergies', 'medicalHistory', 'currentMedications',
-      'nextVisitDate', 'createdAt', 'type', 'userId', 'date', 'accessibleBy'
+      'providerName',
+      'diagnosis',
+      'prescription',
+      'labRequest',
+      'radiologyRequest',
+      'followUpNote',
+      'additionalNotes',
+      'bloodPressure',
+      'weight',
+      'height',
+      'bmi',
+      'bmiCategory',
+      'bloodSugar',
+      'urineAnalysis',
+      'symptoms',
+      'medications',
+      'notes',
+      'checklistData',
+      'reason',
+      'allergies',
+      'medicalHistory',
+      'currentMedications',
+      'nextVisitDate',
+      'createdAt',
+      'type',
+      'userId',
+      'date',
+      'accessibleBy',
     };
     final additionalFields = data.entries
-        .where((entry) => !handledFields.contains(entry.key) && entry.value != null)
+        .where(
+          (entry) => !handledFields.contains(entry.key) && entry.value != null,
+        )
         .toList();
     if (additionalFields.isNotEmpty) {
       items.add(const _SectionHeader(title: 'Additional Information'));
       for (final entry in additionalFields) {
-        items.add(_DetailItem(
-          label: _formatFieldName(entry.key),
-          value: _safeToString(entry.value),
-        ));
+        items.add(
+          _DetailItem(
+            label: _formatFieldName(entry.key),
+            value: _safeToString(entry.value),
+          ),
+        );
       }
     }
     return items;
@@ -633,7 +820,10 @@ class PatientHealthRecordsScreen extends StatelessWidget {
     return fieldName
         .replaceAllMapped(RegExp(r'([A-Z])'), (match) => ' ${match.group(1)}')
         .split(' ')
-        .map((word) => word.isEmpty ? '' : word[0].toUpperCase() + word.substring(1))
+        .map(
+          (word) =>
+              word.isEmpty ? '' : word[0].toUpperCase() + word.substring(1),
+        )
         .join(' ')
         .trim();
   }
@@ -641,7 +831,9 @@ class PatientHealthRecordsScreen extends StatelessWidget {
   String _formatDate(dynamic timestamp) {
     if (timestamp == null) return 'Unknown date';
     if (timestamp is Timestamp) {
-      return DateFormat('MMMM dd, yyyy \'at\' hh:mm a').format(timestamp.toDate());
+      return DateFormat(
+        'MMMM dd, yyyy \'at\' hh:mm a',
+      ).format(timestamp.toDate());
     }
     return 'Unknown date';
   }
@@ -691,12 +883,7 @@ class _DetailItem extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 16),
-            ),
-          ),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: 16))),
         ],
       ),
     );

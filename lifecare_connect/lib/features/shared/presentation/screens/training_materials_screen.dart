@@ -9,13 +9,11 @@ import '../../../shared/data/services/training_service.dart';
 class TrainingMaterialsScreen extends StatefulWidget {
   final String userRole;
 
-  const TrainingMaterialsScreen({
-    super.key,
-    required this.userRole,
-  });
+  const TrainingMaterialsScreen({super.key, required this.userRole});
 
   @override
-  State<TrainingMaterialsScreen> createState() => _TrainingMaterialsScreenState();
+  State<TrainingMaterialsScreen> createState() =>
+      _TrainingMaterialsScreenState();
 }
 
 class _TrainingMaterialsScreenState extends State<TrainingMaterialsScreen>
@@ -48,44 +46,44 @@ class _TrainingMaterialsScreenState extends State<TrainingMaterialsScreen>
     });
 
     // Load published materials for user role
-    TrainingService.getPublishedTrainingMaterials(userRole: widget.userRole).listen(
-      (snapshot) {
-        final materials = snapshot.docs
-            .map((doc) => TrainingMaterial.fromFirestore(doc))
-            .toList();
-        setState(() {
-          _allMaterials = materials;
-        });
-        _checkLoadingComplete();
-      },
-    );
+    TrainingService.getPublishedTrainingMaterials(
+      userRole: widget.userRole,
+    ).listen((snapshot) {
+      final materials = snapshot.docs
+          .map((doc) => TrainingMaterial.fromFirestore(doc))
+          .toList();
+      setState(() {
+        _allMaterials = materials;
+      });
+      _checkLoadingComplete();
+    });
 
     // Load required materials
-    TrainingService.getRequiredTrainingMaterials(userRole: widget.userRole).listen(
-      (snapshot) {
-        final materials = snapshot.docs
-            .map((doc) => TrainingMaterial.fromFirestore(doc))
-            .toList();
-        setState(() {
-          _requiredMaterials = materials;
-        });
-        _checkLoadingComplete();
-      },
-    );
+    TrainingService.getRequiredTrainingMaterials(
+      userRole: widget.userRole,
+    ).listen((snapshot) {
+      final materials = snapshot.docs
+          .map((doc) => TrainingMaterial.fromFirestore(doc))
+          .toList();
+      setState(() {
+        _requiredMaterials = materials;
+      });
+      _checkLoadingComplete();
+    });
 
     // Load user progress
     if (_currentUserId != null) {
-      TrainingService.getUserProgress(userId: _currentUserId!).listen(
-        (snapshot) {
-          final progress = snapshot.docs
-              .map((doc) => UserProgress.fromFirestore(doc))
-              .toList();
-          setState(() {
-            _userProgress = progress;
-          });
-          _checkLoadingComplete();
-        },
-      );
+      TrainingService.getUserProgress(userId: _currentUserId!).listen((
+        snapshot,
+      ) {
+        final progress = snapshot.docs
+            .map((doc) => UserProgress.fromFirestore(doc))
+            .toList();
+        setState(() {
+          _userProgress = progress;
+        });
+        _checkLoadingComplete();
+      });
     }
   }
 
@@ -99,19 +97,33 @@ class _TrainingMaterialsScreenState extends State<TrainingMaterialsScreen>
 
   List<TrainingMaterial> get _filteredMaterials {
     if (_searchQuery.isEmpty) return _allMaterials;
-    return _allMaterials.where((material) =>
-        material.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-        material.description.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-        material.tags.any((tag) => tag.toLowerCase().contains(_searchQuery.toLowerCase()))).toList();
+    return _allMaterials
+        .where(
+          (material) =>
+              material.title.toLowerCase().contains(
+                _searchQuery.toLowerCase(),
+              ) ||
+              material.description.toLowerCase().contains(
+                _searchQuery.toLowerCase(),
+              ) ||
+              material.tags.any(
+                (tag) => tag.toLowerCase().contains(_searchQuery.toLowerCase()),
+              ),
+        )
+        .toList();
   }
 
   List<TrainingMaterial> _getMaterialsByCategory(String category) {
-    return _filteredMaterials.where((material) => material.category == category).toList();
+    return _filteredMaterials
+        .where((material) => material.category == category)
+        .toList();
   }
 
   UserProgress? _getProgressForMaterial(String materialId) {
     try {
-      return _userProgress.firstWhere((progress) => progress.materialId == materialId);
+      return _userProgress.firstWhere(
+        (progress) => progress.materialId == materialId,
+      );
     } catch (e) {
       return null;
     }
@@ -174,8 +186,14 @@ class _TrainingMaterialsScreenState extends State<TrainingMaterialsScreen>
           : TabBarView(
               controller: _tabController,
               children: [
-                _buildMaterialsList(_filteredMaterials, 'No training materials found'),
-                _buildMaterialsList(_requiredMaterials, 'No required training materials'),
+                _buildMaterialsList(
+                  _filteredMaterials,
+                  'No training materials found',
+                ),
+                _buildMaterialsList(
+                  _requiredMaterials,
+                  'No required training materials',
+                ),
                 _buildProgressView(),
                 _buildCategoriesView(),
               ],
@@ -183,7 +201,10 @@ class _TrainingMaterialsScreenState extends State<TrainingMaterialsScreen>
     );
   }
 
-  Widget _buildMaterialsList(List<TrainingMaterial> materials, String emptyMessage) {
+  Widget _buildMaterialsList(
+    List<TrainingMaterial> materials,
+    String emptyMessage,
+  ) {
     if (materials.isEmpty) {
       return Center(
         child: Column(
@@ -193,7 +214,9 @@ class _TrainingMaterialsScreenState extends State<TrainingMaterialsScreen>
             SizedBox(height: 16),
             Text(
               emptyMessage,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.grey),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(color: Colors.grey),
             ),
           ],
         ),
@@ -290,9 +313,13 @@ class _TrainingMaterialsScreenState extends State<TrainingMaterialsScreen>
                 Row(
                   children: [
                     Icon(
-                      progress.isCompleted ? Icons.check_circle : Icons.schedule,
+                      progress.isCompleted
+                          ? Icons.check_circle
+                          : Icons.schedule,
                       size: 16,
-                      color: progress.isCompleted ? Colors.green : Colors.orange,
+                      color: progress.isCompleted
+                          ? Colors.green
+                          : Colors.orange,
                     ),
                     SizedBox(width: 4),
                     Text(
@@ -301,7 +328,9 @@ class _TrainingMaterialsScreenState extends State<TrainingMaterialsScreen>
                           : '${progress.progressPercentage.toInt()}% completed',
                       style: TextStyle(
                         fontSize: 12,
-                        color: progress.isCompleted ? Colors.green : Colors.orange,
+                        color: progress.isCompleted
+                            ? Colors.green
+                            : Colors.orange,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -317,7 +346,10 @@ class _TrainingMaterialsScreenState extends State<TrainingMaterialsScreen>
                   _buildInfoChip(material.difficultyDisplayText, Colors.orange),
                   _buildInfoChip(material.formattedDuration, Colors.purple),
                   if (material.averageRating != null)
-                    _buildRatingChip(material.averageRating!, material.ratingCount!),
+                    _buildRatingChip(
+                      material.averageRating!,
+                      material.ratingCount!,
+                    ),
                 ],
               ),
             ],
@@ -371,8 +403,12 @@ class _TrainingMaterialsScreenState extends State<TrainingMaterialsScreen>
   }
 
   Widget _buildProgressView() {
-    final completedProgress = _userProgress.where((p) => p.isCompleted).toList();
-    final inProgressProgress = _userProgress.where((p) => p.isInProgress).toList();
+    final completedProgress = _userProgress
+        .where((p) => p.isCompleted)
+        .toList();
+    final inProgressProgress = _userProgress
+        .where((p) => p.isInProgress)
+        .toList();
 
     return SingleChildScrollView(
       padding: EdgeInsets.all(16),
@@ -381,7 +417,11 @@ class _TrainingMaterialsScreenState extends State<TrainingMaterialsScreen>
         children: [
           _buildProgressSection('Completed', completedProgress, Colors.green),
           SizedBox(height: 24),
-          _buildProgressSection('In Progress', inProgressProgress, Colors.orange),
+          _buildProgressSection(
+            'In Progress',
+            inProgressProgress,
+            Colors.orange,
+          ),
           SizedBox(height: 24),
           _buildProgressStats(),
         ],
@@ -389,7 +429,11 @@ class _TrainingMaterialsScreenState extends State<TrainingMaterialsScreen>
     );
   }
 
-  Widget _buildProgressSection(String title, List<UserProgress> progressList, Color color) {
+  Widget _buildProgressSection(
+    String title,
+    List<UserProgress> progressList,
+    Color color,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -448,7 +492,9 @@ class _TrainingMaterialsScreenState extends State<TrainingMaterialsScreen>
     final totalMaterials = _allMaterials.length;
     final completedCount = _userProgress.where((p) => p.isCompleted).length;
     final inProgressCount = _userProgress.where((p) => p.isInProgress).length;
-    final completionRate = totalMaterials > 0 ? (completedCount / totalMaterials * 100) : 0;
+    final completionRate = totalMaterials > 0
+        ? (completedCount / totalMaterials * 100)
+        : 0;
 
     return Card(
       child: Padding(
@@ -458,19 +504,24 @@ class _TrainingMaterialsScreenState extends State<TrainingMaterialsScreen>
           children: [
             Text(
               'Progress Statistics',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
-                  child: _buildStatItem('Total Materials', totalMaterials.toString(), Icons.school),
+                  child: _buildStatItem(
+                    'Total Materials',
+                    totalMaterials.toString(),
+                    Icons.school,
+                  ),
                 ),
                 Expanded(
-                  child: _buildStatItem('Completed', completedCount.toString(), Icons.check_circle),
+                  child: _buildStatItem(
+                    'Completed',
+                    completedCount.toString(),
+                    Icons.check_circle,
+                  ),
                 ),
               ],
             ),
@@ -478,10 +529,18 @@ class _TrainingMaterialsScreenState extends State<TrainingMaterialsScreen>
             Row(
               children: [
                 Expanded(
-                  child: _buildStatItem('In Progress', inProgressCount.toString(), Icons.schedule),
+                  child: _buildStatItem(
+                    'In Progress',
+                    inProgressCount.toString(),
+                    Icons.schedule,
+                  ),
                 ),
                 Expanded(
-                  child: _buildStatItem('Completion Rate', '${completionRate.toStringAsFixed(1)}%', Icons.trending_up),
+                  child: _buildStatItem(
+                    'Completion Rate',
+                    '${completionRate.toStringAsFixed(1)}%',
+                    Icons.trending_up,
+                  ),
                 ),
               ],
             ),
@@ -498,18 +557,9 @@ class _TrainingMaterialsScreenState extends State<TrainingMaterialsScreen>
         SizedBox(height: 8),
         Text(
           value,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
-        ),
+        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
       ],
     );
   }
@@ -536,8 +586,10 @@ class _TrainingMaterialsScreenState extends State<TrainingMaterialsScreen>
   }
 
   Widget _buildCategoryCard(String category, List<TrainingMaterial> materials) {
-    final displayName = category.split('-').map((word) => 
-      word[0].toUpperCase() + word.substring(1)).join(' ');
+    final displayName = category
+        .split('-')
+        .map((word) => word[0].toUpperCase() + word.substring(1))
+        .join(' ');
 
     return Card(
       child: InkWell(
@@ -561,10 +613,7 @@ class _TrainingMaterialsScreenState extends State<TrainingMaterialsScreen>
             children: [
               CircleAvatar(
                 backgroundColor: _getCategoryColor(category),
-                child: Icon(
-                  _getCategoryIcon(category),
-                  color: Colors.white,
-                ),
+                child: Icon(_getCategoryIcon(category), color: Colors.white),
               ),
               SizedBox(width: 16),
               Expanded(
@@ -581,10 +630,7 @@ class _TrainingMaterialsScreenState extends State<TrainingMaterialsScreen>
                     SizedBox(height: 4),
                     Text(
                       '${materials.length} materials available',
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 14,
-                      ),
+                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
                     ),
                   ],
                 ),
@@ -668,15 +714,13 @@ class _TrainingMaterialsScreenState extends State<TrainingMaterialsScreen>
   void _openMaterial(TrainingMaterial material) {
     // Track view
     TrainingService.incrementViewCount(material.id);
-    
+
     // Navigate to material detail screen
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => MaterialDetailScreen(
-          material: material,
-          userRole: widget.userRole,
-        ),
+        builder: (context) =>
+            MaterialDetailScreen(material: material, userRole: widget.userRole),
       ),
     );
   }
@@ -699,8 +743,12 @@ class CategoryMaterialsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(category.split('-').map((word) => 
-          word[0].toUpperCase() + word.substring(1)).join(' ')),
+        title: Text(
+          category
+              .split('-')
+              .map((word) => word[0].toUpperCase() + word.substring(1))
+              .join(' '),
+        ),
       ),
       body: ListView.builder(
         itemCount: materials.length,
@@ -739,9 +787,7 @@ class MaterialDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(material.title),
-      ),
+      appBar: AppBar(title: Text(material.title)),
       body: Padding(
         padding: EdgeInsets.all(16),
         child: Column(
@@ -755,15 +801,10 @@ class MaterialDetailScreen extends StatelessWidget {
             Text(material.description),
             SizedBox(height: 16),
             if (material.content != null) ...[
-              Text(
-                'Content:',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
+              Text('Content:', style: TextStyle(fontWeight: FontWeight.bold)),
               SizedBox(height: 8),
               Expanded(
-                child: SingleChildScrollView(
-                  child: Text(material.content!),
-                ),
+                child: SingleChildScrollView(child: Text(material.content!)),
               ),
             ] else if (material.fileUrl != null) ...[
               Text('File-based training material'),

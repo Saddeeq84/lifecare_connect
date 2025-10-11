@@ -11,7 +11,8 @@ class FacilityPatientListScreen extends StatefulWidget {
   const FacilityPatientListScreen({super.key});
 
   @override
-  State<FacilityPatientListScreen> createState() => _FacilityPatientListScreenState();
+  State<FacilityPatientListScreen> createState() =>
+      _FacilityPatientListScreenState();
 }
 
 class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
@@ -60,7 +61,7 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
               },
             ),
           ),
-                    // Patients List
+          // Patients List
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: _getPatientsStream(),
@@ -92,7 +93,11 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.people_outline, size: 64, color: Colors.grey[400]),
+                        Icon(
+                          Icons.people_outline,
+                          size: 64,
+                          color: Colors.grey[400],
+                        ),
                         const SizedBox(height: 16),
                         Text(
                           'No patients found',
@@ -119,7 +124,8 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
                 return FutureBuilder<List<Map<String, dynamic>>>(
                   future: _getPatientDetails(snapshot.data!.docs),
                   builder: (context, patientSnapshot) {
-                    if (patientSnapshot.connectionState == ConnectionState.waiting) {
+                    if (patientSnapshot.connectionState ==
+                        ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
                     }
 
@@ -130,19 +136,27 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
                           children: [
                             Icon(Icons.error, size: 64, color: Colors.red[300]),
                             const SizedBox(height: 16),
-                            Text('Error loading patient details: ${patientSnapshot.error}'),
+                            Text(
+                              'Error loading patient details: ${patientSnapshot.error}',
+                            ),
                           ],
                         ),
                       );
                     }
 
                     final allPatients = patientSnapshot.data ?? [];
-                    
+
                     // Filter patients based on search query
                     final filteredPatients = allPatients.where((patientData) {
-                      final name = (patientData['name'] ?? patientData['fullName'] ?? '').toString().toLowerCase();
-                      final email = (patientData['email'] ?? '').toString().toLowerCase();
-                      return name.contains(searchQuery) || email.contains(searchQuery);
+                      final name =
+                          (patientData['name'] ?? patientData['fullName'] ?? '')
+                              .toString()
+                              .toLowerCase();
+                      final email = (patientData['email'] ?? '')
+                          .toString()
+                          .toLowerCase();
+                      return name.contains(searchQuery) ||
+                          email.contains(searchQuery);
                     }).toList();
 
                     if (filteredPatients.isEmpty && searchQuery.isNotEmpty) {
@@ -150,7 +164,11 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.search_off, size: 64, color: Colors.grey[400]),
+                            Icon(
+                              Icons.search_off,
+                              size: 64,
+                              color: Colors.grey[400],
+                            ),
                             const SizedBox(height: 16),
                             Text(
                               'No patients match your search',
@@ -169,7 +187,7 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       itemBuilder: (context, index) {
                         final patientData = filteredPatients[index];
-                        
+
                         return Card(
                           margin: const EdgeInsets.only(bottom: 8),
                           elevation: 2,
@@ -181,7 +199,11 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
                             leading: CircleAvatar(
                               backgroundColor: Colors.purple.shade100,
                               child: Text(
-                                _getInitials(patientData['name'] ?? patientData['fullName'] ?? 'Unknown'),
+                                _getInitials(
+                                  patientData['name'] ??
+                                      patientData['fullName'] ??
+                                      'Unknown',
+                                ),
                                 style: TextStyle(
                                   color: Colors.purple.shade700,
                                   fontWeight: FontWeight.bold,
@@ -189,7 +211,9 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
                               ),
                             ),
                             title: Text(
-                              patientData['name'] ?? patientData['fullName'] ?? 'Unknown Patient',
+                              patientData['name'] ??
+                                  patientData['fullName'] ??
+                                  'Unknown Patient',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
@@ -213,7 +237,10 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
                                 Row(
                                   children: [
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: Colors.green[100],
                                         borderRadius: BorderRadius.circular(12),
@@ -229,7 +256,10 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
                                     ),
                                     const SizedBox(width: 8),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: Colors.blue[100],
                                         borderRadius: BorderRadius.circular(12),
@@ -259,7 +289,11 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
                               ],
                             ),
                             trailing: PopupMenuButton<String>(
-                              onSelected: (value) => _handlePatientAction(context, patientData, value),
+                              onSelected: (value) => _handlePatientAction(
+                                context,
+                                patientData,
+                                value,
+                              ),
                               itemBuilder: (context) => [
                                 const PopupMenuItem(
                                   value: 'view_history',
@@ -315,14 +349,18 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
         .snapshots();
   }
 
-  Future<List<Map<String, dynamic>>> _getPatientDetails(List<QueryDocumentSnapshot> serviceRequests) async {
+  Future<List<Map<String, dynamic>>> _getPatientDetails(
+    List<QueryDocumentSnapshot> serviceRequests,
+  ) async {
     if (serviceRequests.isEmpty) {
       return [];
     }
 
     // Get unique patient IDs from service requests
     final patientIds = serviceRequests
-        .map((doc) => (doc.data() as Map<String, dynamic>)['patientId'] as String?)
+        .map(
+          (doc) => (doc.data() as Map<String, dynamic>)['patientId'] as String?,
+        )
         .where((id) => id != null && id.isNotEmpty)
         .toSet()
         .toList();
@@ -333,10 +371,10 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
 
     // Split into chunks if more than 10 (Firestore 'whereIn' limit)
     final List<Map<String, dynamic>> allPatients = [];
-    
+
     for (int i = 0; i < patientIds.length; i += 10) {
       final chunk = patientIds.skip(i).take(10).toList();
-      
+
       final userQuery = await FirebaseFirestore.instance
           .collection('users')
           .where('role', isEqualTo: 'patient')
@@ -345,20 +383,35 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
 
       for (final userDoc in userQuery.docs) {
         final userData = userDoc.data();
-        
+
         // Get service request count for this patient
         final patientServiceRequests = serviceRequests
-            .where((req) => (req.data() as Map<String, dynamic>)['patientId'] == userDoc.id)
+            .where(
+              (req) =>
+                  (req.data() as Map<String, dynamic>)['patientId'] ==
+                  userDoc.id,
+            )
             .length;
-        
+
         // Get latest service request date
         final latestRequest = serviceRequests
-            .where((req) => (req.data() as Map<String, dynamic>)['patientId'] == userDoc.id)
-            .map((req) => (req.data() as Map<String, dynamic>)['createdAt'] as Timestamp?)
+            .where(
+              (req) =>
+                  (req.data() as Map<String, dynamic>)['patientId'] ==
+                  userDoc.id,
+            )
+            .map(
+              (req) =>
+                  (req.data() as Map<String, dynamic>)['createdAt']
+                      as Timestamp?,
+            )
             .where((timestamp) => timestamp != null)
             .map((timestamp) => timestamp!.toDate())
-            .fold<DateTime?>(null, (latest, current) => 
-              latest == null || current.isAfter(latest) ? current : latest);
+            .fold<DateTime?>(
+              null,
+              (latest, current) =>
+                  latest == null || current.isAfter(latest) ? current : latest,
+            );
 
         allPatients.add({
           ...userData,
@@ -381,10 +434,10 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
 
   String _formatDate(DateTime? date) {
     if (date == null) return 'Unknown';
-    
+
     final now = DateTime.now();
     final diff = now.difference(date);
-    
+
     if (diff.inDays > 0) {
       return '${diff.inDays} day${diff.inDays == 1 ? '' : 's'} ago';
     } else if (diff.inHours > 0) {
@@ -396,7 +449,11 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
     }
   }
 
-  void _handlePatientAction(BuildContext context, Map<String, dynamic> patientData, String action) {
+  void _handlePatientAction(
+    BuildContext context,
+    Map<String, dynamic> patientData,
+    String action,
+  ) {
     switch (action) {
       case 'view_history':
         _showPatientHistory(context, patientData);
@@ -410,9 +467,12 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
     }
   }
 
-  void _showPatientHistory(BuildContext context, Map<String, dynamic> patientData) {
+  void _showPatientHistory(
+    BuildContext context,
+    Map<String, dynamic> patientData,
+  ) {
     final patientId = patientData['id'];
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -462,20 +522,25 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
                       itemCount: snapshot.data!.docs.length,
                       itemBuilder: (context, index) {
                         final service = snapshot.data!.docs[index];
-                        final serviceData = service.data() as Map<String, dynamic>;
-                        
+                        final serviceData =
+                            service.data() as Map<String, dynamic>;
+
                         return Card(
                           margin: const EdgeInsets.only(bottom: 8),
                           child: ListTile(
                             leading: CircleAvatar(
-                              backgroundColor: _getStatusColor(serviceData['status']),
+                              backgroundColor: _getStatusColor(
+                                serviceData['status'],
+                              ),
                               child: Icon(
                                 _getStatusIcon(serviceData['status']),
                                 color: Colors.white,
                                 size: 20,
                               ),
                             ),
-                            title: Text(serviceData['serviceName'] ?? 'Unknown Service'),
+                            title: Text(
+                              serviceData['serviceName'] ?? 'Unknown Service',
+                            ),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -501,19 +566,27 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
     );
   }
 
-  void _sendMessageToPatient(BuildContext context, Map<String, dynamic> patientData) {
+  void _sendMessageToPatient(
+    BuildContext context,
+    Map<String, dynamic> patientData,
+  ) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Opening message with ${patientData['name'] ?? 'Unknown Patient'}'),
+        content: Text(
+          'Opening message with ${patientData['name'] ?? 'Unknown Patient'}',
+        ),
         backgroundColor: Colors.blue,
       ),
     );
-    
+
     // Show messaging dialog interface
     _showMessagingDialog(context, patientData);
   }
 
-  void _showPatientProfile(BuildContext context, Map<String, dynamic> patientData) {
+  void _showPatientProfile(
+    BuildContext context,
+    Map<String, dynamic> patientData,
+  ) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -531,7 +604,11 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
                   backgroundColor: Colors.purple.shade100,
                   radius: 25,
                   child: Text(
-                    _getInitials(patientData['name'] ?? patientData['fullName'] ?? 'Unknown'),
+                    _getInitials(
+                      patientData['name'] ??
+                          patientData['fullName'] ??
+                          'Unknown',
+                    ),
                     style: TextStyle(
                       color: Colors.purple.shade700,
                       fontWeight: FontWeight.bold,
@@ -545,7 +622,9 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        patientData['name'] ?? patientData['fullName'] ?? 'Unknown Patient',
+                        patientData['name'] ??
+                            patientData['fullName'] ??
+                            'Unknown Patient',
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -564,9 +643,15 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
             const SizedBox(height: 20),
             _buildInfoRow('Email', patientData['email']),
             _buildInfoRow('Phone', patientData['phone']),
-            _buildInfoRow('Total Visits', '${patientData['serviceRequestCount']}'),
+            _buildInfoRow(
+              'Total Visits',
+              '${patientData['serviceRequestCount']}',
+            ),
             if (patientData['lastVisit'] != null)
-              _buildInfoRow('Last Visit', _formatDate(patientData['lastVisit'])),
+              _buildInfoRow(
+                'Last Visit',
+                _formatDate(patientData['lastVisit']),
+              ),
             const SizedBox(height: 20),
           ],
         ),
@@ -587,9 +672,7 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
-          Expanded(
-            child: Text(value ?? 'Not provided'),
-          ),
+          Expanded(child: Text(value ?? 'Not provided')),
         ],
       ),
     );
@@ -625,9 +708,12 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
     }
   }
 
-  void _showMessagingDialog(BuildContext context, Map<String, dynamic> patientData) {
+  void _showMessagingDialog(
+    BuildContext context,
+    Map<String, dynamic> patientData,
+  ) {
     final TextEditingController messageController = TextEditingController();
-    
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -652,7 +738,10 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
                     const Text('Send Message'),
                     Text(
                       patientData['name'] ?? 'Unknown Patient',
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.normal),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal,
+                      ),
                     ),
                   ],
                 ),
@@ -713,7 +802,7 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
               onPressed: () async {
                 if (messageController.text.trim().isNotEmpty) {
                   Navigator.pop(context);
-                  
+
                   // Show loading
                   showDialog(
                     context: context,
@@ -728,7 +817,7 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
                       ),
                     ),
                   );
-                  
+
                   try {
                     // Implement actual message sending to Firebase
                     final currentUser = FirebaseAuth.instance.currentUser;
@@ -740,7 +829,8 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
                     final messageData = {
                       'senderId': currentUser.uid,
                       'senderType': 'facility',
-                      'senderName': 'Facility', // You might want to get actual facility name
+                      'senderName':
+                          'Facility', // You might want to get actual facility name
                       'recipientId': patientData['id'],
                       'recipientType': 'patient',
                       'recipientName': patientData['name'] ?? 'Unknown Patient',
@@ -750,7 +840,8 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
                       'isRead': false,
                       'sentAt': FieldValue.serverTimestamp(),
                       'createdAt': FieldValue.serverTimestamp(),
-                      'conversationId': '${currentUser.uid}_${patientData['id']}',
+                      'conversationId':
+                          '${currentUser.uid}_${patientData['id']}',
                     };
 
                     // Add message to Firestore
@@ -761,10 +852,14 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
                     // Create or update conversation document
                     final conversationData = {
                       'participants': [currentUser.uid, patientData['id']],
-                      'participantTypes': {'${currentUser.uid}': 'facility', '${patientData['id']}': 'patient'},
+                      'participantTypes': {
+                        '${currentUser.uid}': 'facility',
+                        '${patientData['id']}': 'patient',
+                      },
                       'participantNames': {
                         '${currentUser.uid}': 'Facility',
-                        '${patientData['id']}': patientData['name'] ?? 'Unknown Patient'
+                        '${patientData['id']}':
+                            patientData['name'] ?? 'Unknown Patient',
                       },
                       'lastMessage': messageController.text.trim(),
                       'lastMessageSenderId': currentUser.uid,
@@ -783,12 +878,14 @@ class _FacilityPatientListScreenState extends State<FacilityPatientListScreen> {
 
                     // Push notification functionality can be implemented via Cloud Functions
                     // Cloud Functions would listen for new messages and send FCM notifications
-                    
+
                     Navigator.pop(context); // Close loading dialog
-                    
+
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Message sent to ${patientData['name']}! Message ID: ${messageRef.id.substring(0, 8)}'),
+                        content: Text(
+                          'Message sent to ${patientData['name']}! Message ID: ${messageRef.id.substring(0, 8)}',
+                        ),
                         backgroundColor: Colors.green,
                         duration: const Duration(seconds: 4),
                       ),

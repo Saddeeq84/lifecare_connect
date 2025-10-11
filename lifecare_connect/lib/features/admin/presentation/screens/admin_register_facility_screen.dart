@@ -17,8 +17,8 @@ class AdminRegisterFacilityScreen extends StatefulWidget {
   @override
   State<AdminRegisterFacilityScreen> createState() =>
       _AdminRegisterFacilityScreenState();
-
 }
+
 class _AdminRegisterFacilityScreenState
     extends State<AdminRegisterFacilityScreen> {
   bool _isSubmitting = false;
@@ -32,7 +32,7 @@ class _AdminRegisterFacilityScreenState
   File? _selectedDocument;
   Uint8List? _selectedDocumentBytes;
   String? _selectedDocumentName;
-  
+
   // Helper to get content type for web uploads
   String _getContentType(String fileName) {
     final ext = fileName.split('.').last.toLowerCase();
@@ -51,6 +51,7 @@ class _AdminRegisterFacilityScreenState
         return 'application/octet-stream';
     }
   }
+
   Future<String?> _uploadDocument(File file) async {
     try {
       final fileName =
@@ -58,7 +59,12 @@ class _AdminRegisterFacilityScreenState
       final ref = FirebaseStorage.instance.ref().child(fileName);
       if (kIsWeb && _selectedDocumentBytes != null) {
         // Web: upload using bytes
-        final uploadTask = await ref.putData(_selectedDocumentBytes!, SettableMetadata(contentType: _getContentType(_selectedDocumentName ?? fileName)));
+        final uploadTask = await ref.putData(
+          _selectedDocumentBytes!,
+          SettableMetadata(
+            contentType: _getContentType(_selectedDocumentName ?? fileName),
+          ),
+        );
         return await uploadTask.ref.getDownloadURL();
       } else {
         // Mobile/Desktop: upload using File
@@ -69,7 +75,7 @@ class _AdminRegisterFacilityScreenState
       debugPrint("Document upload failed: $e");
       return null;
     }
-  // removed extra closing brace
+    // removed extra closing brace
   }
 
   Future<void> _pickDocument() async {
@@ -93,9 +99,9 @@ class _AdminRegisterFacilityScreenState
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error picking document: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error picking document: $e')));
     }
   }
 
@@ -136,7 +142,7 @@ class _AdminRegisterFacilityScreenState
         'contactPerson': _contactPersonController.text.trim(),
         'email': _emailController.text.trim(),
         'phone': _phoneController.text.trim(),
-  'documentUrl': docUrl,
+        'documentUrl': docUrl,
       });
 
       // Send password setup (reset) email to facility owner
@@ -147,7 +153,7 @@ class _AdminRegisterFacilityScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-              "✅ Facility registration successful! The owner must check their email and follow the link to set up their password."
+              "✅ Facility registration successful! The owner must check their email and follow the link to set up their password.",
             ),
           ),
         );
@@ -155,9 +161,9 @@ class _AdminRegisterFacilityScreenState
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("❌ Error: $e")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("❌ Error: $e")));
       }
     } finally {
       setState(() => _isSubmitting = false);
@@ -218,7 +224,9 @@ class _AdminRegisterFacilityScreenState
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                initialValue: _typeController.text.isEmpty ? null : _typeController.text,
+                initialValue: _typeController.text.isEmpty
+                    ? null
+                    : _typeController.text,
                 decoration: const InputDecoration(
                   labelText: 'Facility Type',
                   border: OutlineInputBorder(),
@@ -226,9 +234,15 @@ class _AdminRegisterFacilityScreenState
                 items: const [
                   DropdownMenuItem(value: 'Hospital', child: Text('Hospital')),
                   DropdownMenuItem(value: 'Clinic', child: Text('Clinic')),
-                  DropdownMenuItem(value: 'Laboratory', child: Text('Laboratory')),
+                  DropdownMenuItem(
+                    value: 'Laboratory',
+                    child: Text('Laboratory'),
+                  ),
                   DropdownMenuItem(value: 'Pharmacy', child: Text('Pharmacy')),
-                  DropdownMenuItem(value: 'Imaging Center', child: Text('Imaging Center')),
+                  DropdownMenuItem(
+                    value: 'Imaging Center',
+                    child: Text('Imaging Center'),
+                  ),
                   DropdownMenuItem(value: 'Other', child: Text('Other')),
                 ],
                 onChanged: (value) {
@@ -299,7 +313,10 @@ class _AdminRegisterFacilityScreenState
                     children: [
                       const Text(
                         'Registration Document (Required)',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       if (_selectedDocument != null) ...[
@@ -312,12 +329,21 @@ class _AdminRegisterFacilityScreenState
                       ElevatedButton.icon(
                         onPressed: _pickDocument,
                         icon: const Icon(Icons.attach_file),
-                        label: Text((_selectedDocument != null || _selectedDocumentBytes != null) ? 'Change Document' : 'Select Document'),
+                        label: Text(
+                          (_selectedDocument != null ||
+                                  _selectedDocumentBytes != null)
+                              ? 'Change Document'
+                              : 'Select Document',
+                        ),
                       ),
-                      if (_selectedDocument == null && _selectedDocumentBytes == null)
+                      if (_selectedDocument == null &&
+                          _selectedDocumentBytes == null)
                         const Padding(
                           padding: EdgeInsets.only(top: 8),
-                          child: Text('Please select a registration document.', style: TextStyle(color: Colors.red)),
+                          child: Text(
+                            'Please select a registration document.',
+                            style: TextStyle(color: Colors.red),
+                          ),
                         ),
                     ],
                   ),
@@ -325,21 +351,28 @@ class _AdminRegisterFacilityScreenState
               ),
               const SizedBox(height: 32),
               ElevatedButton(
-                onPressed: _isSubmitting || (_selectedDocument == null && _selectedDocumentBytes == null)
+                onPressed:
+                    _isSubmitting ||
+                        (_selectedDocument == null &&
+                            _selectedDocumentBytes == null)
                     ? null
                     : () async {
                         final confirmed = await showDialog<bool>(
                           context: context,
                           builder: (context) => AlertDialog(
                             title: const Text('Confirm Registration'),
-                            content: const Text('Are you sure you want to register this facility?'),
+                            content: const Text(
+                              'Are you sure you want to register this facility?',
+                            ),
                             actions: [
                               TextButton(
-                                onPressed: () => Navigator.of(context).pop(false),
+                                onPressed: () =>
+                                    Navigator.of(context).pop(false),
                                 child: const Text('Cancel'),
                               ),
                               ElevatedButton(
-                                onPressed: () => Navigator.of(context).pop(true),
+                                onPressed: () =>
+                                    Navigator.of(context).pop(true),
                                 child: const Text('Confirm'),
                               ),
                             ],
@@ -360,7 +393,9 @@ class _AdminRegisterFacilityScreenState
                         width: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
                         ),
                       )
                     : const Text(
@@ -374,5 +409,4 @@ class _AdminRegisterFacilityScreenState
       ),
     );
   }
-
 }

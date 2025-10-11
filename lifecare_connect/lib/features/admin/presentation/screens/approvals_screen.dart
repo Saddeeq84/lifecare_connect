@@ -28,10 +28,16 @@ class ApprovalsScreen extends StatelessWidget {
         ),
         body: const TabBarView(
           children: [
-            _ApprovalList(role: null, isApproved: false),         // Pending All
-            _ApprovalList(role: 'chw', isApproved: null),         // CHW Approvals (both pending and approved)
-            _ApprovalList(role: 'doctor', isApproved: true),      // Approved Doctors
-            _ApprovalList(role: 'facility', isApproved: true),    // Approved Facilities
+            _ApprovalList(role: null, isApproved: false), // Pending All
+            _ApprovalList(
+              role: 'chw',
+              isApproved: null,
+            ), // CHW Approvals (both pending and approved)
+            _ApprovalList(role: 'doctor', isApproved: true), // Approved Doctors
+            _ApprovalList(
+              role: 'facility',
+              isApproved: true,
+            ), // Approved Facilities
           ],
         ),
       ),
@@ -41,36 +47,42 @@ class ApprovalsScreen extends StatelessWidget {
 
 class _ApprovalList extends StatelessWidget {
   final String? role;
-  final bool? isApproved; // Made nullable to show both pending and approved CHWs
+  final bool?
+  isApproved; // Made nullable to show both pending and approved CHWs
 
-  const _ApprovalList({
-    required this.role,
-    required this.isApproved,
-  });
-  
-  static Future<void> rejectUser(String userId, BuildContext context, {String? reason, String? email, String? name}) async {
+  const _ApprovalList({required this.role, required this.isApproved});
+
+  static Future<void> rejectUser(
+    String userId,
+    BuildContext context, {
+    String? reason,
+    String? email,
+    String? name,
+  }) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .update({'isApproved': false, 'isRejected': true, 'rejectionReason': reason ?? ''});
+      await FirebaseFirestore.instance.collection('users').doc(userId).update({
+        'isApproved': false,
+        'isRejected': true,
+        'rejectionReason': reason ?? '',
+      });
       if (email != null && name != null && reason != null) {
         await sendAccountRejectedEmail(email, name, reason);
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('❌ User rejected')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('❌ User rejected')));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ Rejection failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('❌ Rejection failed: $e')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    Query<Map<String, dynamic>> query =
-        FirebaseFirestore.instance.collection('users');
+    Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection(
+      'users',
+    );
 
     if (role == null) {
       // Pending users (doctors, facilities, and CHWs), exclude rejected
@@ -126,16 +138,22 @@ class _ApprovalList extends StatelessWidget {
                   Text("Role: $userRole", style: const TextStyle(fontSize: 12)),
                   if (userRole == 'chw')
                     Text(
-                      user['isApproved'] == true ? "Status: Approved" : "Status: Pending",
+                      user['isApproved'] == true
+                          ? "Status: Approved"
+                          : "Status: Pending",
                       style: TextStyle(
                         fontSize: 12,
-                        color: user['isApproved'] == true ? Colors.green : Colors.orange,
+                        color: user['isApproved'] == true
+                            ? Colors.green
+                            : Colors.orange,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                 ],
               ),
-              trailing: ((isApproved == null && user['isApproved'] != true) || (isApproved == false))
+              trailing:
+                  ((isApproved == null && user['isApproved'] != true) ||
+                      (isApproved == false))
                   ? Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -148,42 +166,93 @@ class _ApprovalList extends StatelessWidget {
                                   title: const Text('Review Account Details'),
                                   content: SingleChildScrollView(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         for (final entry in user.entries)
-                                          if (entry.value != null && entry.value.toString().isNotEmpty && entry.key != 'password' && entry.key != 'isApproved' && entry.key != 'licenseFile' && entry.key != 'licenseUrl' && entry.key != 'govDocument' && entry.key != 'registrationDocUrl' && entry.key != 'documentUrl')
+                                          if (entry.value != null &&
+                                              entry.value
+                                                  .toString()
+                                                  .isNotEmpty &&
+                                              entry.key != 'password' &&
+                                              entry.key != 'isApproved' &&
+                                              entry.key != 'licenseFile' &&
+                                              entry.key != 'licenseUrl' &&
+                                              entry.key != 'govDocument' &&
+                                              entry.key !=
+                                                  'registrationDocUrl' &&
+                                              entry.key != 'documentUrl')
                                             Padding(
-                                              padding: const EdgeInsets.symmetric(vertical: 2),
-                                              child: Text('${entry.key}: ${entry.value}', style: const TextStyle(fontSize: 15)),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 2,
+                                                  ),
+                                              child: Text(
+                                                '${entry.key}: ${entry.value}',
+                                                style: const TextStyle(
+                                                  fontSize: 15,
+                                                ),
+                                              ),
                                             ),
                                         // Show all possible document fields as clickable links
                                         ...[
                                           ['licenseFile', 'License Document'],
                                           ['licenseUrl', 'License Document'],
-                                          ['govDocument', 'Government Document'],
-                                          ['registrationDocUrl', 'Registration Document'],
+                                          [
+                                            'govDocument',
+                                            'Government Document',
+                                          ],
+                                          [
+                                            'registrationDocUrl',
+                                            'Registration Document',
+                                          ],
                                           ['documentUrl', 'Submitted Document'],
                                         ].map((docField) {
                                           final value = user[docField[0]];
-                                          if (value != null && value.toString().trim().isNotEmpty) {
+                                          if (value != null &&
+                                              value
+                                                  .toString()
+                                                  .trim()
+                                                  .isNotEmpty) {
                                             return Padding(
-                                              padding: const EdgeInsets.symmetric(vertical: 4),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 4,
+                                                  ),
                                               child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
                                                 children: [
-                                                  Text('${docField[1]}:', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                                  Text(
+                                                    '${docField[1]}:',
+                                                    style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
                                                   const SizedBox(height: 4),
                                                   InkWell(
                                                     onTap: () async {
-                                                      final url = value.toString();
-                                                      final uri = Uri.tryParse(url);
-                                                      if (uri != null && await canLaunchUrl(uri)) {
+                                                      final url = value
+                                                          .toString();
+                                                      final uri = Uri.tryParse(
+                                                        url,
+                                                      );
+                                                      if (uri != null &&
+                                                          await canLaunchUrl(
+                                                            uri,
+                                                          )) {
                                                         await launchUrl(uri);
                                                       }
                                                     },
                                                     child: const Text(
                                                       'View Document',
-                                                      style: TextStyle(color: Colors.blue, decoration: TextDecoration.underline),
+                                                      style: TextStyle(
+                                                        color: Colors.blue,
+                                                        decoration:
+                                                            TextDecoration
+                                                                .underline,
+                                                      ),
                                                     ),
                                                   ),
                                                 ],
@@ -198,7 +267,8 @@ class _ApprovalList extends StatelessWidget {
                                   ),
                                   actions: [
                                     TextButton(
-                                      onPressed: () => Navigator.of(context).pop(),
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(),
                                       child: const Text('Close'),
                                     ),
                                     ElevatedButton(
@@ -206,12 +276,15 @@ class _ApprovalList extends StatelessWidget {
                                         Navigator.of(context).pop();
                                         _approveUser(docs[index].id, context);
                                       },
-                                      style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.teal,
+                                      ),
                                       child: const Text('Approve'),
                                     ),
                                     ElevatedButton(
                                       onPressed: () async {
-                                        final reasonController = TextEditingController();
+                                        final reasonController =
+                                            TextEditingController();
                                         final confirm = await showDialog<bool>(
                                           context: context,
                                           builder: (context) => AlertDialog(
@@ -219,26 +292,36 @@ class _ApprovalList extends StatelessWidget {
                                             content: Column(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                const Text('Please provide a reason for rejection:'),
+                                                const Text(
+                                                  'Please provide a reason for rejection:',
+                                                ),
                                                 const SizedBox(height: 8),
                                                 TextField(
                                                   controller: reasonController,
                                                   maxLines: 3,
                                                   decoration: const InputDecoration(
-                                                    border: OutlineInputBorder(),
-                                                    hintText: 'Reason for rejection',
+                                                    border:
+                                                        OutlineInputBorder(),
+                                                    hintText:
+                                                        'Reason for rejection',
                                                   ),
                                                 ),
                                               ],
                                             ),
                                             actions: [
                                               TextButton(
-                                                onPressed: () => Navigator.of(context).pop(false),
+                                                onPressed: () => Navigator.of(
+                                                  context,
+                                                ).pop(false),
                                                 child: const Text('Cancel'),
                                               ),
                                               ElevatedButton(
-                                                onPressed: () => Navigator.of(context).pop(true),
-                                                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                                onPressed: () => Navigator.of(
+                                                  context,
+                                                ).pop(true),
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: Colors.red,
+                                                ),
                                                 child: const Text('Reject'),
                                               ),
                                             ],
@@ -249,13 +332,19 @@ class _ApprovalList extends StatelessWidget {
                                           await _ApprovalList.rejectUser(
                                             docs[index].id,
                                             context,
-                                            reason: reasonController.text.trim(),
+                                            reason: reasonController.text
+                                                .trim(),
                                             email: user['email'],
-                                            name: user['fullName'] ?? user['name'] ?? '',
+                                            name:
+                                                user['fullName'] ??
+                                                user['name'] ??
+                                                '',
                                           );
                                         }
                                       },
-                                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.red,
+                                      ),
                                       child: const Text('Reject'),
                                     ),
                                   ],
@@ -263,7 +352,9 @@ class _ApprovalList extends StatelessWidget {
                               },
                             );
                           },
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                          ),
                           child: const Text('Review'),
                         ),
                         const SizedBox(width: 8),
@@ -277,7 +368,9 @@ class _ApprovalList extends StatelessWidget {
                                 content: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Text('Please provide a reason for rejection:'),
+                                    const Text(
+                                      'Please provide a reason for rejection:',
+                                    ),
                                     const SizedBox(height: 8),
                                     TextField(
                                       controller: reasonController,
@@ -291,12 +384,16 @@ class _ApprovalList extends StatelessWidget {
                                 ),
                                 actions: [
                                   TextButton(
-                                    onPressed: () => Navigator.of(context).pop(false),
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(false),
                                     child: const Text('Cancel'),
                                   ),
                                   ElevatedButton(
-                                    onPressed: () => Navigator.of(context).pop(true),
-                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(true),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                    ),
                                     child: const Text('Reject'),
                                   ),
                                 ],
@@ -312,50 +409,64 @@ class _ApprovalList extends StatelessWidget {
                               );
                             }
                           },
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                          ),
                           child: const Text('Reject'),
                         ),
                       ],
                     )
-                  : (user['isApproved'] == true && (userRole == 'chw' || userRole == 'doctor' || userRole == 'facility'))
-                      ? Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.check_circle, color: Colors.green),
-                            const SizedBox(width: 8),
-                            ElevatedButton(
-                              onPressed: () async {
-                                final confirm = await showDialog<bool>(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text('Confirm Revoke'),
-                                    content: const Text('Are you sure you want to revoke this account approval?'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.of(context).pop(false),
-                                        child: const Text('Cancel'),
-                                      ),
-                                      ElevatedButton(
-                                        onPressed: () => Navigator.of(context).pop(true),
-                                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                                        child: const Text('Revoke'),
-                                      ),
-                                    ],
+                  : (user['isApproved'] == true &&
+                        (userRole == 'chw' ||
+                            userRole == 'doctor' ||
+                            userRole == 'facility'))
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.check_circle, color: Colors.green),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Confirm Revoke'),
+                                content: const Text(
+                                  'Are you sure you want to revoke this account approval?',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(false),
+                                    child: const Text('Cancel'),
                                   ),
-                                );
-                                if (confirm == true) {
-                                  _revokeUser(docs[index].id, context);
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                                minimumSize: const Size(60, 32),
+                                  ElevatedButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(true),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                    ),
+                                    child: const Text('Revoke'),
+                                  ),
+                                ],
                               ),
-                              child: const Text('Revoke', style: TextStyle(fontSize: 12)),
-                            ),
-                          ],
-                        )
-                      : const Icon(Icons.check_circle, color: Colors.green),
+                            );
+                            if (confirm == true) {
+                              _revokeUser(docs[index].id, context);
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            minimumSize: const Size(60, 32),
+                          ),
+                          child: const Text(
+                            'Revoke',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ),
+                      ],
+                    )
+                  : const Icon(Icons.check_circle, color: Colors.green),
             );
           },
         );
@@ -365,39 +476,44 @@ class _ApprovalList extends StatelessWidget {
 
   Future<void> _approveUser(String userId, BuildContext context) async {
     try {
-      final userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
-      final userData = userDoc.data();
-      await FirebaseFirestore.instance
+      final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
-          .update({'isApproved': true});
-      if (userData != null && userData['email'] != null && (userData['role'] == 'doctor' || userData['role'] == 'chw' || userData['role'] == 'facility')) {
+          .get();
+      final userData = userDoc.data();
+      await FirebaseFirestore.instance.collection('users').doc(userId).update({
+        'isApproved': true,
+      });
+      if (userData != null &&
+          userData['email'] != null &&
+          (userData['role'] == 'doctor' ||
+              userData['role'] == 'chw' ||
+              userData['role'] == 'facility')) {
         final name = userData['fullName'] ?? userData['name'] ?? '';
         await sendAccountApprovedEmail(userData['email'], name);
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('✅ User approved')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('✅ User approved')));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ Approval failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('❌ Approval failed: $e')));
     }
   }
 
   Future<void> _revokeUser(String userId, BuildContext context) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .update({'isApproved': false});
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('⚠️ User approval revoked')),
-      );
+      await FirebaseFirestore.instance.collection('users').doc(userId).update({
+        'isApproved': false,
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('⚠️ User approval revoked')));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ Revoke failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('❌ Revoke failed: $e')));
     }
   }
 }

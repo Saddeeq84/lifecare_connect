@@ -64,7 +64,9 @@ class AdminStaffScreen extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 16),
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: role == 'doctor' ? Colors.blue : Colors.green,
+                  backgroundColor: role == 'doctor'
+                      ? Colors.blue
+                      : Colors.green,
                   child: Icon(
                     role == 'doctor' ? Icons.local_hospital : Icons.people,
                     color: Colors.white,
@@ -94,12 +96,19 @@ class AdminStaffScreen extends StatelessWidget {
                         _editStaff(context, staff, staffId);
                         break;
                       case 'delete':
-                        _deleteStaff(context, staffId, staff['displayName'] ?? 'Unknown');
+                        _deleteStaff(
+                          context,
+                          staffId,
+                          staff['displayName'] ?? 'Unknown',
+                        );
                         break;
                     }
                   },
                   itemBuilder: (context) => [
-                    const PopupMenuItem(value: 'view', child: Text('View Details')),
+                    const PopupMenuItem(
+                      value: 'view',
+                      child: Text('View Details'),
+                    ),
                     const PopupMenuItem(value: 'edit', child: Text('Edit')),
                     const PopupMenuItem(value: 'delete', child: Text('Delete')),
                   ],
@@ -112,7 +121,11 @@ class AdminStaffScreen extends StatelessWidget {
     );
   }
 
-  void _showStaffDetails(BuildContext context, Map<String, dynamic> staff, String staffId) {
+  void _showStaffDetails(
+    BuildContext context,
+    Map<String, dynamic> staff,
+    String staffId,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -127,8 +140,7 @@ class AdminStaffScreen extends StatelessWidget {
               Text('Specialization: ${staff['specialization']}'),
             if (staff['facilityName'] != null)
               Text('Facility: ${staff['facilityName']}'),
-            if (staff['phone'] != null)
-              Text('Phone: ${staff['phone']}'),
+            if (staff['phone'] != null) Text('Phone: ${staff['phone']}'),
             Text('Staff ID: $staffId'),
           ],
         ),
@@ -142,7 +154,11 @@ class AdminStaffScreen extends StatelessWidget {
     );
   }
 
-  void _editStaff(BuildContext context, Map<String, dynamic> staff, String staffId) {
+  void _editStaff(
+    BuildContext context,
+    Map<String, dynamic> staff,
+    String staffId,
+  ) {
     // Placeholder for edit functionality
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Edit functionality not implemented yet')),
@@ -201,10 +217,7 @@ class AdminStaffScreen extends StatelessWidget {
           ),
         ),
         body: TabBarView(
-          children: [
-            _buildStaffList('doctor'),
-            _buildStaffList('chw'),
-          ],
+          children: [_buildStaffList('doctor'), _buildStaffList('chw')],
         ),
       ),
     );

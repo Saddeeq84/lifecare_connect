@@ -37,7 +37,9 @@ class _AuthGateState extends State<AuthGate> {
             .get();
 
         if (!snapshot.exists) {
-          debugPrint('[AuthGate] ❌ No Firestore document found for user: ${user.uid}');
+          debugPrint(
+            '[AuthGate] ❌ No Firestore document found for user: ${user.uid}',
+          );
           _safeGo('/login'); // or create fallback screen
           return;
         }
@@ -84,8 +86,6 @@ class _AuthGateState extends State<AuthGate> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
-    );
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }

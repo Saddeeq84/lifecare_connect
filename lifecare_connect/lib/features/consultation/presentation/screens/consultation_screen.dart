@@ -6,7 +6,11 @@ import '../../../../shared/data/services/agora_token_service.dart';
 class ConsultationScreen extends StatefulWidget {
   final String channelName;
   final bool isVideo;
-  const ConsultationScreen({super.key, required this.channelName, this.isVideo = true});
+  const ConsultationScreen({
+    super.key,
+    required this.channelName,
+    this.isVideo = true,
+  });
 
   @override
   State<ConsultationScreen> createState() => _ConsultationScreenState();
@@ -14,7 +18,8 @@ class ConsultationScreen extends StatefulWidget {
 
 class _ConsultationScreenState extends State<ConsultationScreen> {
   // Production credentials for Agora
-  final String appId = 'a105462abb1746fc9075e6c2f81f5ac5'; // TODO: Move to secure config if needed
+  final String appId =
+      'a105462abb1746fc9075e6c2f81f5ac5'; // TODO: Move to secure config if needed
   RtcEngine? _engine;
   // int? _localUid; // Not used, remove
   bool _joined = false;
@@ -100,11 +105,16 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
             _remoteUids.add(remoteUid);
           });
         },
-        onUserOffline: (RtcConnection connection, int remoteUid, UserOfflineReasonType reason) {
-          setState(() {
-            _remoteUids.remove(remoteUid);
-          });
-        },
+        onUserOffline:
+            (
+              RtcConnection connection,
+              int remoteUid,
+              UserOfflineReasonType reason,
+            ) {
+              setState(() {
+                _remoteUids.remove(remoteUid);
+              });
+            },
         onLeaveChannel: (RtcConnection connection, RtcStats stats) {
           setState(() {
             _joined = false;
@@ -130,23 +140,35 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
     }
     List<Widget> views = [];
     if (widget.isVideo) {
-      views.add(AgoraVideoView(
-        controller: VideoViewController(
-          rtcEngine: _engine!,
-          canvas: const VideoCanvas(uid: 0, renderMode: RenderModeType.renderModeHidden),
-        ),
-      ));
-      for (final uid in _remoteUids) {
-        views.add(AgoraVideoView(
-          controller: VideoViewController.remote(
+      views.add(
+        AgoraVideoView(
+          controller: VideoViewController(
             rtcEngine: _engine!,
-            canvas: VideoCanvas(uid: uid, renderMode: RenderModeType.renderModeHidden),
-            connection: RtcConnection(channelId: widget.channelName),
+            canvas: const VideoCanvas(
+              uid: 0,
+              renderMode: RenderModeType.renderModeHidden,
+            ),
           ),
-        ));
+        ),
+      );
+      for (final uid in _remoteUids) {
+        views.add(
+          AgoraVideoView(
+            controller: VideoViewController.remote(
+              rtcEngine: _engine!,
+              canvas: VideoCanvas(
+                uid: uid,
+                renderMode: RenderModeType.renderModeHidden,
+              ),
+              connection: RtcConnection(channelId: widget.channelName),
+            ),
+          ),
+        );
       }
     } else {
-      views.add(const Center(child: Icon(Icons.mic, size: 80, color: Colors.teal)));
+      views.add(
+        const Center(child: Icon(Icons.mic, size: 80, color: Colors.teal)),
+      );
     }
     return GridView.count(
       crossAxisCount: views.length > 1 ? 2 : 1,
@@ -157,12 +179,17 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Consultation'), backgroundColor: Colors.teal),
+      appBar: AppBar(
+        title: const Text('Consultation'),
+        backgroundColor: Colors.teal,
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text(_error!, style: const TextStyle(color: Colors.red)))
-              : _buildVideoView(),
+          ? Center(
+              child: Text(_error!, style: const TextStyle(color: Colors.red)),
+            )
+          : _buildVideoView(),
       floatingActionButton: _loading || _error != null
           ? null
           : Row(

@@ -1,6 +1,4 @@
-
 // ignore_for_file: deprecated_member_use, prefer_const_constructors, no_leading_underscores_for_local_identifiers, unnecessary_import, prefer_const_literals_to_create_immutables
-
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -15,7 +13,8 @@ class AdminMessagesScreen extends StatefulWidget {
   State<AdminMessagesScreen> createState() => _AdminMessagesScreenState();
 }
 
-class _AdminMessagesScreenState extends State<AdminMessagesScreen> with TickerProviderStateMixin {
+class _AdminMessagesScreenState extends State<AdminMessagesScreen>
+    with TickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -98,7 +97,7 @@ class _AdminMessagesScreenState extends State<AdminMessagesScreen> with TickerPr
                 Tab(icon: Icon(Icons.local_hospital), text: "Doctors"),
                 Tab(icon: Icon(Icons.health_and_safety), text: "CHWs"),
                 Tab(icon: Icon(Icons.people), text: "Patients"),
-               Tab(icon: Icon(Icons.business), text: "Facilities"),
+                Tab(icon: Icon(Icons.business), text: "Facilities"),
               ],
             ),
           ),
@@ -108,10 +107,22 @@ class _AdminMessagesScreenState extends State<AdminMessagesScreen> with TickerPr
               controller: _tabController,
               children: [
                 _AdminBroadcastMessagesTab(adminUserId: widget.adminUserId),
-                AdminIndividualMessagesTab(role: 'doctor', adminUserId: widget.adminUserId),
-                AdminIndividualMessagesTab(role: 'chw', adminUserId: widget.adminUserId),
-                AdminIndividualMessagesTab(role: 'patient', adminUserId: widget.adminUserId),
-               AdminIndividualMessagesTab(role: 'facility', adminUserId: widget.adminUserId),
+                AdminIndividualMessagesTab(
+                  role: 'doctor',
+                  adminUserId: widget.adminUserId,
+                ),
+                AdminIndividualMessagesTab(
+                  role: 'chw',
+                  adminUserId: widget.adminUserId,
+                ),
+                AdminIndividualMessagesTab(
+                  role: 'patient',
+                  adminUserId: widget.adminUserId,
+                ),
+                AdminIndividualMessagesTab(
+                  role: 'facility',
+                  adminUserId: widget.adminUserId,
+                ),
               ],
             ),
           ),
@@ -120,7 +131,12 @@ class _AdminMessagesScreenState extends State<AdminMessagesScreen> with TickerPr
     );
   }
 
-  Widget _buildQuickActionCard(String title, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildQuickActionCard(
+    String title,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return Card(
       elevation: 2,
       child: InkWell(

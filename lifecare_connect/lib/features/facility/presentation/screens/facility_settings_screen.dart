@@ -22,10 +22,12 @@ class _FacilitySettingsScreenState extends State<FacilitySettingsScreen> {
   bool _autoApproval = false;
   bool _isLoading = true;
   // bool _isSaving = false; // Removed, no longer used
-  
-  final TextEditingController _currentPasswordController = TextEditingController();
+
+  final TextEditingController _currentPasswordController =
+      TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   @override
   void initState() {
@@ -54,7 +56,7 @@ class _FacilitySettingsScreenState extends State<FacilitySettingsScreen> {
       if (doc.exists) {
         final data = doc.data() ?? {};
         final settings = data['settings'] as Map<String, dynamic>? ?? {};
-        
+
         setState(() {
           _notificationsEnabled = settings['notificationsEnabled'] ?? true;
           _emailNotifications = settings['emailNotifications'] ?? true;
@@ -68,13 +70,12 @@ class _FacilitySettingsScreenState extends State<FacilitySettingsScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading settings: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading settings: $e')));
       }
     }
   }
-
 
   // _saveSettings removed (no longer used)
 
@@ -106,14 +107,14 @@ class _FacilitySettingsScreenState extends State<FacilitySettingsScreen> {
             // Notifications Section
             _buildSectionHeader('Notifications', Icons.notifications),
             const SizedBox(height: 16),
-            
+
             _buildSwitchTile(
               'Enable Notifications',
               'Receive notifications for new requests and updates',
               _notificationsEnabled,
               (value) => setState(() => _notificationsEnabled = value),
             ),
-            
+
             if (_notificationsEnabled) ...[
               _buildSwitchTile(
                 'Email Notifications',
@@ -121,21 +122,21 @@ class _FacilitySettingsScreenState extends State<FacilitySettingsScreen> {
                 _emailNotifications,
                 (value) => setState(() => _emailNotifications = value),
               ),
-              
+
               _buildSwitchTile(
                 'SMS Notifications',
                 'Receive notifications via SMS',
                 _smsNotifications,
                 (value) => setState(() => _smsNotifications = value),
               ),
-              
+
               _buildSwitchTile(
                 'New Request Alerts',
                 'Get immediate alerts for new service requests',
                 _newRequestAlerts,
                 (value) => setState(() => _newRequestAlerts = value),
               ),
-              
+
               _buildSwitchTile(
                 'Appointment Reminders',
                 'Receive reminders for upcoming appointments',
@@ -143,15 +144,15 @@ class _FacilitySettingsScreenState extends State<FacilitySettingsScreen> {
                 (value) => setState(() => _appointmentReminders = value),
               ),
             ],
-            
+
             const SizedBox(height: 32),
-            
+
             // ...existing code...
-            
+
             // Removed duplicate 'Account Management' section header
             const SizedBox(height: 16),
             const SizedBox(height: 32),
-            
+
             // Help & Support Section
             _buildSectionHeader('Help & Support', Icons.help),
             const SizedBox(height: 16),
@@ -187,8 +188,12 @@ class _FacilitySettingsScreenState extends State<FacilitySettingsScreen> {
                           ),
                           SizedBox(height: 8),
                           Text('• Login problems: Check internet connection'),
-                          Text('• Booking issues: Ensure all fields are filled'),
-                          Text('• Emergency services: Call 199 for immediate help'),
+                          Text(
+                            '• Booking issues: Ensure all fields are filled',
+                          ),
+                          Text(
+                            '• Emergency services: Call 199 for immediate help',
+                          ),
                         ],
                       ),
                     ),
@@ -203,11 +208,15 @@ class _FacilitySettingsScreenState extends State<FacilitySettingsScreen> {
               },
             ),
             const SizedBox(height: 32),
-            
+
             // Danger Zone
-            _buildSectionHeader('Account Management', Icons.warning, color: Colors.red),
+            _buildSectionHeader(
+              'Account Management',
+              Icons.warning,
+              color: Colors.red,
+            ),
             const SizedBox(height: 16),
-            
+
             ListTile(
               leading: const Icon(Icons.lock, color: Colors.teal),
               title: const Text('Change Password'),
@@ -227,7 +236,10 @@ class _FacilitySettingsScreenState extends State<FacilitySettingsScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.delete_forever, color: Colors.red),
-              title: const Text('Delete Account', style: TextStyle(color: Colors.red)),
+              title: const Text(
+                'Delete Account',
+                style: TextStyle(color: Colors.red),
+              ),
               subtitle: const Text('Permanently delete your facility account'),
               trailing: const Icon(Icons.arrow_forward_ios),
               onTap: _showDeleteAccountDialog,
@@ -250,7 +262,9 @@ class _FacilitySettingsScreenState extends State<FacilitySettingsScreen> {
                       ),
                       ElevatedButton(
                         onPressed: () => Navigator.of(context).pop(true),
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                        ),
                         child: const Text('Logout'),
                       ),
                     ],
@@ -287,7 +301,12 @@ class _FacilitySettingsScreenState extends State<FacilitySettingsScreen> {
     );
   }
 
-  Widget _buildSwitchTile(String title, String subtitle, bool value, Function(bool) onChanged) {
+  Widget _buildSwitchTile(
+    String title,
+    String subtitle,
+    bool value,
+    Function(bool) onChanged,
+  ) {
     return SwitchListTile(
       title: Text(title),
       subtitle: Text(subtitle),
@@ -297,9 +316,7 @@ class _FacilitySettingsScreenState extends State<FacilitySettingsScreen> {
     );
   }
 
-
   // _showOperatingHoursDialog removed (no longer used)
-
 
   // _showServiceCategoriesDialog removed (no longer used)
 
@@ -355,9 +372,9 @@ class _FacilitySettingsScreenState extends State<FacilitySettingsScreen> {
 
   Future<void> _changePassword() async {
     if (_newPasswordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Passwords do not match')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Passwords do not match')));
       return;
     }
 
@@ -370,18 +387,18 @@ class _FacilitySettingsScreenState extends State<FacilitySettingsScreen> {
         email: user.email!,
         password: _currentPasswordController.text,
       );
-      
+
       await user.reauthenticateWithCredential(credential);
-      
+
       // Update password
       await user.updatePassword(_newPasswordController.text);
-      
+
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('✅ Password updated successfully!')),
         );
-        
+
         // Clear controllers
         _currentPasswordController.clear();
         _newPasswordController.clear();
@@ -389,14 +406,12 @@ class _FacilitySettingsScreenState extends State<FacilitySettingsScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error changing password: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error changing password: $e')));
       }
     }
   }
-
-
 
   // _submitBugReport removed (no longer used)
 
@@ -416,7 +431,7 @@ class _FacilitySettingsScreenState extends State<FacilitySettingsScreen> {
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
-              
+
               // Show final confirmation dialog
               bool? finalConfirm = await showDialog<bool>(
                 context: context,
@@ -439,7 +454,9 @@ class _FacilitySettingsScreenState extends State<FacilitySettingsScreen> {
                       ),
                       ElevatedButton(
                         onPressed: () => Navigator.pop(context, true),
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                        ),
                         child: const Text('Yes, Delete Account'),
                       ),
                     ],
@@ -469,7 +486,7 @@ class _FacilitySettingsScreenState extends State<FacilitySettingsScreen> {
                   // Implement actual account deletion with Firebase
                   final user = FirebaseAuth.instance.currentUser;
                   final facilityId = user?.uid;
-                  
+
                   if (user == null || facilityId == null) {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -484,34 +501,35 @@ class _FacilitySettingsScreenState extends State<FacilitySettingsScreen> {
                   try {
                     // Use Firestore batch for atomic operations
                     final batch = FirebaseFirestore.instance.batch();
-                    
+
                     // 1. Delete all facility subcollections (services, items, etc.)
                     final servicesQuery = await FirebaseFirestore.instance
                         .collection('users')
                         .doc(facilityId)
                         .collection('services')
                         .get();
-                    
+
                     for (final doc in servicesQuery.docs) {
                       batch.delete(doc.reference);
                     }
-                    
+
                     final itemsQuery = await FirebaseFirestore.instance
                         .collection('users')
                         .doc(facilityId)
                         .collection('items')
                         .get();
-                    
+
                     for (final doc in itemsQuery.docs) {
                       batch.delete(doc.reference);
                     }
-                    
+
                     // 2. Cancel all related appointments and service requests
-                    final serviceRequestsQuery = await FirebaseFirestore.instance
+                    final serviceRequestsQuery = await FirebaseFirestore
+                        .instance
                         .collection('service_requests')
                         .where('facilityId', isEqualTo: facilityId)
                         .get();
-                    
+
                     for (final doc in serviceRequestsQuery.docs) {
                       batch.update(doc.reference, {
                         'status': 'cancelled',
@@ -519,13 +537,13 @@ class _FacilitySettingsScreenState extends State<FacilitySettingsScreen> {
                         'cancelledAt': FieldValue.serverTimestamp(),
                       });
                     }
-                    
+
                     // Cancel appointments
                     final appointmentsQuery = await FirebaseFirestore.instance
                         .collection('appointments')
                         .where('facilityId', isEqualTo: facilityId)
                         .get();
-                    
+
                     for (final doc in appointmentsQuery.docs) {
                       batch.update(doc.reference, {
                         'status': 'cancelled',
@@ -533,34 +551,39 @@ class _FacilitySettingsScreenState extends State<FacilitySettingsScreen> {
                         'cancelledAt': FieldValue.serverTimestamp(),
                       });
                     }
-                    
+
                     // 3. Create audit record before deletion
-                    batch.set(FirebaseFirestore.instance
-                        .collection('deleted_accounts')
-                        .doc(facilityId), {
-                      'userId': facilityId,
-                      'userType': 'facility',
-                      'userEmail': user.email,
-                      'deletedAt': FieldValue.serverTimestamp(),
-                      'deletionReason': 'User requested account deletion',
-                    });
-                    
+                    batch.set(
+                      FirebaseFirestore.instance
+                          .collection('deleted_accounts')
+                          .doc(facilityId),
+                      {
+                        'userId': facilityId,
+                        'userType': 'facility',
+                        'userEmail': user.email,
+                        'deletedAt': FieldValue.serverTimestamp(),
+                        'deletionReason': 'User requested account deletion',
+                      },
+                    );
+
                     // 4. Delete the main facility document
-                    batch.delete(FirebaseFirestore.instance
-                        .collection('users')
-                        .doc(facilityId));
-                    
+                    batch.delete(
+                      FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(facilityId),
+                    );
+
                     // Commit all Firestore operations
                     await batch.commit();
-                    
+
                     // 5. Delete user authentication (must be last)
                     await user.delete();
-                    
+
                     Navigator.pop(context); // Close loading dialog
-                    
+
                     // Navigate to login screen
                     GoRouter.of(context).go('/login');
-                    
+
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('✅ Account deleted successfully'),
@@ -568,10 +591,9 @@ class _FacilitySettingsScreenState extends State<FacilitySettingsScreen> {
                         duration: Duration(seconds: 3),
                       ),
                     );
-                    
                   } catch (e) {
                     Navigator.pop(context); // Close loading dialog
-                    
+
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('❌ Error deleting account: $e'),
@@ -579,17 +601,17 @@ class _FacilitySettingsScreenState extends State<FacilitySettingsScreen> {
                         duration: const Duration(seconds: 4),
                       ),
                     );
-                    
+
                     // Log error for debugging
                     try {
                       await FirebaseFirestore.instance
                           .collection('deletion_errors')
                           .add({
-                        'userId': facilityId,
-                        'error': e.toString(),
-                        'timestamp': FieldValue.serverTimestamp(),
-                        'userType': 'facility',
-                      });
+                            'userId': facilityId,
+                            'error': e.toString(),
+                            'timestamp': FieldValue.serverTimestamp(),
+                            'userType': 'facility',
+                          });
                     } catch (_) {
                       // Ignore logging errors
                     }

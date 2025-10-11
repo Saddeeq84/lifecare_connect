@@ -53,7 +53,6 @@ class _CHWLoginScreenState extends State<CHWLoginScreen> {
 
     setState(() => isLoading = true);
 
-
     try {
       final user = await _authService.signInWithEmail(
         emailController.text.trim(),
@@ -214,7 +213,10 @@ class _CHWLoginScreenState extends State<CHWLoginScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 32,
+                  horizontal: 16,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.teal,
                   borderRadius: BorderRadius.circular(16),
@@ -247,10 +249,7 @@ class _CHWLoginScreenState extends State<CHWLoginScreen> {
                     const Text(
                       'CHW Login',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white70,
-                      ),
+                      style: TextStyle(fontSize: 16, color: Colors.white70),
                     ),
                   ],
                 ),
@@ -266,12 +265,16 @@ class _CHWLoginScreenState extends State<CHWLoginScreen> {
                       decoration: InputDecoration(
                         labelText: 'Email',
                         prefixIcon: const Icon(Icons.email),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                         filled: true,
                         fillColor: Colors.grey[100],
                       ),
                       validator: (value) =>
-                          value == null || !value.contains('@') ? 'Enter a valid email' : null,
+                          value == null || !value.contains('@')
+                          ? 'Enter a valid email'
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -280,18 +283,25 @@ class _CHWLoginScreenState extends State<CHWLoginScreen> {
                       decoration: InputDecoration(
                         labelText: 'Password',
                         prefixIcon: const Icon(Icons.lock),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                         filled: true,
                         fillColor: Colors.grey[100],
                         suffixIcon: IconButton(
                           icon: Icon(
-                            obscurePassword ? Icons.visibility_off : Icons.visibility,
+                            obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                           ),
-                          onPressed: () => setState(() => obscurePassword = !obscurePassword),
+                          onPressed: () => setState(
+                            () => obscurePassword = !obscurePassword,
+                          ),
                         ),
                       ),
-                      validator: (value) =>
-                          value == null || value.length < 6 ? 'Enter 6+ character password' : null,
+                      validator: (value) => value == null || value.length < 6
+                          ? 'Enter 6+ character password'
+                          : null,
                     ),
                     const SizedBox(height: 24),
                     SizedBox(
@@ -300,18 +310,33 @@ class _CHWLoginScreenState extends State<CHWLoginScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.teal,
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
                         onPressed: isLoading ? null : handleLogin,
                         child: isLoading
-                            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                            : const Text('Login', style: TextStyle(fontSize: 18)),
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text(
+                                'Login',
+                                style: TextStyle(fontSize: 18),
+                              ),
                       ),
                     ),
                     const SizedBox(height: 16),
                     TextButton(
                       onPressed: isLoading ? null : resetPassword,
-                      child: const Text('Forgot Password?', style: TextStyle(color: Colors.teal)),
+                      child: const Text(
+                        'Forgot Password?',
+                        style: TextStyle(color: Colors.teal),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     SizedBox(
@@ -325,7 +350,9 @@ class _CHWLoginScreenState extends State<CHWLoginScreen> {
                           foregroundColor: Colors.black,
                           side: const BorderSide(color: Colors.black12),
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
                       ),
                     ),
@@ -334,15 +361,20 @@ class _CHWLoginScreenState extends State<CHWLoginScreen> {
               ),
               const SizedBox(height: 24),
               TextButton(
-                onPressed: isLoading ? null : () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const CHWCreateAccountScreen(),
-                      ),
-                    );
-                  },
-                child: const Text("Don't have an account? Create CHW account", style: TextStyle(color: Colors.teal)),
+                onPressed: isLoading
+                    ? null
+                    : () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const CHWCreateAccountScreen(),
+                          ),
+                        );
+                      },
+                child: const Text(
+                  "Don't have an account? Create CHW account",
+                  style: TextStyle(color: Colors.teal),
+                ),
               ),
             ],
           ),

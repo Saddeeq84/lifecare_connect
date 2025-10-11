@@ -1,8 +1,5 @@
 import 'package:lifecare_connect/features/chw/presentation/screens/patient_health_records_screen.dart';
 
-
-
-
 import 'package:flutter/material.dart';
 import 'package:lifecare_connect/features/doctor/presentation/screens/doctor_consultation_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -12,7 +9,8 @@ class DoctorPatientListScreen extends StatefulWidget {
   const DoctorPatientListScreen({super.key});
 
   @override
-  State<DoctorPatientListScreen> createState() => _DoctorPatientListScreenState();
+  State<DoctorPatientListScreen> createState() =>
+      _DoctorPatientListScreenState();
 }
 
 class _DoctorPatientListScreenState extends State<DoctorPatientListScreen> {
@@ -66,10 +64,10 @@ class _DoctorPatientListScreenState extends State<DoctorPatientListScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text(_error!))
-              : _allPatientIds.isEmpty
-                  ? const Center(child: Text('No patients found.'))
-                  : _buildPatientList(context),
+          ? Center(child: Text(_error!))
+          : _allPatientIds.isEmpty
+          ? const Center(child: Text('No patients found.'))
+          : _buildPatientList(context),
     );
   }
 
@@ -100,9 +98,11 @@ class _DoctorPatientListScreenState extends State<DoctorPatientListScreen> {
                 itemBuilder: (context, index) {
                   final patient = patients[index];
                   final data = patient.data() as Map<String, dynamic>;
-                  final name = data['name'] ?? data['fullName'] ?? 'Unknown Patient';
+                  final name =
+                      data['name'] ?? data['fullName'] ?? 'Unknown Patient';
                   final email = data['email'] ?? 'No email';
-                  final phone = data['phone'] ?? data['phoneNumber'] ?? 'No phone';
+                  final phone =
+                      data['phone'] ?? data['phoneNumber'] ?? 'No phone';
                   final lastSeen = data['lastSeen'] as Timestamp?;
                   final isOnline = data['isOnline'] ?? false;
                   return Card(
@@ -137,7 +137,10 @@ class _DoctorPatientListScreenState extends State<DoctorPatientListScreen> {
                                 decoration: BoxDecoration(
                                   color: Colors.green,
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 2),
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 2,
+                                  ),
                                 ),
                               ),
                             ),
@@ -156,7 +159,11 @@ class _DoctorPatientListScreenState extends State<DoctorPatientListScreen> {
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              Icon(Icons.email, size: 14, color: Colors.grey[600]),
+                              Icon(
+                                Icons.email,
+                                size: 14,
+                                color: Colors.grey[600],
+                              ),
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
@@ -173,7 +180,11 @@ class _DoctorPatientListScreenState extends State<DoctorPatientListScreen> {
                           const SizedBox(height: 2),
                           Row(
                             children: [
-                              Icon(Icons.phone, size: 14, color: Colors.grey[600]),
+                              Icon(
+                                Icons.phone,
+                                size: 14,
+                                color: Colors.grey[600],
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 phone,
@@ -188,7 +199,11 @@ class _DoctorPatientListScreenState extends State<DoctorPatientListScreen> {
                             const SizedBox(height: 2),
                             Row(
                               children: [
-                                Icon(Icons.access_time, size: 14, color: Colors.grey[600]),
+                                Icon(
+                                  Icons.access_time,
+                                  size: 14,
+                                  color: Colors.grey[600],
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
                                   'Last seen: ${_formatTimestamp(lastSeen)}',
@@ -205,10 +220,7 @@ class _DoctorPatientListScreenState extends State<DoctorPatientListScreen> {
                       trailing: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.chevron_right,
-                            color: Colors.teal[300],
-                          ),
+                          Icon(Icons.chevron_right, color: Colors.teal[300]),
                           if (isOnline)
                             Text(
                               'Online',
@@ -246,7 +258,8 @@ class _DoctorPatientListScreenState extends State<DoctorPatientListScreen> {
 
   void _showPatientActions(BuildContext context, DocumentSnapshot patient) {
     final patientData = patient.data() as Map<String, dynamic>;
-    final patientName = patientData['name'] ?? patientData['fullName'] ?? 'Unknown Patient';
+    final patientName =
+        patientData['name'] ?? patientData['fullName'] ?? 'Unknown Patient';
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -269,10 +282,7 @@ class _DoctorPatientListScreenState extends State<DoctorPatientListScreen> {
             const SizedBox(height: 8),
             Text(
               'Patient ID: ${patient.id}',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             ),
             const Divider(height: 32),
             ListTile(
@@ -306,7 +316,10 @@ class _DoctorPatientListScreenState extends State<DoctorPatientListScreen> {
                         'patientId': patient.id,
                         'patientName': patientName,
                         'email': patientData['email'] ?? 'No email',
-                        'phone': patientData['phone'] ?? patientData['phoneNumber'] ?? 'No phone',
+                        'phone':
+                            patientData['phone'] ??
+                            patientData['phoneNumber'] ??
+                            'No phone',
                         'lastSeen': patientData['lastSeen'],
                         'isOnline': patientData['isOnline'] ?? false,
                       },
@@ -330,7 +343,10 @@ class _DoctorPatientListScreenState extends State<DoctorPatientListScreen> {
                         'patientId': patient.id,
                         'patientName': patientName,
                         'email': patientData['email'] ?? 'No email',
-                        'phone': patientData['phone'] ?? patientData['phoneNumber'] ?? 'No phone',
+                        'phone':
+                            patientData['phone'] ??
+                            patientData['phoneNumber'] ??
+                            'No phone',
                         'lastSeen': patientData['lastSeen'],
                         'isOnline': patientData['isOnline'] ?? false,
                       },
@@ -399,7 +415,8 @@ class _DoctorPatientBatchList extends StatefulWidget {
   const _DoctorPatientBatchList(this.doctorId, this.onPatientTap);
 
   @override
-  State<_DoctorPatientBatchList> createState() => _DoctorPatientBatchListState();
+  State<_DoctorPatientBatchList> createState() =>
+      _DoctorPatientBatchListState();
 }
 
 class _DoctorPatientBatchListState extends State<_DoctorPatientBatchList> {
@@ -471,9 +488,11 @@ class _DoctorPatientBatchListState extends State<_DoctorPatientBatchList> {
                 itemBuilder: (context, index) {
                   final patient = patients[index];
                   final data = patient.data() as Map<String, dynamic>;
-                  final name = data['name'] ?? data['fullName'] ?? 'Unknown Patient';
+                  final name =
+                      data['name'] ?? data['fullName'] ?? 'Unknown Patient';
                   final email = data['email'] ?? 'No email';
-                  final phone = data['phone'] ?? data['phoneNumber'] ?? 'No phone';
+                  final phone =
+                      data['phone'] ?? data['phoneNumber'] ?? 'No phone';
                   final lastSeen = data['lastSeen'] as Timestamp?;
                   final isOnline = data['isOnline'] ?? false;
                   return Card(
@@ -508,7 +527,10 @@ class _DoctorPatientBatchListState extends State<_DoctorPatientBatchList> {
                                 decoration: BoxDecoration(
                                   color: Colors.green,
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 2),
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 2,
+                                  ),
                                 ),
                               ),
                             ),
@@ -527,7 +549,11 @@ class _DoctorPatientBatchListState extends State<_DoctorPatientBatchList> {
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              Icon(Icons.email, size: 14, color: Colors.grey[600]),
+                              Icon(
+                                Icons.email,
+                                size: 14,
+                                color: Colors.grey[600],
+                              ),
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
@@ -544,7 +570,11 @@ class _DoctorPatientBatchListState extends State<_DoctorPatientBatchList> {
                           const SizedBox(height: 2),
                           Row(
                             children: [
-                              Icon(Icons.phone, size: 14, color: Colors.grey[600]),
+                              Icon(
+                                Icons.phone,
+                                size: 14,
+                                color: Colors.grey[600],
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 phone,
@@ -559,7 +589,11 @@ class _DoctorPatientBatchListState extends State<_DoctorPatientBatchList> {
                             const SizedBox(height: 2),
                             Row(
                               children: [
-                                Icon(Icons.access_time, size: 14, color: Colors.grey[600]),
+                                Icon(
+                                  Icons.access_time,
+                                  size: 14,
+                                  color: Colors.grey[600],
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
                                   'Last seen: ${_formatTimestamp(lastSeen)}',
@@ -576,10 +610,7 @@ class _DoctorPatientBatchListState extends State<_DoctorPatientBatchList> {
                       trailing: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.chevron_right,
-                            color: Colors.teal[300],
-                          ),
+                          Icon(Icons.chevron_right, color: Colors.teal[300]),
                           if (isOnline)
                             Text(
                               'Online',
@@ -615,7 +646,7 @@ class _DoctorPatientBatchListState extends State<_DoctorPatientBatchList> {
     );
   }
 
-// ...existing code...
+  // ...existing code...
 
   Future<List<String>> _getUniquePatientIds(String doctorId) async {
     final appointmentSnaps = await FirebaseFirestore.instance

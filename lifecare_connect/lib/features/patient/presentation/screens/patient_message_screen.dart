@@ -12,19 +12,53 @@ class PatientMessageScreen extends StatefulWidget {
   State<PatientMessageScreen> createState() => _PatientMessageScreenState();
 }
 
-class _PatientMessageScreenState extends State<PatientMessageScreen> with SingleTickerProviderStateMixin {
+class _PatientMessageScreenState extends State<PatientMessageScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 4, vsync: this);
-  }
+
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Map<String, int> _unreadCounts = {
+    'chw': 0,
+    'doctor': 0,
+    'facility': 0,
+    'admin': 0,
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 4, vsync: this);
+    _fetchUnreadCounts();
+  }
+
+  Future<void> _fetchUnreadCounts() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final userId = user.uid;
+    final snapshot = await FirebaseFirestore.instance
+        .collection('messages')
+        .where('participants', arrayContains: userId)
+        .where('isActive', isEqualTo: true)
+        .get();
+    final counts = {'chw': 0, 'doctor': 0, 'facility': 0, 'admin': 0};
+    for (final doc in snapshot.docs) {
+      final data = doc.data();
+      final recipientType = data['recipientType'] ?? '';
+      final unread = data['unreadCount_$userId'] ?? 0;
+      if (counts.containsKey(recipientType)) {
+        counts[recipientType] = (counts[recipientType] ?? 0) + (unread is int ? unread : 0);
+      }
+    }
+    setState(() {
+      _unreadCounts = counts;
+    });
   }
 
   @override
@@ -36,11 +70,11 @@ class _PatientMessageScreenState extends State<PatientMessageScreen> with Single
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
-          tabs: const [
-            Tab(icon: Icon(Icons.local_hospital), text: 'CHWs'),
-            Tab(icon: Icon(Icons.medical_services), text: 'Doctors'),
-            Tab(icon: Icon(Icons.business), text: 'Facilities'),
-            Tab(icon: Icon(Icons.admin_panel_settings), text: 'Admin'),
+          tabs: [
+            _buildTabWithBadge('CHWs', Icons.local_hospital, _unreadCounts['chw'] ?? 0),
+            _buildTabWithBadge('Doctors', Icons.medical_services, _unreadCounts['doctor'] ?? 0),
+            _buildTabWithBadge('Facilities', Icons.business, _unreadCounts['facility'] ?? 0),
+            _buildTabWithBadge('Admin', Icons.admin_panel_settings, _unreadCounts['admin'] ?? 0),
           ],
         ),
       ),
@@ -58,6 +92,49 @@ class _PatientMessageScreenState extends State<PatientMessageScreen> with Single
         icon: const Icon(Icons.add),
         label: const Text("New Message"),
         backgroundColor: Colors.blue.shade700,
+      ),
+    );
+  }
+
+  Widget _buildTabWithBadge(String label, IconData icon, int unreadCount) {
+    return Tab(
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon),
+              const SizedBox(width: 4),
+              Text(label),
+            ],
+          ),
+          if (unreadCount > 0)
+            Positioned(
+              right: -10,
+              top: -8,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+                constraints: const BoxConstraints(
+                  minWidth: 16,
+                  minHeight: 16,
+                ),
+                child: Text(
+                  unreadCount > 9 ? '9+' : unreadCount.toString(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -106,10 +183,14 @@ class _PatientMessageScreenState extends State<PatientMessageScreen> with Single
     );
   }
 
-  void _showStartConversationDialog(BuildContext context, String recipientType) {
+  void _showStartConversationDialog(
+    BuildContext context,
+    String recipientType,
+  ) {
     showDialog(
       context: context,
-      builder: (context) => _StartConversationDialog(recipientType: recipientType),
+      builder: (context) =>
+          _StartConversationDialog(recipientType: recipientType),
     );
   }
 }
@@ -121,7 +202,7 @@ class _MessagesList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
-    
+
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('messages')
@@ -143,7 +224,7 @@ class _MessagesList extends StatelessWidget {
           itemBuilder: (context, index) {
             final conversation = snapshot.data!.docs[index];
             final data = conversation.data() as Map<String, dynamic>;
-            
+
             return _ConversationTile(
               conversationId: conversation.id,
               data: data,
@@ -162,17 +243,20 @@ class _MessagesList extends StatelessWidget {
 
     switch (recipientType) {
       case 'chw':
-        message = 'No conversations with CHWs yet.\nStart chatting to get health support!';
+        message =
+            'No conversations with CHWs yet.\nStart chatting to get health support!';
         icon = Icons.local_hospital;
         color = Colors.green;
         break;
       case 'doctor':
-        message = 'No conversations with doctors yet.\nConnect with medical professionals!';
+        message =
+            'No conversations with doctors yet.\nConnect with medical professionals!';
         icon = Icons.medical_services;
         color = Colors.blue;
         break;
       case 'facility':
-        message = 'No conversations with facilities yet.\nContact healthcare facilities!';
+        message =
+            'No conversations with facilities yet.\nContact healthcare facilities!';
         icon = Icons.business;
         color = Colors.purple;
         break;
@@ -196,17 +280,15 @@ class _MessagesList extends StatelessWidget {
           Text(
             message,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey.shade600,
-            ),
+            style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () {
               showDialog(
                 context: context,
-                builder: (context) => _StartConversationDialog(recipientType: recipientType),
+                builder: (context) =>
+                    _StartConversationDialog(recipientType: recipientType),
               );
             },
             icon: const Icon(Icons.add_circle),
@@ -238,7 +320,7 @@ class _ConversationTile extends StatelessWidget {
     final otherParticipant = (data['participants'] as List)
         .where((id) => id != currentUserId)
         .first;
-    
+
     final lastMessage = data['lastMessage'] ?? 'No messages yet';
     final lastMessageTime = data['lastMessageTime'] as Timestamp?;
     final unreadCount = data['unreadCount_$currentUserId'] ?? 0;
@@ -258,11 +340,7 @@ class _ConversationTile extends StatelessWidget {
           return Text('Loading...');
         },
       ),
-      subtitle: Text(
-        lastMessage,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
+      subtitle: Text(lastMessage, maxLines: 1, overflow: TextOverflow.ellipsis),
       trailing: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -270,10 +348,7 @@ class _ConversationTile extends StatelessWidget {
           if (lastMessageTime != null)
             Text(
               _formatTime(lastMessageTime.toDate()),
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade600,
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
             ),
           if (unreadCount > 0)
             Container(
@@ -367,16 +442,19 @@ class _StartConversationDialog extends StatefulWidget {
   const _StartConversationDialog({required this.recipientType});
 
   @override
-  State<_StartConversationDialog> createState() => _StartConversationDialogState();
+  State<_StartConversationDialog> createState() =>
+      _StartConversationDialogState();
 }
 
 class _StartConversationDialogState extends State<_StartConversationDialog> {
   String _searchQuery = '';
-  
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Start Conversation with ${widget.recipientType.toUpperCase()}'),
+      title: Text(
+        'Start Conversation with ${widget.recipientType.toUpperCase()}',
+      ),
       content: SizedBox(
         width: double.maxFinite,
         height: 400,
@@ -391,9 +469,7 @@ class _StartConversationDialogState extends State<_StartConversationDialog> {
               onChanged: (value) => setState(() => _searchQuery = value),
             ),
             const SizedBox(height: 16),
-            Expanded(
-              child: _buildRecipientsList(),
-            ),
+            Expanded(child: _buildRecipientsList()),
           ],
         ),
       ),
@@ -419,13 +495,11 @@ class _StartConversationDialogState extends State<_StartConversationDialog> {
         }
 
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return Center(
-            child: Text('No ${widget.recipientType}s found'),
-          );
+          return Center(child: Text('No ${widget.recipientType}s found'));
         }
 
         var docs = snapshot.data!.docs;
-        
+
         if (_searchQuery.isNotEmpty) {
           docs = docs.where((doc) {
             final data = doc.data() as Map<String, dynamic>;
@@ -439,7 +513,7 @@ class _StartConversationDialogState extends State<_StartConversationDialog> {
           itemBuilder: (context, index) {
             final user = docs[index];
             final userData = user.data() as Map<String, dynamic>;
-            
+
             return ListTile(
               leading: CircleAvatar(
                 backgroundColor: _getAvatarColor(),
@@ -485,18 +559,21 @@ class _StartConversationDialogState extends State<_StartConversationDialog> {
     }
   }
 
-  Future<void> _startConversation(String recipientId, Map<String, dynamic> recipientData) async {
+  Future<void> _startConversation(
+    String recipientId,
+    Map<String, dynamic> recipientData,
+  ) async {
     try {
       final currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
-      
+
       // Check if conversation already exists
       final existingConversation = await FirebaseFirestore.instance
           .collection('messages')
           .where('participants', arrayContains: currentUserId)
           .get();
-      
+
       String? conversationId;
-      
+
       for (var doc in existingConversation.docs) {
         final participants = List<String>.from(doc.data()['participants']);
         if (participants.contains(recipientId)) {
@@ -504,21 +581,23 @@ class _StartConversationDialogState extends State<_StartConversationDialog> {
           break;
         }
       }
-      
+
       // Create new conversation if none exists
       if (conversationId == null) {
-        final docRef = await FirebaseFirestore.instance.collection('messages').add({
-          'participants': [currentUserId, recipientId],
-          'recipientType': widget.recipientType,
-          'createdAt': FieldValue.serverTimestamp(),
-          'lastMessage': 'Conversation started',
-          'lastMessageTime': FieldValue.serverTimestamp(),
-          'unreadCount_$currentUserId': 0,
-          'unreadCount_$recipientId': 0,
-        });
+        final docRef = await FirebaseFirestore.instance
+            .collection('messages')
+            .add({
+              'participants': [currentUserId, recipientId],
+              'recipientType': widget.recipientType,
+              'createdAt': FieldValue.serverTimestamp(),
+              'lastMessage': 'Conversation started',
+              'lastMessageTime': FieldValue.serverTimestamp(),
+              'unreadCount_$currentUserId': 0,
+              'unreadCount_$recipientId': 0,
+            });
         conversationId = docRef.id;
       }
-      
+
       if (mounted) {
         Navigator.pop(context); // Close dialog
         Navigator.push(
@@ -568,15 +647,10 @@ class _ChatScreenState extends State<_ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Chat'),
-        backgroundColor: _getAppBarColor(),
-      ),
+      appBar: AppBar(title: Text('Chat'), backgroundColor: _getAppBarColor()),
       body: Column(
         children: [
-          Expanded(
-            child: _buildMessagesList(),
-          ),
+          Expanded(child: _buildMessagesList()),
           _buildMessageInput(),
         ],
       ),
@@ -623,7 +697,7 @@ class _ChatScreenState extends State<_ChatScreen> {
           itemBuilder: (context, index) {
             final message = snapshot.data!.docs[index];
             final data = message.data() as Map<String, dynamic>;
-            
+
             return _MessageBubble(data: data);
           },
         );
@@ -680,14 +754,18 @@ class _ChatScreenState extends State<_ChatScreen> {
     // If CHW is saving a consultation note, show confirmation dialog
     final currentUser = FirebaseAuth.instance.currentUser;
     final isChw = currentUser != null && await _isChw(currentUser.uid);
-    final isConsultationNote = messageText.toLowerCase().contains('consultation note');
+    final isConsultationNote = messageText.toLowerCase().contains(
+      'consultation note',
+    );
 
     if (isChw && isConsultationNote) {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Confirm Save'),
-          content: const Text('Are you sure you want to save this consultation note?'),
+          content: const Text(
+            'Are you sure you want to save this consultation note?',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
@@ -705,9 +783,7 @@ class _ChatScreenState extends State<_ChatScreen> {
 
     try {
       final currentUserId = currentUser?.uid ?? '';
-      await FirebaseFirestore.instance
-          .collection('messages')
-          .add({
+      await FirebaseFirestore.instance.collection('messages').add({
         'conversationId': widget.conversationId,
         'senderId': currentUserId,
         'message': messageText,
@@ -720,20 +796,23 @@ class _ChatScreenState extends State<_ChatScreen> {
           .collection('messages')
           .doc(widget.conversationId)
           .update({
-        'lastMessage': messageText,
-        'lastMessageTime': FieldValue.serverTimestamp(),
-      });
+            'lastMessage': messageText,
+            'lastMessageTime': FieldValue.serverTimestamp(),
+          });
 
       _messageController.clear();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to send message: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to send message: $e')));
     }
   }
 
   Future<bool> _isChw(String uid) async {
-    final userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .get();
     final data = userDoc.data();
     return data != null && data['role'] == 'chw';
   }
@@ -764,9 +843,7 @@ class _MessageBubble extends StatelessWidget {
           children: [
             Text(
               data['message'] ?? '',
-              style: TextStyle(
-                color: isMe ? Colors.white : Colors.black87,
-              ),
+              style: TextStyle(color: isMe ? Colors.white : Colors.black87),
             ),
             if (timestamp != null) ...[
               const SizedBox(height: 4),

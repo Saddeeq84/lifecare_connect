@@ -9,10 +9,13 @@ class PatientStaffSelectionScreen extends StatefulWidget {
   const PatientStaffSelectionScreen({super.key});
 
   @override
-  State<PatientStaffSelectionScreen> createState() => _PatientStaffSelectionScreenState();
+  State<PatientStaffSelectionScreen> createState() =>
+      _PatientStaffSelectionScreenState();
 }
 
-class _PatientStaffSelectionScreenState extends State<PatientStaffSelectionScreen> with SingleTickerProviderStateMixin {
+class _PatientStaffSelectionScreenState
+    extends State<PatientStaffSelectionScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -28,25 +31,41 @@ class _PatientStaffSelectionScreenState extends State<PatientStaffSelectionScree
   }
 
   void _onStaffSelected(DocumentSnapshot staffDoc) {
-    // Navigate to appointment booking with pre-selected provider
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ComprehensiveBookAppointmentScreen(
-          preSelectedProvider: {
-            'id': staffDoc.id,
-            'name': (staffDoc.data() as Map<String, dynamic>)['fullName'] ?? 'Unknown',
-            'type': (staffDoc.data() as Map<String, dynamic>)['role'] == 'doctor' ? 'Doctor' : 'CHW',
-            'specialization': (staffDoc.data() as Map<String, dynamic>)['specialization'] ?? 'General Practice',
-            'location': (staffDoc.data() as Map<String, dynamic>)['location'] ?? 'Not specified',
-            'rating': (staffDoc.data() as Map<String, dynamic>)['rating'] ?? 4.5,
-            'image': (staffDoc.data() as Map<String, dynamic>)['imageUrl'] ?? (staffDoc.data() as Map<String, dynamic>)['profileImage'],
-            'availability': (staffDoc.data() as Map<String, dynamic>)['availability'] ?? 'Available',
-            'isApproved': (staffDoc.data() as Map<String, dynamic>)['isApproved'] ?? true,
-          },
-        ),
-      ),
-    );
+  // Navigate to appointment booking with pre-selected provider, but not from referral
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+    builder: (context) => ComprehensiveBookAppointmentScreen(
+      preSelectedProvider: {
+      'id': staffDoc.id,
+      'name':
+        (staffDoc.data() as Map<String, dynamic>)['fullName'] ??
+        'Unknown',
+      'type':
+        (staffDoc.data() as Map<String, dynamic>)['role'] == 'doctor'
+        ? 'Doctor'
+        : 'CHW',
+      'specialization':
+        (staffDoc.data() as Map<String, dynamic>)['specialization'] ??
+        'General Practice',
+      'location':
+        (staffDoc.data() as Map<String, dynamic>)['location'] ??
+        'Not specified',
+      'rating':
+        (staffDoc.data() as Map<String, dynamic>)['rating'] ?? 4.5,
+      'image':
+        (staffDoc.data() as Map<String, dynamic>)['imageUrl'] ??
+        (staffDoc.data() as Map<String, dynamic>)['profileImage'],
+      'availability':
+        (staffDoc.data() as Map<String, dynamic>)['availability'] ??
+        'Available',
+      'isApproved':
+        (staffDoc.data() as Map<String, dynamic>)['isApproved'] ?? true,
+      },
+      fromReferral: false,
+    ),
+    ),
+  );
   }
 
   @override
@@ -62,14 +81,8 @@ class _PatientStaffSelectionScreenState extends State<PatientStaffSelectionScree
           unselectedLabelColor: Colors.white70,
           indicatorColor: Colors.white,
           tabs: const [
-            Tab(
-              icon: Icon(Icons.local_hospital),
-              text: 'Doctors',
-            ),
-            Tab(
-              icon: Icon(Icons.people),
-              text: 'CHWs',
-            ),
+            Tab(icon: Icon(Icons.local_hospital), text: 'Doctors'),
+            Tab(icon: Icon(Icons.people), text: 'CHWs'),
           ],
         ),
       ),
@@ -88,28 +101,26 @@ class _PatientStaffSelectionScreenState extends State<PatientStaffSelectionScree
             ),
             child: Column(
               children: [
-                Icon(Icons.calendar_today, size: 48, color: Colors.teal.shade700),
+                Icon(
+                  Icons.calendar_today,
+                  size: 48,
+                  color: Colors.teal.shade700,
+                ),
                 const SizedBox(height: 8),
                 const Text(
                   'Book an Appointment',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
                 const Text(
                   'Select a doctor or community health worker to book your appointment',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
                   textAlign: TextAlign.center,
                 ),
               ],
             ),
           ),
-          
+
           // Tabs Content
           Expanded(
             child: TabBarView(
@@ -135,13 +146,11 @@ class _PatientStaffSelectionScreenState extends State<PatientStaffSelectionScree
                         style: TextStyle(color: Colors.grey),
                       ),
                       const SizedBox(height: 16),
-                      Expanded(
-                        child: _buildStaffList('doctor'),
-                      ),
+                      Expanded(child: _buildStaffList('doctor')),
                     ],
                   ),
                 ),
-                
+
                 // CHWs Tab
                 Padding(
                   padding: const EdgeInsets.all(16),
@@ -162,9 +171,7 @@ class _PatientStaffSelectionScreenState extends State<PatientStaffSelectionScree
                         style: TextStyle(color: Colors.grey),
                       ),
                       const SizedBox(height: 16),
-                      Expanded(
-                        child: _buildStaffList('chw'),
-                      ),
+                      Expanded(child: _buildStaffList('chw')),
                     ],
                   ),
                 ),
@@ -201,11 +208,11 @@ class _PatientStaffSelectionScreenState extends State<PatientStaffSelectionScree
         }
 
         final allStaffList = snapshot.data?.docs ?? [];
-        
+
         // Filter for approved staff (doctors need approval, CHWs don't)
         final staffList = allStaffList.where((staff) {
           final staffData = staff.data() as Map<String, dynamic>;
-          
+
           if (role == 'chw') {
             return true; // CHWs don't need approval
           } else {
@@ -213,13 +220,21 @@ class _PatientStaffSelectionScreenState extends State<PatientStaffSelectionScree
             return staffData['isApproved'] ?? true;
           }
         }).toList();
-        
+
         // Sort by name
         staffList.sort((a, b) {
           final aData = a.data() as Map<String, dynamic>;
           final bData = b.data() as Map<String, dynamic>;
-          final aName = aData['displayName'] ?? aData['fullName'] ?? aData['name'] ?? 'Unknown';
-          final bName = bData['displayName'] ?? bData['fullName'] ?? bData['name'] ?? 'Unknown';
+          final aName =
+              aData['displayName'] ??
+              aData['fullName'] ??
+              aData['name'] ??
+              'Unknown';
+          final bName =
+              bData['displayName'] ??
+              bData['fullName'] ??
+              bData['name'] ??
+              'Unknown';
           return aName.compareTo(bName);
         });
 
@@ -248,17 +263,20 @@ class _PatientStaffSelectionScreenState extends State<PatientStaffSelectionScree
           itemBuilder: (context, index) {
             final staff = staffList[index];
             final staffData = staff.data() as Map<String, dynamic>;
-            final staffName = staffData['displayName'] ?? 
-                            staffData['fullName'] ?? 
-                            staffData['name'] ??
-                            'Unknown ${role == 'doctor' ? 'Doctor' : 'CHW'}';
+            final staffName =
+                staffData['displayName'] ??
+                staffData['fullName'] ??
+                staffData['name'] ??
+                'Unknown ${role == 'doctor' ? 'Doctor' : 'CHW'}';
 
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
               elevation: 2,
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: role == 'doctor' ? Colors.blue : Colors.green,
+                  backgroundColor: role == 'doctor'
+                      ? Colors.blue
+                      : Colors.green,
                   child: Icon(
                     role == 'doctor' ? Icons.local_hospital : Icons.people,
                     color: Colors.white,
@@ -283,7 +301,10 @@ class _PatientStaffSelectionScreenState extends State<PatientStaffSelectionScree
                         Text('${staffData['rating'] ?? 4.5}'),
                         const SizedBox(width: 16),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.green.shade100,
                             borderRadius: BorderRadius.circular(12),

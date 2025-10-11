@@ -9,10 +9,12 @@ class PatientServiceRequestMainScreen extends StatefulWidget {
   const PatientServiceRequestMainScreen({super.key});
 
   @override
-  State<PatientServiceRequestMainScreen> createState() => _PatientServiceRequestMainScreenState();
+  State<PatientServiceRequestMainScreen> createState() =>
+      _PatientServiceRequestMainScreenState();
 }
 
-class _PatientServiceRequestMainScreenState extends State<PatientServiceRequestMainScreen> {
+class _PatientServiceRequestMainScreenState
+    extends State<PatientServiceRequestMainScreen> {
   String? selectedCategoryType;
   String? selectedCategoryLabel;
   String? selectedFacilityId;
@@ -23,11 +25,27 @@ class _PatientServiceRequestMainScreenState extends State<PatientServiceRequestM
     {'type': 'clinic', 'label': 'Clinics', 'icon': Icons.local_hospital},
     {'type': 'laboratory', 'label': 'Laboratories', 'icon': Icons.science},
     {'type': 'pharmacy', 'label': 'Pharmacies', 'icon': Icons.local_pharmacy},
-    {'type': 'dental_clinic', 'label': 'Dental Clinics', 'icon': Icons.medical_information},
-    {'type': 'scan_center', 'label': 'Scan Centers', 'icon': Icons.monitor_heart},
+    {
+      'type': 'dental_clinic',
+      'label': 'Dental Clinics',
+      'icon': Icons.medical_information,
+    },
+    {
+      'type': 'scan_center',
+      'label': 'Scan Centers',
+      'icon': Icons.monitor_heart,
+    },
     {'type': 'eye_clinic', 'label': 'Eye Clinics', 'icon': Icons.visibility},
-    {'type': 'mental_health_center', 'label': 'Mental Health Centers', 'icon': Icons.psychology},
-    {'type': 'physiotherapy_center', 'label': 'Physiotherapy Centers', 'icon': Icons.accessibility},
+    {
+      'type': 'mental_health_center',
+      'label': 'Mental Health Centers',
+      'icon': Icons.psychology,
+    },
+    {
+      'type': 'physiotherapy_center',
+      'label': 'Physiotherapy Centers',
+      'icon': Icons.accessibility,
+    },
   ];
 
   @override
@@ -68,7 +86,9 @@ class _PatientServiceRequestMainScreenState extends State<PatientServiceRequestM
           final category = categories[index];
           return Card(
             elevation: 1,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: ListTile(
               leading: Icon(
                 category['icon'] as IconData,
@@ -77,7 +97,10 @@ class _PatientServiceRequestMainScreenState extends State<PatientServiceRequestM
               ),
               title: Text(
                 category['label'] as String,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
               ),
               trailing: const Icon(Icons.arrow_forward_ios, size: 18),
               onTap: () {

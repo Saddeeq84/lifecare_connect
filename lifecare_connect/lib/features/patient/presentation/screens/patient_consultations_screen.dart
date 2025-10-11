@@ -49,11 +49,14 @@ class PatientConsultationsScreen extends StatelessWidget {
                 margin: const EdgeInsets.all(12),
                 child: ListTile(
                   title: Text(data['appointmentType'] ?? 'Consultation'),
-                  subtitle: Text('Provider: ${data['providerName'] ?? 'N/A'}\nDate: $dateStr'),
+                  subtitle: Text(
+                    'Provider: ${data['providerName'] ?? 'N/A'}\nDate: $dateStr',
+                  ),
                   trailing: const Icon(Icons.check_circle, color: Colors.green),
                   onTap: () => showDialog(
                     context: context,
-                    builder: (context) => _ConsultationDetailsDialog(data: data),
+                    builder: (context) =>
+                        _ConsultationDetailsDialog(data: data),
                   ),
                 ),
               );
@@ -81,14 +84,24 @@ class _ConsultationDetailsDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildDetailRow('Provider', '${data['providerName']} (${data['providerType']})'),
-            _buildDetailRow('Completed', completedAt != null
-                ? DateFormat('MMM dd, yyyy • hh:mm a').format(completedAt)
-                : 'Date not available'),
+            _buildDetailRow(
+              'Provider',
+              '${data['providerName']} (${data['providerType']})',
+            ),
+            _buildDetailRow(
+              'Completed',
+              completedAt != null
+                  ? DateFormat('MMM dd, yyyy • hh:mm a').format(completedAt)
+                  : 'Date not available',
+            ),
             _buildDetailRow('Status', data['status'] ?? 'Unknown'),
             _buildDetailRow('Urgency', data['urgency'] ?? 'Normal'),
-            if (data['preConsultationData'] != null && data['preConsultationData']['mainComplaint'] != null)
-              _buildDetailRow('Main Complaint', data['preConsultationData']['mainComplaint']),
+            if (data['preConsultationData'] != null &&
+                data['preConsultationData']['mainComplaint'] != null)
+              _buildDetailRow(
+                'Main Complaint',
+                data['preConsultationData']['mainComplaint'],
+              ),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -96,14 +109,19 @@ class _ConsultationDetailsDialog extends StatelessWidget {
                 ElevatedButton.icon(
                   icon: const Icon(Icons.videocam),
                   label: const Text('Join Video Call'),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo, foregroundColor: Colors.white),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.indigo,
+                    foregroundColor: Colors.white,
+                  ),
                   onPressed: () {
                     Navigator.of(context).pop();
                     showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
                         title: const Text('Consultation Completed'),
-                        content: const Text('This consultation is completed. To speak with a provider, please book a new appointment.'),
+                        content: const Text(
+                          'This consultation is completed. To speak with a provider, please book a new appointment.',
+                        ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.of(context).pop(),
@@ -117,14 +135,19 @@ class _ConsultationDetailsDialog extends StatelessWidget {
                 ElevatedButton.icon(
                   icon: const Icon(Icons.call),
                   label: const Text('Join Audio Call'),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, foregroundColor: Colors.white),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal,
+                    foregroundColor: Colors.white,
+                  ),
                   onPressed: () {
                     Navigator.of(context).pop();
                     showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
                         title: const Text('Consultation Completed'),
-                        content: const Text('This consultation is completed. To speak with a provider, please book a new appointment.'),
+                        content: const Text(
+                          'This consultation is completed. To speak with a provider, please book a new appointment.',
+                        ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.of(context).pop(),
@@ -165,9 +188,7 @@ class _ConsultationDetailsDialog extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(
-            child: Text(value),
-          ),
+          Expanded(child: Text(value)),
         ],
       ),
     );

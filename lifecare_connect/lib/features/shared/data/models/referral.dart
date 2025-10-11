@@ -1,6 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Referral {
+  /// Returns a map with the 'to' provider's details for use in booking pre-selection.
+  Map<String, dynamic> toProviderMap() {
+    return {
+      'id': toProviderId,
+      'name': toProviderName,
+      'type': toProviderType,
+      if (facilityId != null) 'facilityId': facilityId,
+      if (facilityName != null) 'facilityName': facilityName,
+    };
+  }
   final String id;
   final String patientId;
   final String patientName;
@@ -73,8 +83,8 @@ class Referral {
       actionBy: data['actionBy'],
       actionNotes: data['actionNotes'],
       medicalHistory: data['medicalHistory'] as Map<String, dynamic>?,
-      attachments: data['attachments'] != null 
-          ? List<String>.from(data['attachments']) 
+      attachments: data['attachments'] != null
+          ? List<String>.from(data['attachments'])
           : null,
     );
   }
@@ -160,14 +170,14 @@ class Referral {
   bool get isApproved => status == 'approved';
   bool get isRejected => status == 'rejected';
   bool get isCompleted => status == 'completed';
-  
+
   bool get isHighPriority => urgency == 'high' || urgency == 'critical';
   bool get isCritical => urgency == 'critical';
 
-  String get formattedCreatedDate => 
+  String get formattedCreatedDate =>
       '${createdAt.day}/${createdAt.month}/${createdAt.year}';
-  
-  String get formattedCreatedTime => 
+
+  String get formattedCreatedTime =>
       '${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}';
 
   String get urgencyDisplayText {

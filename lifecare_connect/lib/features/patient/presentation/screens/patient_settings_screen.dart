@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -36,7 +34,7 @@ class _PatientSettingsScreenState extends State<PatientSettingsScreen> {
             .collection('settings')
             .doc('preferences')
             .get();
-        
+
         if (doc.exists) {
           final data = doc.data()!;
           setState(() {
@@ -67,12 +65,12 @@ class _PatientSettingsScreenState extends State<PatientSettingsScreen> {
             .collection('settings')
             .doc('preferences')
             .set({
-          'notificationsEnabled': _notificationsEnabled,
-          'appointmentReminders': _appointmentReminders,
-          'healthTipNotifications': _healthTipNotifications,
-          'darkModeEnabled': _darkModeEnabled,
-          'updatedAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
+              'notificationsEnabled': _notificationsEnabled,
+              'appointmentReminders': _appointmentReminders,
+              'healthTipNotifications': _healthTipNotifications,
+              'darkModeEnabled': _darkModeEnabled,
+              'updatedAt': FieldValue.serverTimestamp(),
+            }, SetOptions(merge: true));
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -107,25 +105,15 @@ class _PatientSettingsScreenState extends State<PatientSettingsScreen> {
             color: Colors.green.shade100,
             shape: BoxShape.circle,
           ),
-          child: Icon(
-            icon,
-            color: Colors.green.shade700,
-            size: 24,
-          ),
+          child: Icon(icon, color: Colors.green.shade700, size: 24),
         ),
         title: Text(
           title,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
         ),
         subtitle: Text(
           subtitle,
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 14,
-          ),
+          style: TextStyle(color: Colors.grey[600], fontSize: 14),
         ),
         trailing: Switch(
           value: value,
@@ -170,26 +158,29 @@ class _PatientSettingsScreenState extends State<PatientSettingsScreen> {
               title: 'Push Notifications',
               subtitle: 'Receive notifications from the app',
               value: _notificationsEnabled,
-              onChanged: (value) => setState(() => _notificationsEnabled = value),
+              onChanged: (value) =>
+                  setState(() => _notificationsEnabled = value),
               icon: Icons.notifications,
             ),
             _buildSettingsTile(
               title: 'Appointment Reminders',
               subtitle: 'Get reminders for upcoming appointments',
               value: _appointmentReminders,
-              onChanged: (value) => setState(() => _appointmentReminders = value),
+              onChanged: (value) =>
+                  setState(() => _appointmentReminders = value),
               icon: Icons.calendar_today,
             ),
             _buildSettingsTile(
               title: 'Health Tips',
               subtitle: 'Receive daily health tips and advice',
               value: _healthTipNotifications,
-              onChanged: (value) => setState(() => _healthTipNotifications = value),
+              onChanged: (value) =>
+                  setState(() => _healthTipNotifications = value),
               icon: Icons.health_and_safety,
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Appearance Section
             Text(
               'Appearance',
@@ -207,9 +198,9 @@ class _PatientSettingsScreenState extends State<PatientSettingsScreen> {
               onChanged: (value) => setState(() => _darkModeEnabled = value),
               icon: Icons.dark_mode,
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Account Actions Section
             Text(
               'Account Actions',
@@ -220,7 +211,7 @@ class _PatientSettingsScreenState extends State<PatientSettingsScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Privacy Policy (linked to main privacy policy screen)
             Card(
               margin: const EdgeInsets.symmetric(vertical: 4),
@@ -239,25 +230,24 @@ class _PatientSettingsScreenState extends State<PatientSettingsScreen> {
                 ),
                 title: const Text(
                   'Privacy Policy',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                 ),
                 subtitle: Text(
                   'View our privacy policy and terms',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const PrivacyScreen()));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PrivacyScreen(),
+                    ),
+                  );
                 },
               ),
             ),
-            
+
             // Help & Support (updated contact info)
             Card(
               margin: const EdgeInsets.symmetric(vertical: 4),
@@ -276,17 +266,11 @@ class _PatientSettingsScreenState extends State<PatientSettingsScreen> {
                 ),
                 title: const Text(
                   'Help & Support',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                 ),
                 subtitle: Text(
                   'Get help and contact support',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () {
@@ -316,8 +300,12 @@ class _PatientSettingsScreenState extends State<PatientSettingsScreen> {
                             ),
                             SizedBox(height: 8),
                             Text('• Login problems: Check internet connection'),
-                            Text('• Booking issues: Ensure all fields are filled'),
-                            Text('• Emergency services: Call 199 for immediate help'),
+                            Text(
+                              '• Booking issues: Ensure all fields are filled',
+                            ),
+                            Text(
+                              '• Emergency services: Call 199 for immediate help',
+                            ),
                           ],
                         ),
                       ),
@@ -332,7 +320,7 @@ class _PatientSettingsScreenState extends State<PatientSettingsScreen> {
                 },
               ),
             ),
-            
+
             // Change Password
             Card(
               margin: const EdgeInsets.symmetric(vertical: 4),
@@ -351,17 +339,11 @@ class _PatientSettingsScreenState extends State<PatientSettingsScreen> {
                 ),
                 title: const Text(
                   'Change Password',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                 ),
                 subtitle: Text(
                   'Update your account password',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: _showChangePasswordDialog,
@@ -394,10 +376,7 @@ class _PatientSettingsScreenState extends State<PatientSettingsScreen> {
                 ),
                 subtitle: Text(
                   'Sign out of your account',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: _showLogoutDialog,
@@ -430,18 +409,15 @@ class _PatientSettingsScreenState extends State<PatientSettingsScreen> {
                 ),
                 subtitle: Text(
                   'Permanently delete your account',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: _showDeleteAccountDialog,
               ),
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // App Version Info
             Center(
               child: Column(
@@ -457,10 +433,7 @@ class _PatientSettingsScreenState extends State<PatientSettingsScreen> {
                   const SizedBox(height: 4),
                   Text(
                     'Version 1.0.0',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[500],
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                   ),
                 ],
               ),
@@ -518,19 +491,25 @@ class _PatientSettingsScreenState extends State<PatientSettingsScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: isSubmitting ? null : () => Navigator.of(context).pop(),
+              onPressed: isSubmitting
+                  ? null
+                  : () => Navigator.of(context).pop(),
               child: const Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: isSubmitting
                   ? null
                   : () async {
-                      final currentPassword = currentPasswordController.text.trim();
+                      final currentPassword = currentPasswordController.text
+                          .trim();
                       final newPassword = newPasswordController.text.trim();
-                      final confirmPassword = confirmPasswordController.text.trim();
+                      final confirmPassword = confirmPasswordController.text
+                          .trim();
                       if (newPassword != confirmPassword) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Passwords do not match')),
+                          const SnackBar(
+                            content: Text('Passwords do not match'),
+                          ),
                         );
                         return;
                       }
@@ -545,26 +524,44 @@ class _PatientSettingsScreenState extends State<PatientSettingsScreen> {
                           await user.reauthenticateWithCredential(cred);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('User not found. Cannot reauthenticate.'), backgroundColor: Colors.red),
+                            const SnackBar(
+                              content: Text(
+                                'User not found. Cannot reauthenticate.',
+                              ),
+                              backgroundColor: Colors.red,
+                            ),
                           );
                         }
                         if (user != null) {
                           await user.updatePassword(newPassword);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('User not found. Cannot update password.'), backgroundColor: Colors.red),
+                            const SnackBar(
+                              content: Text(
+                                'User not found. Cannot update password.',
+                              ),
+                              backgroundColor: Colors.red,
+                            ),
                           );
                         }
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Password changed successfully'), backgroundColor: Colors.green),
+                            const SnackBar(
+                              content: Text('Password changed successfully'),
+                              backgroundColor: Colors.green,
+                            ),
                           );
                         }
                         Navigator.of(context).pop();
                       } catch (e) {
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Failed to change password: ${e.toString()}'), backgroundColor: Colors.red),
+                            SnackBar(
+                              content: Text(
+                                'Failed to change password: ${e.toString()}',
+                              ),
+                              backgroundColor: Colors.red,
+                            ),
                           );
                         }
                       } finally {
@@ -572,7 +569,11 @@ class _PatientSettingsScreenState extends State<PatientSettingsScreen> {
                       }
                     },
               child: isSubmitting
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
                   : const Text('Change'),
             ),
           ],
@@ -620,7 +621,9 @@ class _PatientSettingsScreenState extends State<PatientSettingsScreen> {
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           title: const Text('Delete Account'),
-          content: const Text('Are you sure you want to permanently delete your account? This action cannot be undone.'),
+          content: const Text(
+            'Are you sure you want to permanently delete your account? This action cannot be undone.',
+          ),
           actions: [
             TextButton(
               onPressed: isDeleting ? null : () => Navigator.of(context).pop(),
@@ -635,22 +638,38 @@ class _PatientSettingsScreenState extends State<PatientSettingsScreen> {
                       try {
                         final user = FirebaseAuth.instance.currentUser;
                         if (user?.uid != null) {
-                          await FirebaseFirestore.instance.collection('users').doc(user!.uid).delete();
+                          await FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(user!.uid)
+                              .delete();
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('User not found. Cannot delete account.'), backgroundColor: Colors.red),
+                            const SnackBar(
+                              content: Text(
+                                'User not found. Cannot delete account.',
+                              ),
+                              backgroundColor: Colors.red,
+                            ),
                           );
                         }
                         if (user != null) {
                           await user.delete();
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('User not found. Cannot delete account.'), backgroundColor: Colors.red),
+                            const SnackBar(
+                              content: Text(
+                                'User not found. Cannot delete account.',
+                              ),
+                              backgroundColor: Colors.red,
+                            ),
                           );
                         }
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Account deleted successfully'), backgroundColor: Colors.green),
+                            const SnackBar(
+                              content: Text('Account deleted successfully'),
+                              backgroundColor: Colors.green,
+                            ),
                           );
                           Navigator.of(context).pop();
                           Navigator.of(context).pushReplacementNamed('/login');
@@ -658,7 +677,12 @@ class _PatientSettingsScreenState extends State<PatientSettingsScreen> {
                       } catch (e) {
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Failed to delete account: ${e.toString()}'), backgroundColor: Colors.red),
+                            SnackBar(
+                              content: Text(
+                                'Failed to delete account: ${e.toString()}',
+                              ),
+                              backgroundColor: Colors.red,
+                            ),
                           );
                         }
                       } finally {
@@ -666,7 +690,11 @@ class _PatientSettingsScreenState extends State<PatientSettingsScreen> {
                       }
                     },
               child: isDeleting
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
                   : const Text('Delete'),
             ),
           ],

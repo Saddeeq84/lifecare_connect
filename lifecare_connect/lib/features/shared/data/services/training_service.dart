@@ -53,7 +53,9 @@ class TrainingService {
         'viewCount': 0,
         'ratingCount': 0,
         'isRequired': isRequired,
-        'expirationDate': expirationDate != null ? Timestamp.fromDate(expirationDate) : null,
+        'expirationDate': expirationDate != null
+            ? Timestamp.fromDate(expirationDate)
+            : null,
         'prerequisites': prerequisites,
       };
 
@@ -74,7 +76,9 @@ class TrainingService {
     required String type,
   }) async {
     try {
-      final storageRef = _storage.ref().child('training_materials/$type/$fileName');
+      final storageRef = _storage.ref().child(
+        'training_materials/$type/$fileName',
+      );
       final uploadTask = storageRef.putFile(file);
       final snapshot = await uploadTask;
       return await snapshot.ref.getDownloadURL();
@@ -120,13 +124,17 @@ class TrainingService {
       if (category != null) updateData['category'] = category;
       if (targetRoles != null) updateData['targetRoles'] = targetRoles;
       if (difficulty != null) updateData['difficulty'] = difficulty;
-      if (estimatedDurationMinutes != null) updateData['estimatedDurationMinutes'] = estimatedDurationMinutes;
+      if (estimatedDurationMinutes != null) {
+        updateData['estimatedDurationMinutes'] = estimatedDurationMinutes;
+      }
       if (tags != null) updateData['tags'] = tags;
       if (status != null) updateData['status'] = status;
       if (language != null) updateData['language'] = language;
       if (metadata != null) updateData['metadata'] = metadata;
       if (isRequired != null) updateData['isRequired'] = isRequired;
-      if (expirationDate != null) updateData['expirationDate'] = Timestamp.fromDate(expirationDate);
+      if (expirationDate != null) {
+        updateData['expirationDate'] = Timestamp.fromDate(expirationDate);
+      }
       if (prerequisites != null) updateData['prerequisites'] = prerequisites;
 
       await _firestore
@@ -263,7 +271,10 @@ class TrainingService {
           .where('status', isEqualTo: 'published');
 
       if (userRole != null) {
-        query = query.where('targetRoles', arrayContains: userRole.toLowerCase());
+        query = query.where(
+          'targetRoles',
+          arrayContains: userRole.toLowerCase(),
+        );
       }
       if (category != null) {
         query = query.where('category', isEqualTo: category);
@@ -276,13 +287,21 @@ class TrainingService {
       }
 
       final snapshot = await query.get();
-      
+
       final materials = snapshot.docs
           .map((doc) => TrainingMaterial.fromFirestore(doc))
-          .where((material) =>
-              material.title.toLowerCase().contains(searchTerm.toLowerCase()) ||
-              material.description.toLowerCase().contains(searchTerm.toLowerCase()) ||
-              material.tags.any((tag) => tag.toLowerCase().contains(searchTerm.toLowerCase())))
+          .where(
+            (material) =>
+                material.title.toLowerCase().contains(
+                  searchTerm.toLowerCase(),
+                ) ||
+                material.description.toLowerCase().contains(
+                  searchTerm.toLowerCase(),
+                ) ||
+                material.tags.any(
+                  (tag) => tag.toLowerCase().contains(searchTerm.toLowerCase()),
+                ),
+          )
           .toList();
 
       return materials;
@@ -294,10 +313,7 @@ class TrainingService {
   /// Increment view count
   static Future<void> incrementViewCount(String materialId) async {
     try {
-      await _firestore
-          .collection('training_materials')
-          .doc(materialId)
-          .update({
+      await _firestore.collection('training_materials').doc(materialId).update({
         'viewCount': FieldValue.increment(1),
       });
     } catch (e) {
@@ -308,10 +324,7 @@ class TrainingService {
   /// Increment download count
   static Future<void> incrementDownloadCount(String materialId) async {
     try {
-      await _firestore
-          .collection('training_materials')
-          .doc(materialId)
-          .update({
+      await _firestore.collection('training_materials').doc(materialId).update({
         'downloadCount': FieldValue.increment(1),
       });
     } catch (e) {
@@ -341,9 +354,15 @@ class TrainingService {
         'updatedAt': FieldValue.serverTimestamp(),
       };
 
-      if (startedAt != null) progressData['startedAt'] = Timestamp.fromDate(startedAt);
-      if (completedAt != null) progressData['completedAt'] = Timestamp.fromDate(completedAt);
-      if (timeSpentMinutes != null) progressData['timeSpentMinutes'] = timeSpentMinutes;
+      if (startedAt != null) {
+        progressData['startedAt'] = Timestamp.fromDate(startedAt);
+      }
+      if (completedAt != null) {
+        progressData['completedAt'] = Timestamp.fromDate(completedAt);
+      }
+      if (timeSpentMinutes != null) {
+        progressData['timeSpentMinutes'] = timeSpentMinutes;
+      }
       if (data != null) progressData['data'] = data;
 
       await _firestore
@@ -395,10 +414,7 @@ class TrainingService {
     try {
       // Update user progress with rating
       final progressId = '${userId}_$materialId';
-      await _firestore
-          .collection('user_progress')
-          .doc(progressId)
-          .update({
+      await _firestore.collection('user_progress').doc(progressId).update({
         'userRating': rating,
         'userReview': review,
         'updatedAt': FieldValue.serverTimestamp(),
@@ -440,9 +456,9 @@ class TrainingService {
             .collection('training_materials')
             .doc(materialId)
             .update({
-          'averageRating': averageRating,
-          'ratingCount': ratingCount,
-        });
+              'averageRating': averageRating,
+              'ratingCount': ratingCount,
+            });
       }
     } catch (e) {
       print('Failed to update material rating: $e');
@@ -452,8 +468,12 @@ class TrainingService {
   /// Get training statistics for admin
   static Future<Map<String, dynamic>> getTrainingStatistics() async {
     try {
-      final materialsSnapshot = await _firestore.collection('training_materials').get();
-      final progressSnapshot = await _firestore.collection('user_progress').get();
+      final materialsSnapshot = await _firestore
+          .collection('training_materials')
+          .get();
+      final progressSnapshot = await _firestore
+          .collection('user_progress')
+          .get();
 
       final totalMaterials = materialsSnapshot.docs.length;
       final publishedMaterials = materialsSnapshot.docs
@@ -474,7 +494,9 @@ class TrainingService {
         'publishedMaterials': publishedMaterials,
         'totalUsers': totalUsers,
         'totalCompletions': completedCount,
-        'averageCompletionRate': totalUsers > 0 ? (completedCount / totalUsers * 100) : 0,
+        'averageCompletionRate': totalUsers > 0
+            ? (completedCount / totalUsers * 100)
+            : 0,
       };
     } catch (e) {
       throw Exception('Failed to get training statistics: $e');

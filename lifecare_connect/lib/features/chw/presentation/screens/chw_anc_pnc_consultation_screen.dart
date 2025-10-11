@@ -26,10 +26,12 @@ class CHWAncPncConsultationScreen extends StatefulWidget {
   });
 
   @override
-  State<CHWAncPncConsultationScreen> createState() => _CHWAncPncConsultationScreenState();
+  State<CHWAncPncConsultationScreen> createState() =>
+      _CHWAncPncConsultationScreenState();
 }
 
-class _CHWAncPncConsultationScreenState extends State<CHWAncPncConsultationScreen> {
+class _CHWAncPncConsultationScreenState
+    extends State<CHWAncPncConsultationScreen> {
   final _formKey = GlobalKey<FormState>();
   // Vitals fields
   final _bpSystolicController = TextEditingController();
@@ -71,7 +73,7 @@ class _CHWAncPncConsultationScreenState extends State<CHWAncPncConsultationScree
   void _checkVitals() {
     String warning = '';
     final systolic = int.tryParse(_bpSystolicController.text) ?? 0;
-  final diastolic = int.tryParse(_bpDiastolicController.text) ?? 0;
+    final diastolic = int.tryParse(_bpDiastolicController.text) ?? 0;
     final temp = double.tryParse(_tempController.text) ?? 0;
     final pulse = int.tryParse(_pulseController.text) ?? 0;
     if (systolic >= 140 || diastolic >= 90) {
@@ -85,7 +87,8 @@ class _CHWAncPncConsultationScreenState extends State<CHWAncPncConsultationScree
       warning += 'Low temperature detected. Assess for hypothermia.\n';
     }
     if (pulse > 100) {
-      warning += 'Tachycardia detected. Assess for dehydration, infection, or distress.\n';
+      warning +=
+          'Tachycardia detected. Assess for dehydration, infection, or distress.\n';
     } else if (pulse < 60 && pulse > 0) {
       warning += 'Bradycardia detected. Assess for underlying causes.\n';
     }
@@ -93,6 +96,7 @@ class _CHWAncPncConsultationScreenState extends State<CHWAncPncConsultationScree
       _vitalsWarning = warning.trim();
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -121,19 +125,48 @@ class _CHWAncPncConsultationScreenState extends State<CHWAncPncConsultationScree
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Text('Patient: ${widget.patientName}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.teal.shade800)),
+                          Text(
+                            'Patient: ${widget.patientName}',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.teal.shade800,
+                            ),
+                          ),
                           SizedBox(height: 8),
-                          Text('Appointment ID: ${widget.appointmentId}', style: TextStyle(fontSize: 14, color: Colors.black54)),
+                          Text(
+                            'Appointment ID: ${widget.appointmentId}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.black54,
+                            ),
+                          ),
                           SizedBox(height: 8),
-                          Text('Consultation Type: ${widget.appointmentType}', style: TextStyle(fontSize: 14, color: Colors.black87)),
+                          Text(
+                            'Consultation Type: ${widget.appointmentType}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.black87,
+                            ),
+                          ),
                         ],
                       ),
                     ),
                   ),
                   SizedBox(height: 24),
-                  Text('ANC/PNC Consultation Form', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.teal.shade700)),
+                  Text(
+                    'ANC/PNC Consultation Form',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.teal.shade700,
+                    ),
+                  ),
                   SizedBox(height: 16),
-                  Text('Vital Signs', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text(
+                    'Vital Signs',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   Row(
                     children: [
                       Expanded(
@@ -194,15 +227,24 @@ class _CHWAncPncConsultationScreenState extends State<CHWAncPncConsultationScree
                       padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
                       child: Text(
                         _vitalsWarning,
-                        style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   SizedBox(height: 16),
                   TextFormField(
                     controller: _statusController,
                     decoration: InputDecoration(
-                      labelText: widget.appointmentType.toLowerCase().contains('anc') ? 'Pregnancy Status' : 'Postnatal Status',
-                      hintText: widget.appointmentType.toLowerCase().contains('anc') ? 'Gestational age, EDD, etc.' : 'Mother and baby status',
+                      labelText:
+                          widget.appointmentType.toLowerCase().contains('anc')
+                          ? 'Pregnancy Status'
+                          : 'Postnatal Status',
+                      hintText:
+                          widget.appointmentType.toLowerCase().contains('anc')
+                          ? 'Gestational age, EDD, etc.'
+                          : 'Mother and baby status',
                       prefixIcon: Icon(Icons.pregnant_woman),
                       border: OutlineInputBorder(),
                     ),
@@ -215,7 +257,16 @@ class _CHWAncPncConsultationScreenState extends State<CHWAncPncConsultationScree
                       Expanded(
                         child: MultiSelectDropdown(
                           label: 'Danger Signs',
-                          options: ['Bleeding', 'Severe pain', 'Fever', 'Convulsions', 'Loss of consciousness', 'Severe headache', 'Blurred vision', 'Swelling of hands/face'],
+                          options: [
+                            'Bleeding',
+                            'Severe pain',
+                            'Fever',
+                            'Convulsions',
+                            'Loss of consciousness',
+                            'Severe headache',
+                            'Blurred vision',
+                            'Swelling of hands/face',
+                          ],
                           selected: _selectedDangerSigns,
                           onChanged: (selected) {
                             setState(() {
@@ -239,7 +290,9 @@ class _CHWAncPncConsultationScreenState extends State<CHWAncPncConsultationScree
                                 title: Text('Add Custom Danger Sign'),
                                 content: TextField(
                                   autofocus: true,
-                                  decoration: InputDecoration(hintText: 'Enter custom danger sign'),
+                                  decoration: InputDecoration(
+                                    hintText: 'Enter custom danger sign',
+                                  ),
                                   onChanged: (val) {
                                     tempOther = val;
                                   },
@@ -248,7 +301,10 @@ class _CHWAncPncConsultationScreenState extends State<CHWAncPncConsultationScree
                                   TextButton(
                                     child: Text('OK'),
                                     onPressed: () {
-                                      Navigator.of(context, rootNavigator: true).pop(tempOther);
+                                      Navigator.of(
+                                        context,
+                                        rootNavigator: true,
+                                      ).pop(tempOther);
                                     },
                                   ),
                                 ],
@@ -304,7 +360,9 @@ class _CHWAncPncConsultationScreenState extends State<CHWAncPncConsultationScree
                                 title: Text('Add Custom Counseling Note'),
                                 content: TextField(
                                   autofocus: true,
-                                  decoration: InputDecoration(hintText: 'Enter custom counseling topic'),
+                                  decoration: InputDecoration(
+                                    hintText: 'Enter custom counseling topic',
+                                  ),
                                   onChanged: (val) {
                                     tempOther = val;
                                   },
@@ -313,7 +371,10 @@ class _CHWAncPncConsultationScreenState extends State<CHWAncPncConsultationScree
                                   TextButton(
                                     child: Text('OK'),
                                     onPressed: () {
-                                      Navigator.of(context, rootNavigator: true).pop(tempOther);
+                                      Navigator.of(
+                                        context,
+                                        rootNavigator: true,
+                                      ).pop(tempOther);
                                     },
                                   ),
                                 ],
@@ -347,7 +408,14 @@ class _CHWAncPncConsultationScreenState extends State<CHWAncPncConsultationScree
                       Expanded(
                         child: MultiSelectDropdown(
                           label: 'Prescriptions',
-                          options: ['Iron', 'Folic acid', 'Antimalarials', 'Antibiotics', 'Antihypertensives', 'Pain relief'],
+                          options: [
+                            'Iron',
+                            'Folic acid',
+                            'Antimalarials',
+                            'Antibiotics',
+                            'Antihypertensives',
+                            'Pain relief',
+                          ],
                           selected: _selectedPrescriptions,
                           onChanged: (selected) {
                             setState(() {
@@ -371,7 +439,9 @@ class _CHWAncPncConsultationScreenState extends State<CHWAncPncConsultationScree
                                 title: Text('Add Custom Prescription'),
                                 content: TextField(
                                   autofocus: true,
-                                  decoration: InputDecoration(hintText: 'Enter custom medication'),
+                                  decoration: InputDecoration(
+                                    hintText: 'Enter custom medication',
+                                  ),
                                   onChanged: (val) {
                                     tempOther = val;
                                   },
@@ -380,7 +450,10 @@ class _CHWAncPncConsultationScreenState extends State<CHWAncPncConsultationScree
                                   TextButton(
                                     child: Text('OK'),
                                     onPressed: () {
-                                      Navigator.of(context, rootNavigator: true).pop(tempOther);
+                                      Navigator.of(
+                                        context,
+                                        rootNavigator: true,
+                                      ).pop(tempOther);
                                     },
                                   ),
                                 ],
@@ -403,7 +476,14 @@ class _CHWAncPncConsultationScreenState extends State<CHWAncPncConsultationScree
                       Expanded(
                         child: MultiSelectDropdown(
                           label: 'Lab Tests',
-                          options: ['Malaria', 'Hemoglobin', 'Urinalysis', 'Blood sugar', 'HIV', 'Syphilis'],
+                          options: [
+                            'Malaria',
+                            'Hemoglobin',
+                            'Urinalysis',
+                            'Blood sugar',
+                            'HIV',
+                            'Syphilis',
+                          ],
                           selected: _selectedLabTests,
                           onChanged: (selected) {
                             setState(() {
@@ -427,7 +507,9 @@ class _CHWAncPncConsultationScreenState extends State<CHWAncPncConsultationScree
                                 title: Text('Add Custom Lab Test'),
                                 content: TextField(
                                   autofocus: true,
-                                  decoration: InputDecoration(hintText: 'Enter custom lab test'),
+                                  decoration: InputDecoration(
+                                    hintText: 'Enter custom lab test',
+                                  ),
                                   onChanged: (val) {
                                     tempOther = val;
                                   },
@@ -436,7 +518,10 @@ class _CHWAncPncConsultationScreenState extends State<CHWAncPncConsultationScree
                                   TextButton(
                                     child: Text('OK'),
                                     onPressed: () {
-                                      Navigator.of(context, rootNavigator: true).pop(tempOther);
+                                      Navigator.of(
+                                        context,
+                                        rootNavigator: true,
+                                      ).pop(tempOther);
                                     },
                                   ),
                                 ],
@@ -457,7 +542,10 @@ class _CHWAncPncConsultationScreenState extends State<CHWAncPncConsultationScree
                       padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
                       child: Text(
                         _labWarning,
-                        style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   SizedBox(height: 16),
@@ -488,10 +576,14 @@ class _CHWAncPncConsultationScreenState extends State<CHWAncPncConsultationScree
                             builder: (ctx) {
                               String tempOther = '';
                               return AlertDialog(
-                                title: Text('Add Custom Radiological Investigation'),
+                                title: Text(
+                                  'Add Custom Radiological Investigation',
+                                ),
                                 content: TextField(
                                   autofocus: true,
-                                  decoration: InputDecoration(hintText: 'Enter custom investigation'),
+                                  decoration: InputDecoration(
+                                    hintText: 'Enter custom investigation',
+                                  ),
                                   onChanged: (val) {
                                     tempOther = val;
                                   },
@@ -500,7 +592,10 @@ class _CHWAncPncConsultationScreenState extends State<CHWAncPncConsultationScree
                                   TextButton(
                                     child: Text('OK'),
                                     onPressed: () {
-                                      Navigator.of(context, rootNavigator: true).pop(tempOther);
+                                      Navigator.of(
+                                        context,
+                                        rootNavigator: true,
+                                      ).pop(tempOther);
                                     },
                                   ),
                                 ],
@@ -545,19 +640,36 @@ class _CHWAncPncConsultationScreenState extends State<CHWAncPncConsultationScree
                             'appointmentId': widget.appointmentId,
                             'patientId': widget.patientId,
                             'patientName': widget.patientName,
-                            'chwId': FirebaseAuth.instance.currentUser?.uid ?? '',
+                            'chwId':
+                                FirebaseAuth.instance.currentUser?.uid ?? '',
                             'consultationType': widget.appointmentType,
-                            'vitals': 'BP: ${_bpSystolicController.text}/${_bpDiastolicController.text}, Temp: ${_tempController.text}, Pulse: ${_pulseController.text}',
+                            'vitals':
+                                'BP: ${_bpSystolicController.text}/${_bpDiastolicController.text}, Temp: ${_tempController.text}, Pulse: ${_pulseController.text}',
                             'status': _statusController.text.trim(),
-                            'dangerSigns': [..._selectedDangerSigns, if (_otherDangerSign.isNotEmpty) _otherDangerSign].join(', '),
+                            'dangerSigns': [
+                              ..._selectedDangerSigns,
+                              if (_otherDangerSign.isNotEmpty) _otherDangerSign,
+                            ].join(', '),
                             'counseling': [
                               ..._selectedCounselingNotes,
-                              if (_otherCounselingNote.isNotEmpty) _otherCounselingNote,
-                              if (_counselingController.text.trim().isNotEmpty) _counselingController.text.trim(),
+                              if (_otherCounselingNote.isNotEmpty)
+                                _otherCounselingNote,
+                              if (_counselingController.text.trim().isNotEmpty)
+                                _counselingController.text.trim(),
                             ].join(', '),
-                            'prescriptions': [..._selectedPrescriptions, if (_otherPrescription.isNotEmpty) _otherPrescription].join(', '),
-                            'labTests': [..._selectedLabTests, if (_otherLabTest.isNotEmpty) _otherLabTest].join(', '),
-                            'radiology': [..._selectedRadiology, if (_otherRadiology.isNotEmpty) _otherRadiology].join(', '),
+                            'prescriptions': [
+                              ..._selectedPrescriptions,
+                              if (_otherPrescription.isNotEmpty)
+                                _otherPrescription,
+                            ].join(', '),
+                            'labTests': [
+                              ..._selectedLabTests,
+                              if (_otherLabTest.isNotEmpty) _otherLabTest,
+                            ].join(', '),
+                            'radiology': [
+                              ..._selectedRadiology,
+                              if (_otherRadiology.isNotEmpty) _otherRadiology,
+                            ].join(', '),
                             'notes': _notesController.text.trim(),
                             'consultationDate': now.toIso8601String(),
                             'createdAt': now,
@@ -566,29 +678,34 @@ class _CHWAncPncConsultationScreenState extends State<CHWAncPncConsultationScree
                           };
                           try {
                             // Save completed consultation to health_records with required top-level fields
-                            final chwUid = FirebaseAuth.instance.currentUser?.uid ?? '';
-                            print('DEBUG: Saving completed consultation to Firestore with:');
+                            final chwUid =
+                                FirebaseAuth.instance.currentUser?.uid ?? '';
+                            print(
+                              'DEBUG: Saving completed consultation to Firestore with:',
+                            );
                             print('chwId: ' + chwUid);
                             print('statusFlag: completed');
-                            await FirebaseFirestore.instance.collection('health_records').add({
-                              'appointmentId': widget.appointmentId,
-                              'patientId': widget.patientId,
-                              'patientName': widget.patientName,
-                              'chwId': chwUid,
-                              'chwUid': chwUid,
-                              'providerName': 'Community Health Worker',
-                              'providerType': 'CHW',
-                              'consultationType': widget.appointmentType,
-                              'statusFlag': 'completed',
-                              'createdAt': now,
-                              'updatedAt': now,
-                              'completedAt': now,
-                              'timestamp': now,
-                              // Add any other top-level fields needed for display/filtering
-                              'accessibleBy': ['patient', 'doctor', 'chw'],
-                              // Consultation details
-                              'data': healthRecordData,
-                            });
+                            await FirebaseFirestore.instance
+                                .collection('health_records')
+                                .add({
+                                  'appointmentId': widget.appointmentId,
+                                  'patientId': widget.patientId,
+                                  'patientName': widget.patientName,
+                                  'chwId': chwUid,
+                                  'chwUid': chwUid,
+                                  'providerName': 'Community Health Worker',
+                                  'providerType': 'CHW',
+                                  'consultationType': widget.appointmentType,
+                                  'statusFlag': 'completed',
+                                  'createdAt': now,
+                                  'updatedAt': now,
+                                  'completedAt': now,
+                                  'timestamp': now,
+                                  // Add any other top-level fields needed for display/filtering
+                                  'accessibleBy': ['patient', 'doctor', 'chw'],
+                                  // Consultation details
+                                  'data': healthRecordData,
+                                });
                             // Update appointment status to completed in Firestore for any type
                             await Future.delayed(Duration(milliseconds: 100));
                             await FirebaseFirestore.instance
@@ -600,12 +717,20 @@ class _CHWAncPncConsultationScreenState extends State<CHWAncPncConsultationScree
                                   'statusFlag': 'completed',
                                 });
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Consultation saved successfully'), backgroundColor: Colors.green),
+                              SnackBar(
+                                content: Text(
+                                  'Consultation saved successfully',
+                                ),
+                                backgroundColor: Colors.green,
+                              ),
                             );
                             context.go('/');
                           } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Error saving consultation: $e'), backgroundColor: Colors.red),
+                              SnackBar(
+                                content: Text('Error saving consultation: $e'),
+                                backgroundColor: Colors.red,
+                              ),
                             );
                           }
                         }
@@ -620,7 +745,7 @@ class _CHWAncPncConsultationScreenState extends State<CHWAncPncConsultationScree
       ),
     );
   }
-  }
+}
 
 // MultiSelectDropdown widget (must be outside any class)
 class MultiSelectDropdown extends StatelessWidget {
@@ -661,29 +786,38 @@ class MultiSelectDropdown extends StatelessWidget {
               title: Text('Select $label'),
               content: SingleChildScrollView(
                 child: Column(
-                  children: options.map((opt) => CheckboxListTile(
-                    title: Text(opt),
-                    value: tempSelected.contains(opt) || (opt == 'Other' && otherValue.isNotEmpty),
-                    onChanged: (checked) {
-                      if (opt == 'Other') {
-                        // handled in parent dialog in parent widget
-                      } else {
-                        if (checked == true) {
-                          tempSelected.add(opt);
-                        } else {
-                          tempSelected.remove(opt);
-                        }
-                      }
-                      (ctx as Element).markNeedsBuild();
-                    },
-                  )).toList(),
+                  children: options
+                      .map(
+                        (opt) => CheckboxListTile(
+                          title: Text(opt),
+                          value:
+                              tempSelected.contains(opt) ||
+                              (opt == 'Other' && otherValue.isNotEmpty),
+                          onChanged: (checked) {
+                            if (opt == 'Other') {
+                              // handled in parent dialog in parent widget
+                            } else {
+                              if (checked == true) {
+                                tempSelected.add(opt);
+                              } else {
+                                tempSelected.remove(opt);
+                              }
+                            }
+                            (ctx as Element).markNeedsBuild();
+                          },
+                        ),
+                      )
+                      .toList(),
                 ),
               ),
               actions: [
                 TextButton(
                   child: Text('OK'),
                   onPressed: () {
-                    Navigator.of(context, rootNavigator: true).pop(tempSelected);
+                    Navigator.of(
+                      context,
+                      rootNavigator: true,
+                    ).pop(tempSelected);
                   },
                 ),
               ],

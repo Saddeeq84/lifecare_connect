@@ -22,7 +22,8 @@ class _VitalSignsFormState extends State<_VitalSignsForm> {
   final TextEditingController _weightController = TextEditingController();
   final TextEditingController _heightController = TextEditingController();
   final TextEditingController _heartRateController = TextEditingController();
-  final TextEditingController _bloodPressureController = TextEditingController();
+  final TextEditingController _bloodPressureController =
+      TextEditingController();
   final TextEditingController _temperatureController = TextEditingController();
   final TextEditingController _bloodSugarController = TextEditingController();
 
@@ -123,7 +124,10 @@ class _VitalSignsFormState extends State<_VitalSignsForm> {
       'timestamp': Timestamp.now(),
     });
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Vital signs saved!'), backgroundColor: Colors.green),
+      SnackBar(
+        content: Text('Vital signs saved!'),
+        backgroundColor: Colors.green,
+      ),
     );
     _formKey.currentState!.reset();
     _weightController.clear();
@@ -158,25 +162,39 @@ class _VitalSignsFormState extends State<_VitalSignsForm> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Report Your Vital Signs', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red.shade700)),
+            Text(
+              'Report Your Vital Signs',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.red.shade700,
+              ),
+            ),
             const SizedBox(height: 8),
             TextFormField(
               controller: _weightController,
               decoration: const InputDecoration(labelText: 'Weight'),
               keyboardType: TextInputType.number,
               validator: (v) => v == null || v.isEmpty ? 'Enter weight' : null,
-              onChanged: (_) { _calculateBMI(); _checkWarnings(); },
+              onChanged: (_) {
+                _calculateBMI();
+                _checkWarnings();
+              },
             ),
             TextFormField(
               controller: _heightController,
               decoration: const InputDecoration(labelText: 'Height'),
               keyboardType: TextInputType.number,
               validator: (v) => v == null || v.isEmpty ? 'Enter height' : null,
-              onChanged: (_) { _calculateBMI(); _checkWarnings(); },
+              onChanged: (_) {
+                _calculateBMI();
+                _checkWarnings();
+              },
             ),
             const SizedBox(height: 8),
             Text('BMI: ${_bmi.isNotEmpty ? _bmi : '-'}'),
-            Text('Int: ${_bmiInterpretation.isNotEmpty ? _bmiInterpretation : '-'}'),
+            Text(
+              'Int: ${_bmiInterpretation.isNotEmpty ? _bmiInterpretation : '-'}',
+            ),
             const SizedBox(height: 8),
             TextFormField(
               controller: _heartRateController,
@@ -208,12 +226,21 @@ class _VitalSignsFormState extends State<_VitalSignsForm> {
             ),
             const SizedBox(height: 8),
             if (_warning.isNotEmpty)
-              Text('Warning: $_warning', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+              Text(
+                'Warning: $_warning',
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             const SizedBox(height: 8),
             ElevatedButton.icon(
               icon: const Icon(Icons.save),
               label: const Text('Save Vital Signs'),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade700, foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade700,
+                foregroundColor: Colors.white,
+              ),
               onPressed: _saveVitalSigns,
             ),
           ],
@@ -230,15 +257,17 @@ class MyHealthTab extends StatefulWidget {
   @override
   State<MyHealthTab> createState() => _MyHealthTabState();
 }
-class _MyHealthTabState extends State<MyHealthTab> with SingleTickerProviderStateMixin {
+
+class _MyHealthTabState extends State<MyHealthTab>
+    with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
   }
+
   // Reference to the current logged-in user
   final User? currentUser = FirebaseAuth.instance.currentUser;
-
 
   // Handles viewing record details (stub for now)
 
@@ -303,7 +332,9 @@ class _MyHealthTabState extends State<MyHealthTab> with SingleTickerProviderStat
                       margin: const EdgeInsets.only(bottom: 12),
                       child: ListTile(
                         title: Text(data['fileName'] ?? 'Lab Result'),
-                        subtitle: Text('Uploaded: ${(data['timestamp'] as Timestamp?)?.toDate().toString().split(' ')[0] ?? ''}'),
+                        subtitle: Text(
+                          'Uploaded: ${(data['timestamp'] as Timestamp?)?.toDate().toString().split(' ')[0] ?? ''}',
+                        ),
                         trailing: IconButton(
                           icon: const Icon(Icons.open_in_new),
                           onPressed: () {
@@ -316,7 +347,8 @@ class _MyHealthTabState extends State<MyHealthTab> with SingleTickerProviderStat
                                   content: SelectableText(url),
                                   actions: [
                                     TextButton(
-                                      onPressed: () => Navigator.of(context).pop(),
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(),
                                       child: const Text('Close'),
                                     ),
                                   ],
@@ -336,6 +368,7 @@ class _MyHealthTabState extends State<MyHealthTab> with SingleTickerProviderStat
       ),
     );
   }
+
   late TabController _tabController;
   Widget _buildMedicalRecordsTab() {
     final currentUser = FirebaseAuth.instance.currentUser;
@@ -355,11 +388,11 @@ class _MyHealthTabState extends State<MyHealthTab> with SingleTickerProviderStat
           const SizedBox(height: 16),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-          .collection('health_records')
-          .where('patientId', isEqualTo: widget.patientId)
-          .orderBy('timestamp', descending: true)
-          .snapshots(),
+              stream: FirebaseFirestore.instance
+                  .collection('health_records')
+                  .where('patientId', isEqualTo: widget.patientId)
+                  .orderBy('timestamp', descending: true)
+                  .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -378,111 +411,144 @@ class _MyHealthTabState extends State<MyHealthTab> with SingleTickerProviderStat
                     final data = record.data() as Map<String, dynamic>;
                     final rawType = data['type']?.toString() ?? '';
                     final type = rawType.toLowerCase();
-                    final details = data['data'] is Map<String, dynamic> ? data['data'] as Map<String, dynamic> : data;
-                    final consultationTypeRaw = (details['consultationType'] ?? data['consultationType'] ?? '').toString();
-                    final typeRaw = (details['type'] ?? data['type'] ?? '').toString();
-                    final consultationType = consultationTypeRaw.isNotEmpty ? consultationTypeRaw.toLowerCase() : typeRaw.toLowerCase();
-                    debugPrint('[RECORD DISPLAY] id=${record.id} consultationTypeRaw=$consultationTypeRaw typeRaw=$typeRaw usedConsultationType=$consultationType');
+                    final details = data['data'] is Map<String, dynamic>
+                        ? data['data'] as Map<String, dynamic>
+                        : data;
+                    final consultationTypeRaw =
+                        (details['consultationType'] ??
+                                data['consultationType'] ??
+                                '')
+                            .toString();
+                    final typeRaw = (details['type'] ?? data['type'] ?? '')
+                        .toString();
+                    final consultationType = consultationTypeRaw.isNotEmpty
+                        ? consultationTypeRaw.toLowerCase()
+                        : typeRaw.toLowerCase();
+                    debugPrint(
+                      '[RECORD DISPLAY] id=${record.id} consultationTypeRaw=$consultationTypeRaw typeRaw=$typeRaw usedConsultationType=$consultationType',
+                    );
                     // Show all records
                     String cardTitle = 'Record';
                     Color cardColor = Colors.grey.shade100;
                     final typeLower = type.toLowerCase();
                     final consultTypeLower = consultationType.toLowerCase();
-                    final providerType = (data['providerType'] ?? details['providerType'] ?? '').toString().toLowerCase();
+                    final providerType =
+                        (data['providerType'] ?? details['providerType'] ?? '')
+                            .toString()
+                            .toLowerCase();
                     // --- Filter details for dialog ---
                     final filteredDetails = <String, dynamic>{};
                     for (final entry in details.entries) {
                       final k = entry.key.toLowerCase();
-                      if (
-                        k.contains('id') ||
-                        k == 'timestamp' ||
-                        k == 'statusflag' ||
-                        k == 'createdat' ||
-                        k == 'updatedat' ||
-                        k == 'appointmentid' ||
-                        k == 'patientid' ||
-                        k == 'prescribedat' ||
-                        k == 'requestedat'
-                      ) {
+                      if (k.contains('id') ||
+                          k == 'timestamp' ||
+                          k == 'statusflag' ||
+                          k == 'createdat' ||
+                          k == 'updatedat' ||
+                          k == 'appointmentid' ||
+                          k == 'patientid' ||
+                          k == 'prescribedat' ||
+                          k == 'requestedat') {
                         continue;
                       }
                       filteredDetails[entry.key] = entry.value;
                     }
 
                     // Helper to resolve user/doctor/chw name from id
-                    Future<String?> getNameFromId(String? id, String collection) async {
+                    Future<String?> getNameFromId(
+                      String? id,
+                      String collection,
+                    ) async {
                       if (id == null || id.isEmpty) return null;
                       try {
-                        final doc = await FirebaseFirestore.instance.collection(collection).doc(id).get();
+                        final doc = await FirebaseFirestore.instance
+                            .collection(collection)
+                            .doc(id)
+                            .get();
                         if (doc.exists) {
                           final data = doc.data();
-                          if (data != null && data['name'] != null) return data['name'].toString();
-                          if (data != null && data['fullName'] != null) return data['fullName'].toString();
+                          if (data != null && data['name'] != null)
+                            return data['name'].toString();
+                          if (data != null && data['fullName'] != null)
+                            return data['fullName'].toString();
                         }
                       } catch (_) {}
                       return null;
                     }
-                    final chwUidVal = (data['chwUid'] ?? details['chwUid'] ?? '').toString();
-                    final chwIdVal = (data['chwId'] ?? details['chwId'] ?? '').toString();
-                    final hasCHW = providerType == 'chw' || chwUidVal.isNotEmpty || chwIdVal.isNotEmpty;
+
+                    final chwUidVal =
+                        (data['chwUid'] ?? details['chwUid'] ?? '').toString();
+                    final chwIdVal = (data['chwId'] ?? details['chwId'] ?? '')
+                        .toString();
+                    final hasCHW =
+                        providerType == 'chw' ||
+                        chwUidVal.isNotEmpty ||
+                        chwIdVal.isNotEmpty;
                     // final appointmentType = (details['appointmentType'] ?? data['appointmentType'] ?? '').toString().toLowerCase();
                     // Vital signs
-                    if (typeLower == 'vital_signs' || typeLower == 'self_reported_vitals') {
+                    if (typeLower == 'vital_signs' ||
+                        typeLower == 'self_reported_vitals') {
                       cardTitle = 'Self-Reported Vital Signs';
                       cardColor = Colors.white;
                     }
                     // Pre-consultation checklist
-                    else if (typeLower == 'preconsultation_checklist' || typeLower == 'pre_consultation') {
+                    else if (typeLower == 'preconsultation_checklist' ||
+                        typeLower == 'pre_consultation') {
                       cardTitle = 'Pre-Consultation Checklist';
                       cardColor = Colors.white;
                     }
                     // Consultation type based display logic with fallback
-                    else if (consultationType.contains('general consultation')) {
+                    else if (consultationType.contains(
+                      'general consultation',
+                    )) {
                       cardTitle = 'General Consultation';
                       cardColor = Colors.blue.shade50;
-                    }
-                    else if (consultationType.contains('follow-up')) {
+                    } else if (consultationType.contains('follow-up')) {
                       cardTitle = 'Follow-up Visit';
                       cardColor = Colors.blue.shade100;
-                    }
-                    else if (consultationType.contains('anc') || consultationType.contains('antenatal')) {
+                    } else if (consultationType.contains('anc') ||
+                        consultationType.contains('antenatal')) {
                       cardTitle = 'ANC (Antenatal Care)';
                       cardColor = Colors.green.shade100;
-                    }
-                    else if (consultationType.contains('pnc') || consultationType.contains('postnatal')) {
+                    } else if (consultationType.contains('pnc') ||
+                        consultationType.contains('postnatal')) {
                       cardTitle = 'PNC (Postnatal Care)';
                       cardColor = Colors.green.shade200;
-                    }
-                    else if (consultationType.contains('emergency')) {
+                    } else if (consultationType.contains('emergency')) {
                       cardTitle = 'Emergency Consultation';
                       cardColor = Colors.red.shade100;
-                    }
-                    else if (consultationType.contains('specialist')) {
+                    } else if (consultationType.contains('specialist')) {
                       cardTitle = 'Specialist Referral';
                       cardColor = Colors.purple.shade100;
-                    }
-                    else if (consultationType.contains('screening')) {
+                    } else if (consultationType.contains('screening')) {
                       cardTitle = 'Health Screening';
                       cardColor = Colors.orange.shade100;
-                    }
-                    else if (consultationType.contains('vaccination')) {
+                    } else if (consultationType.contains('vaccination')) {
                       cardTitle = 'Vaccination';
                       cardColor = Colors.yellow.shade100;
-                    }
-                    else if (consultationType.contains('mental health')) {
+                    } else if (consultationType.contains('mental health')) {
                       cardTitle = 'Mental Health Consultation';
                       cardColor = Colors.teal.shade100;
                     }
                     // CHW Consultation (always show if hasCHW)
                     else if (hasCHW) {
-                      debugPrint('[CHW DISPLAY] id=${record.id} hasCHW=$hasCHW consultTypeLower=$consultTypeLower typeLower=$typeLower');
-                      if (consultTypeLower.contains('anc') || typeLower.contains('anc') || consultTypeLower.contains('antenatal') || typeLower.contains('antenatal')) {
+                      debugPrint(
+                        '[CHW DISPLAY] id=${record.id} hasCHW=$hasCHW consultTypeLower=$consultTypeLower typeLower=$typeLower',
+                      );
+                      if (consultTypeLower.contains('anc') ||
+                          typeLower.contains('anc') ||
+                          consultTypeLower.contains('antenatal') ||
+                          typeLower.contains('antenatal')) {
                         cardTitle = 'ANC Consultation (CHW)';
                         cardColor = Colors.green.shade100;
-                      } else if (consultTypeLower.contains('pnc') || typeLower.contains('pnc') || consultTypeLower.contains('postnatal') || typeLower.contains('postnatal')) {
+                      } else if (consultTypeLower.contains('pnc') ||
+                          typeLower.contains('pnc') ||
+                          consultTypeLower.contains('postnatal') ||
+                          typeLower.contains('postnatal')) {
                         cardTitle = 'PNC Consultation (CHW)';
                         cardColor = Colors.green.shade200;
-                      } else if (consultTypeLower.isNotEmpty || typeLower.isNotEmpty) {
+                      } else if (consultTypeLower.isNotEmpty ||
+                          typeLower.isNotEmpty) {
                         cardTitle = 'CHW Consultation';
                         cardColor = Colors.blue.shade100;
                       } else {
@@ -499,15 +565,27 @@ class _MyHealthTabState extends State<MyHealthTab> with SingleTickerProviderStat
                       margin: const EdgeInsets.only(bottom: 12),
                       color: cardColor,
                       child: ListTile(
-                        title: Text(cardTitle, style: TextStyle(fontWeight: FontWeight.bold)),
+                        title: Text(
+                          cardTitle,
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                         subtitle: Text('Tap to view details'),
                         trailing: Text(
                           (data['timestamp'] is Timestamp)
-                            ? (data['timestamp'] as Timestamp).toDate().toString().split(' ')[0]
-                            : (data['createdAt'] is Timestamp)
-                              ? (data['createdAt'] as Timestamp).toDate().toString().split(' ')[0]
+                              ? (data['timestamp'] as Timestamp)
+                                    .toDate()
+                                    .toString()
+                                    .split(' ')[0]
+                              : (data['createdAt'] is Timestamp)
+                              ? (data['createdAt'] as Timestamp)
+                                    .toDate()
+                                    .toString()
+                                    .split(' ')[0]
                               : '',
-                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
                         ),
                         onTap: () {
                           showDialog(
@@ -517,56 +595,116 @@ class _MyHealthTabState extends State<MyHealthTab> with SingleTickerProviderStat
                               final map = <String, dynamic>{};
                               filteredDetails.forEach((key, value) {
                                 final k = key.toLowerCase();
-                                if (k == 'timestamp' || k == 'createdat' || k == 'updatedat' || k == 'appointmentid' || k == 'patientid' || k == 'prescribedat' || k == 'requestedat' || k == 'userId' || k == 'recordid' || k == 'id' || k == 'source' || k == 'status' || k == 'fileurls' || k == 'filenames' || k == 'uploadDate' || k == 'submissionTimestamp' || k == 'requiresReview' || k == 'accessibleby' || k == 'iseditable' || k == 'isdeletable') {
+                                if (k == 'timestamp' ||
+                                    k == 'createdat' ||
+                                    k == 'updatedat' ||
+                                    k == 'appointmentid' ||
+                                    k == 'patientid' ||
+                                    k == 'prescribedat' ||
+                                    k == 'requestedat' ||
+                                    k == 'userId' ||
+                                    k == 'recordid' ||
+                                    k == 'id' ||
+                                    k == 'source' ||
+                                    k == 'status' ||
+                                    k == 'fileurls' ||
+                                    k == 'filenames' ||
+                                    k == 'uploadDate' ||
+                                    k == 'submissionTimestamp' ||
+                                    k == 'requiresReview' ||
+                                    k == 'accessibleby' ||
+                                    k == 'iseditable' ||
+                                    k == 'isdeletable') {
                                   return;
                                 }
                                 map[key] = value;
                               });
                               String formatLabel(String key) {
                                 final k = key.toString().replaceAll('_', ' ');
-                                return k.isNotEmpty ? (k[0].toUpperCase() + k.substring(1)) : k;
+                                return k.isNotEmpty
+                                    ? (k[0].toUpperCase() + k.substring(1))
+                                    : k;
                               }
+
                               return AlertDialog(
                                 title: Text(cardTitle),
                                 content: SingleChildScrollView(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       ...map.entries
-                                          .where((entry) => entry.value != null && entry.value.toString().isNotEmpty)
+                                          .where(
+                                            (entry) =>
+                                                entry.value != null &&
+                                                entry.value
+                                                    .toString()
+                                                    .isNotEmpty,
+                                          )
                                           .map((entry) {
                                             final value = entry.value;
                                             String displayValue;
-                                            if (entry.key.toLowerCase() == 'prescriptions' && value is List) {
-                                              displayValue = value.map((e) {
-                                                if (e is Map && e.containsKey('name')) return e['name'];
-                                                return e.toString();
-                                              }).join(', ');
-                                            } else if (entry.key.toLowerCase() == 'laboratoryinvestigations' && value is List) {
-                                              displayValue = value.map((e) {
-                                                if (e is Map && e.containsKey('name')) return e['name'];
-                                                return e.toString();
-                                              }).join(', ');
+                                            if (entry.key.toLowerCase() ==
+                                                    'prescriptions' &&
+                                                value is List) {
+                                              displayValue = value
+                                                  .map((e) {
+                                                    if (e is Map &&
+                                                        e.containsKey('name'))
+                                                      return e['name'];
+                                                    return e.toString();
+                                                  })
+                                                  .join(', ');
+                                            } else if (entry.key
+                                                        .toLowerCase() ==
+                                                    'laboratoryinvestigations' &&
+                                                value is List) {
+                                              displayValue = value
+                                                  .map((e) {
+                                                    if (e is Map &&
+                                                        e.containsKey('name'))
+                                                      return e['name'];
+                                                    return e.toString();
+                                                  })
+                                                  .join(', ');
                                             } else {
                                               displayValue = value.toString();
                                             }
                                             return Padding(
-                                              padding: const EdgeInsets.symmetric(vertical: 2),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 2,
+                                                  ),
                                               child: Row(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
                                                 children: [
-                                                  Text('${formatLabel(entry.key)}: ', style: const TextStyle(fontWeight: FontWeight.bold)),
-                                                  Expanded(child: Text(displayValue, style: const TextStyle(fontSize: 15))),
+                                                  Text(
+                                                    '${formatLabel(entry.key)}: ',
+                                                    style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                  Expanded(
+                                                    child: Text(
+                                                      displayValue,
+                                                      style: const TextStyle(
+                                                        fontSize: 15,
+                                                      ),
+                                                    ),
+                                                  ),
                                                 ],
                                               ),
                                             );
-                                          })
+                                          }),
                                     ],
                                   ),
                                 ),
                                 actions: [
                                   TextButton(
-                                    onPressed: () => Navigator.of(context).pop(),
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
                                     child: const Text('Close'),
                                   ),
                                 ],
@@ -576,7 +714,7 @@ class _MyHealthTabState extends State<MyHealthTab> with SingleTickerProviderStat
                         },
                       ),
                     );
-                  }
+                  },
                 );
               },
             ),
@@ -587,8 +725,6 @@ class _MyHealthTabState extends State<MyHealthTab> with SingleTickerProviderStat
   }
   // ...existing code...
 
-
-
   void _uploadLabResult() async {
     final result = await FilePicker.platform.pickFiles(type: FileType.any);
     if (result == null || result.files.isEmpty) return;
@@ -596,12 +732,17 @@ class _MyHealthTabState extends State<MyHealthTab> with SingleTickerProviderStat
     final fileName = result.files.single.name;
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('User not logged in. Cannot upload lab result.'), backgroundColor: Colors.red),
+        const SnackBar(
+          content: Text('User not logged in. Cannot upload lab result.'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
-  final userId = currentUser?.uid;
-    final ref = FirebaseStorage.instance.ref().child('lab_results/$userId/$fileName');
+    final userId = currentUser?.uid;
+    final ref = FirebaseStorage.instance.ref().child(
+      'lab_results/$userId/$fileName',
+    );
     final uploadTask = ref.putFile(file);
     final snapshot = await uploadTask;
     final fileUrl = await snapshot.ref.getDownloadURL();
@@ -615,7 +756,10 @@ class _MyHealthTabState extends State<MyHealthTab> with SingleTickerProviderStat
       'testType': 'Lab Test',
     });
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Lab result uploaded!'), backgroundColor: Colors.green),
+      const SnackBar(
+        content: Text('Lab result uploaded!'),
+        backgroundColor: Colors.green,
+      ),
     );
   }
   // Duplicate initState removed. Only one initState should exist in the class.
@@ -626,14 +770,11 @@ class _MyHealthTabState extends State<MyHealthTab> with SingleTickerProviderStat
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     if (currentUser == null) {
       // If user is not logged in, show a message or login prompt
-      return Center(
-        child: Text('Please log in to view your health records.'),
-      );
+      return Center(child: Text('Please log in to view your health records.'));
     }
 
     // Main widget tree for logged-in users
@@ -651,77 +792,95 @@ class _MyHealthTabState extends State<MyHealthTab> with SingleTickerProviderStat
             child: ListTile(
               leading: const Icon(Icons.folder_open, color: Colors.red),
               title: const Text('Medical Records'),
-              subtitle: const Text('View your medical records and lab/vital signs'),
+              subtitle: const Text(
+                'View your medical records and lab/vital signs',
+              ),
               onTap: () {
                 showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
                   backgroundColor: Colors.white,
                   shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(24),
+                    ),
                   ),
                   builder: (context) => DraggableScrollableSheet(
                     expand: false,
                     initialChildSize: 0.95,
                     minChildSize: 0.5,
                     maxChildSize: 0.95,
-                    builder: (context, scrollController) => DefaultTabController(
-                      length: 2,
-                      child: LayoutBuilder(
-                        builder: (context, constraints) => Column(
-                          children: [
-                            Row(
+                    builder: (context, scrollController) =>
+                        DefaultTabController(
+                          length: 2,
+                          child: LayoutBuilder(
+                            builder: (context, constraints) => Column(
                               children: [
-                                IconButton(
-                                  icon: const Icon(Icons.arrow_back),
-                                  onPressed: () => Navigator.of(context).pop(),
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.arrow_back),
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      'Medical Records',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(width: 8),
-                                const Text('Medical Records', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                  child: TabBar(
+                                    controller: _tabController,
+                                    labelColor: Colors.red.shade700,
+                                    tabs: const [
+                                      Tab(text: 'Records'),
+                                      Tab(text: 'Lab/Vital Signs'),
+                                    ],
+                                  ),
+                                ),
+                                Expanded(
+                                  child: TabBarView(
+                                    controller: _tabController,
+                                    children: [
+                                      SingleChildScrollView(
+                                        controller: scrollController,
+                                        child: ConstrainedBox(
+                                          constraints: BoxConstraints(
+                                            minHeight:
+                                                constraints.maxHeight - 60,
+                                            maxHeight:
+                                                constraints.maxHeight - 60,
+                                          ),
+                                          child: _buildMedicalRecordsTab(),
+                                        ),
+                                      ),
+                                      SingleChildScrollView(
+                                        controller: scrollController,
+                                        child: ConstrainedBox(
+                                          constraints: BoxConstraints(
+                                            minHeight:
+                                                constraints.maxHeight - 60,
+                                            maxHeight:
+                                                constraints.maxHeight - 60,
+                                          ),
+                                          child: _buildLabResultsTab(),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ],
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              child: TabBar(
-                                controller: _tabController,
-                                labelColor: Colors.red.shade700,
-                                tabs: const [
-                                  Tab(text: 'Records'),
-                                  Tab(text: 'Lab/Vital Signs'),
-                                ],
-                              ),
-                            ),
-                            Expanded(
-                              child: TabBarView(
-                                controller: _tabController,
-                                children: [
-                                  SingleChildScrollView(
-                                    controller: scrollController,
-                                    child: ConstrainedBox(
-                                      constraints: BoxConstraints(
-                                        minHeight: constraints.maxHeight - 60,
-                                        maxHeight: constraints.maxHeight - 60,
-                                      ),
-                                      child: _buildMedicalRecordsTab(),
-                                    ),
-                                  ),
-                                  SingleChildScrollView(
-                                    controller: scrollController,
-                                    child: ConstrainedBox(
-                                      constraints: BoxConstraints(
-                                        minHeight: constraints.maxHeight - 60,
-                                        maxHeight: constraints.maxHeight - 60,
-                                      ),
-                                      child: _buildLabResultsTab(),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
-                    ),
                   ),
                 );
               },
@@ -731,12 +890,17 @@ class _MyHealthTabState extends State<MyHealthTab> with SingleTickerProviderStat
           // Services card
           Card(
             child: ListTile(
-              leading: const Icon(Icons.medical_services_outlined, color: Colors.red),
+              leading: const Icon(
+                Icons.medical_services_outlined,
+                color: Colors.red,
+              ),
               title: const Text('Services'),
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => PatientServiceRequestMainScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => PatientServiceRequestMainScreen(),
+                  ),
                 );
               },
             ),
@@ -745,12 +909,17 @@ class _MyHealthTabState extends State<MyHealthTab> with SingleTickerProviderStat
           // Emergency Care card
           Card(
             child: ListTile(
-              leading: const Icon(Icons.local_hospital_outlined, color: Colors.red),
+              leading: const Icon(
+                Icons.local_hospital_outlined,
+                color: Colors.red,
+              ),
               title: const Text('Emergency Care'),
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => EmergencyCareScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => EmergencyCareScreen(),
+                  ),
                 );
               },
             ),
@@ -764,7 +933,9 @@ class _MyHealthTabState extends State<MyHealthTab> with SingleTickerProviderStat
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => PatientReferralsScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => PatientReferralsScreen(),
+                  ),
                 );
               },
             ),
@@ -774,7 +945,10 @@ class _MyHealthTabState extends State<MyHealthTab> with SingleTickerProviderStat
           Card(
             color: Colors.grey[100],
             child: ListTile(
-              leading: const Icon(Icons.smart_toy_outlined, color: Colors.blueGrey),
+              leading: const Icon(
+                Icons.smart_toy_outlined,
+                color: Colors.blueGrey,
+              ),
               title: const Text('Ask AI'),
               subtitle: const Text('Under development, coming soon!'),
               onTap: () {
@@ -782,7 +956,9 @@ class _MyHealthTabState extends State<MyHealthTab> with SingleTickerProviderStat
                   context: context,
                   builder: (context) => AlertDialog(
                     title: const Text('Ask AI'),
-                    content: const Text('This feature is under development and will be available soon.'),
+                    content: const Text(
+                      'This feature is under development and will be available soon.',
+                    ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(),
@@ -802,6 +978,4 @@ class _MyHealthTabState extends State<MyHealthTab> with SingleTickerProviderStat
   // ...existing code...
 
   // ...existing code...
-
 }
-

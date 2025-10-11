@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -18,16 +16,23 @@ class ClinicalNotesFormScreen extends StatefulWidget {
   });
 
   @override
-  State<ClinicalNotesFormScreen> createState() => _ClinicalNotesFormScreenState();
+  State<ClinicalNotesFormScreen> createState() =>
+      _ClinicalNotesFormScreenState();
 }
 
 class _ClinicalNotesFormScreenState extends State<ClinicalNotesFormScreen> {
   final currentUser = FirebaseAuth.instance.currentUser;
 
   /// Opens modal to add or edit clinical note
-  Future<void> _addOrEditNote({DocumentSnapshot<Map<String, dynamic>>? noteDoc}) async {
-    final titleCtrl = TextEditingController(text: noteDoc?.data()?['title'] ?? '');
-    final noteCtrl = TextEditingController(text: noteDoc?.data()?['note'] ?? '');
+  Future<void> _addOrEditNote({
+    DocumentSnapshot<Map<String, dynamic>>? noteDoc,
+  }) async {
+    final titleCtrl = TextEditingController(
+      text: noteDoc?.data()?['title'] ?? '',
+    );
+    final noteCtrl = TextEditingController(
+      text: noteDoc?.data()?['note'] ?? '',
+    );
     final isEditing = noteDoc != null;
 
     await showDialog(
@@ -86,13 +91,18 @@ class _ClinicalNotesFormScreenState extends State<ClinicalNotesFormScreen> {
   }
 
   /// Exports notes to PDF
-  void _exportToPdf(List<QueryDocumentSnapshot<Map<String, dynamic>>> notes) async {
+  void _exportToPdf(
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> notes,
+  ) async {
     final pdf = pw.Document();
 
     pdf.addPage(
       pw.MultiPage(
         build: (context) => [
-          pw.Text('Clinical Notes for ${widget.patientName}', style: const pw.TextStyle(fontSize: 20)),
+          pw.Text(
+            'Clinical Notes for ${widget.patientName}',
+            style: const pw.TextStyle(fontSize: 20),
+          ),
           pw.SizedBox(height: 10),
           for (var note in notes)
             pw.Container(
@@ -104,15 +114,22 @@ class _ClinicalNotesFormScreenState extends State<ClinicalNotesFormScreen> {
                 children: [
                   pw.Text(
                     note.data()['title'] ?? '',
-                    style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+                    style: pw.TextStyle(
+                      fontSize: 16,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
                   ),
                   if (note.data()['date'] != null)
-                    pw.Text(DateFormat.yMMMd().format((note.data()['date'] as Timestamp).toDate())),
+                    pw.Text(
+                      DateFormat.yMMMd().format(
+                        (note.data()['date'] as Timestamp).toDate(),
+                      ),
+                    ),
                   pw.SizedBox(height: 4),
                   pw.Text(note.data()['note'] ?? ''),
                 ],
               ),
-            )
+            ),
         ],
       ),
     );
@@ -157,11 +174,17 @@ class _ClinicalNotesFormScreenState extends State<ClinicalNotesFormScreen> {
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: notesRef.snapshots(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
-          if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}'));
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
 
           final notes = snapshot.data?.docs ?? [];
-          if (notes.isEmpty) return const Center(child: Text("No clinical notes yet."));
+          if (notes.isEmpty) {
+            return const Center(child: Text("No clinical notes yet."));
+          }
 
           return ListView.builder(
             itemCount: notes.length,

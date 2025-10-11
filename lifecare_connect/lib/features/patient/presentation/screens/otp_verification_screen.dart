@@ -75,8 +75,8 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
         smsCode: otp,
       );
 
-      UserCredential userCred =
-          await FirebaseAuth.instance.signInWithCredential(credential);
+      UserCredential userCred = await FirebaseAuth.instance
+          .signInWithCredential(credential);
 
       // Link email if valid and not already linked
       if (email.isNotEmpty && password.length >= 6) {
@@ -89,7 +89,10 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
             await userCred.user!.linkWithCredential(emailCred);
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('User not found. Cannot link credentials.'), backgroundColor: Colors.red),
+              const SnackBar(
+                content: Text('User not found. Cannot link credentials.'),
+                backgroundColor: Colors.red,
+              ),
             );
           }
         } catch (e) {
@@ -102,12 +105,12 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
           .collection('users')
           .doc(userCred.user?.uid ?? '')
           .set({
-  'uid': userCred.user?.uid ?? '',
-  'phone': userCred.user?.phoneNumber ?? '',
-        'email': email.isNotEmpty ? email : null,
-        'role': 'patient',
-        'createdAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+            'uid': userCred.user?.uid ?? '',
+            'phone': userCred.user?.phoneNumber ?? '',
+            'email': email.isNotEmpty ? email : null,
+            'role': 'patient',
+            'createdAt': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
 
       Navigator.pushReplacementNamed(context, '/patient_dashboard');
     } on FirebaseAuthException catch (e) {
@@ -115,11 +118,15 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
       if (_retryCount >= 3) {
         setState(() => _otpBlocked = true);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Too many failed attempts. Resend OTP.')),
+          const SnackBar(
+            content: Text('Too many failed attempts. Resend OTP.'),
+          ),
         );
       } else {
         String msg = e.message ?? 'OTP verification failed';
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(msg)));
       }
     } finally {
       setState(() => loading = false);
@@ -143,15 +150,15 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
         Navigator.pushReplacementNamed(context, '/patient_dashboard');
       },
       verificationFailed: (FirebaseAuthException e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message ?? 'Resend failed')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message ?? 'Resend failed')));
       },
       codeSent: (String newVerificationId, int? resendToken) {
         setState(() => _verificationId = newVerificationId);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('📩 OTP resent')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('📩 OTP resent')));
       },
       codeAutoRetrievalTimeout: (String newVerificationId) {
         setState(() => _verificationId = newVerificationId);
@@ -173,13 +180,19 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
     return Stack(
       children: [
         Scaffold(
-          appBar: AppBar(title: const Text('Verify OTP'), backgroundColor: Colors.teal),
+          appBar: AppBar(
+            title: const Text('Verify OTP'),
+            backgroundColor: Colors.teal,
+          ),
           body: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Enter OTP sent to ${widget.phone}', textAlign: TextAlign.center),
+                Text(
+                  'Enter OTP sent to ${widget.phone}',
+                  textAlign: TextAlign.center,
+                ),
                 const SizedBox(height: 20),
                 TextField(
                   controller: otpController,
@@ -192,13 +205,17 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                 TextField(
                   controller: emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(labelText: 'Link Email (optional)'),
+                  decoration: const InputDecoration(
+                    labelText: 'Link Email (optional)',
+                  ),
                 ),
                 const SizedBox(height: 10),
                 TextField(
                   controller: passwordController,
                   obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Create Password (min 6 chars)'),
+                  decoration: const InputDecoration(
+                    labelText: 'Create Password (min 6 chars)',
+                  ),
                 ),
                 const SizedBox(height: 10),
                 ElevatedButton(
@@ -212,10 +229,12 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                 const SizedBox(height: 10),
                 TextButton(
                   onPressed: _canResend ? resendOTP : null,
-                  child: Text(_canResend
-                      ? 'Resend OTP'
-                      : 'Resend in $_secondsRemaining seconds'),
-                )
+                  child: Text(
+                    _canResend
+                        ? 'Resend OTP'
+                        : 'Resend in $_secondsRemaining seconds',
+                  ),
+                ),
               ],
             ),
           ),

@@ -13,7 +13,8 @@ class PatientEducationScreen extends StatefulWidget {
   State<PatientEducationScreen> createState() => _PatientEducationScreenState();
 }
 
-class _PatientEducationScreenState extends State<PatientEducationScreen> with SingleTickerProviderStateMixin {
+class _PatientEducationScreenState extends State<PatientEducationScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _showAllVideos = false;
   bool _showAllHealthTips = false;
@@ -81,15 +82,18 @@ class _PatientEducationScreenState extends State<PatientEducationScreen> with Si
           _videoController!.play();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Video failed to load.'), backgroundColor: Colors.red),
+            const SnackBar(
+              content: Text('Video failed to load.'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error playing video: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error playing video: $e')));
       }
     }
   }
@@ -110,7 +114,11 @@ class _PatientEducationScreenState extends State<PatientEducationScreen> with Si
         final content = snapshot.data!.docs;
         const showMax = 3;
         bool showAll = type == 'video' ? _showAllVideos : _showAllHealthTips;
-        final showList = showAll ? content : (content.length > showMax ? content.sublist(0, showMax) : content);
+        final showList = showAll
+            ? content
+            : (content.length > showMax
+                  ? content.sublist(0, showMax)
+                  : content);
 
         return Column(
           children: [
@@ -134,7 +142,9 @@ class _PatientEducationScreenState extends State<PatientEducationScreen> with Si
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: type == 'video' ? Colors.blue : Colors.green,
+                      backgroundColor: type == 'video'
+                          ? Colors.blue
+                          : Colors.green,
                       foregroundColor: Colors.white,
                     ),
                     onPressed: () {
@@ -181,10 +191,7 @@ class _PatientEducationScreenState extends State<PatientEducationScreen> with Si
             type == 'video'
                 ? 'Educational videos will appear here when\nadmin uploads them for patients.'
                 : 'Health tips and wellness advice will\nappear here when admin posts them.',
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.grey,
-            ),
+            style: const TextStyle(fontSize: 16, color: Colors.grey),
             textAlign: TextAlign.center,
           ),
         ],
@@ -248,10 +255,7 @@ class _PatientEducationScreenState extends State<PatientEducationScreen> with Si
             const SizedBox(height: 12),
             Text(
               description,
-              style: TextStyle(
-                color: Colors.grey[700],
-                fontSize: 14,
-              ),
+              style: TextStyle(color: Colors.grey[700], fontSize: 14),
             ),
             const SizedBox(height: 16),
             SizedBox(
@@ -330,10 +334,7 @@ class _PatientEducationScreenState extends State<PatientEducationScreen> with Si
             if (description.isNotEmpty) ...[
               Text(
                 description,
-                style: TextStyle(
-                  color: Colors.grey[700],
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: Colors.grey[700], fontSize: 14),
               ),
               const SizedBox(height: 12),
             ],
@@ -344,9 +345,7 @@ class _PatientEducationScreenState extends State<PatientEducationScreen> with Si
                 decoration: BoxDecoration(
                   color: Colors.green.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Colors.green.withOpacity(0.2),
-                  ),
+                  border: Border.all(color: Colors.green.withOpacity(0.2)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -372,10 +371,7 @@ class _PatientEducationScreenState extends State<PatientEducationScreen> with Si
                     const SizedBox(height: 8),
                     Text(
                       healthTip,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        height: 1.4,
-                      ),
+                      style: const TextStyle(fontSize: 15, height: 1.4),
                     ),
                   ],
                 ),
@@ -405,23 +401,14 @@ class _PatientEducationScreenState extends State<PatientEducationScreen> with Si
           unselectedLabelColor: Colors.white70,
           indicatorColor: Colors.white,
           tabs: const [
-            Tab(
-              icon: Icon(Icons.video_library),
-              text: 'Educational Videos',
-            ),
-            Tab(
-              icon: Icon(Icons.tips_and_updates),
-              text: 'Health Tips',
-            ),
+            Tab(icon: Icon(Icons.video_library), text: 'Educational Videos'),
+            Tab(icon: Icon(Icons.tips_and_updates), text: 'Health Tips'),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [
-          _buildContentList('video'),
-          _buildContentList('health_tip'),
-        ],
+        children: [_buildContentList('video'), _buildContentList('health_tip')],
       ),
     );
   }

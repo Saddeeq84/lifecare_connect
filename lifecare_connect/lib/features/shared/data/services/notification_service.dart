@@ -85,7 +85,9 @@ class NotificationService {
 
   /// Specific method to schedule an ANC visit reminder for tomorrow
   static Future<void> scheduleANCVisitReminder() async {
-    final scheduledTime = tz.TZDateTime.now(tz.local).add(const Duration(days: 1));
+    final scheduledTime = tz.TZDateTime.now(
+      tz.local,
+    ).add(const Duration(days: 1));
     await _notifications.zonedSchedule(
       0,
       'ANC Visit Reminder',

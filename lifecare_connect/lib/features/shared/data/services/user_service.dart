@@ -31,7 +31,9 @@ class UserService extends ChangeNotifier {
       } else {
         // Fallback: Check custom claims if Firestore doc doesn't exist
         final idTokenResult = await user.getIdTokenResult(true);
-        _cachedUserRole = idTokenResult.claims?['role']?.toString().toLowerCase();
+        _cachedUserRole = idTokenResult.claims?['role']
+            ?.toString()
+            .toLowerCase();
         print("⚠️ Firestore doc missing. Role from claims: $_cachedUserRole");
       }
     } catch (e) {
@@ -49,9 +51,7 @@ class UserService extends ChangeNotifier {
     if (user == null) throw Exception('No authenticated user found');
 
     try {
-      await _firestore.collection('users').doc(user.uid).update({
-        'role': role,
-      });
+      await _firestore.collection('users').doc(user.uid).update({'role': role});
       _cachedUserRole = role.toLowerCase();
       notifyListeners(); // Keep state in sync
     } catch (e) {
@@ -99,7 +99,6 @@ class UserService extends ChangeNotifier {
       role = data?['role']?.toString().toLowerCase();
       isApproved = data?['isApproved'] == true;
     } else {
-      
       // Fallback for admin using custom claims
       final idTokenResult = await user.getIdTokenResult(true);
       role = idTokenResult.claims?['role']?.toString().toLowerCase();
@@ -119,7 +118,8 @@ class UserService extends ChangeNotifier {
         builder: (context) => AlertDialog(
           title: const Text('Account Pending Approval'),
           content: const Text(
-              'Your account is awaiting admin approval. Please check back later.'),
+            'Your account is awaiting admin approval. Please check back later.',
+          ),
           actions: [
             TextButton(
               onPressed: () {

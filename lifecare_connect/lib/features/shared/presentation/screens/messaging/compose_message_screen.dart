@@ -73,10 +73,19 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
                           },
                           items: const [
                             DropdownMenuItem(value: 'all', child: Text('All')),
-                            DropdownMenuItem(value: 'patient', child: Text('Patients')),
+                            DropdownMenuItem(
+                              value: 'patient',
+                              child: Text('Patients'),
+                            ),
                             DropdownMenuItem(value: 'CHW', child: Text('CHWs')),
-                            DropdownMenuItem(value: 'doctor', child: Text('Doctors')),
-                            DropdownMenuItem(value: 'facility_admin', child: Text('Facilities')),
+                            DropdownMenuItem(
+                              value: 'doctor',
+                              child: Text('Doctors'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'facility_admin',
+                              child: Text('Facilities'),
+                            ),
                           ],
                         ),
                       ],
@@ -222,7 +231,9 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
                               strokeWidth: 2,
                             ),
                           ),
@@ -266,7 +277,9 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
         final currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
         // Filter out current user
-        final filteredUsers = users.where((doc) => doc.id != currentUserId).toList();
+        final filteredUsers = users
+            .where((doc) => doc.id != currentUserId)
+            .toList();
 
         if (filteredUsers.isEmpty) {
           return const Center(child: Text('No other users found'));
@@ -286,10 +299,7 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
             return ListTile(
               leading: CircleAvatar(
                 backgroundColor: const Color(0xFF4285F4),
-                child: Icon(
-                  _getRoleIcon(role),
-                  color: Colors.white,
-                ),
+                child: Icon(_getRoleIcon(role), color: Colors.white),
               ),
               title: Text(
                 fullName.isNotEmpty ? fullName : email,
@@ -312,11 +322,11 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
 
   Stream<QuerySnapshot> _getUsersStream() {
     Query query = FirebaseFirestore.instance.collection('users');
-    
+
     if (_filterRole != 'all') {
       query = query.where('role', isEqualTo: _filterRole);
     }
-    
+
     return query.snapshots();
   }
 
@@ -387,7 +397,8 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
       final senderRole = currentUserData['role'] ?? 'user';
 
       // Format the message with subject
-      final messageContent = '''
+      final messageContent =
+          '''
 📧 Subject: ${_subjectController.text.trim()}
 
 ${_messageController.text.trim()}
@@ -399,7 +410,9 @@ Sent from LifeCare Connect
       // Create or get conversation
       final conversationId = await MessageService.createOrGetConversation(
         user1Id: currentUser.uid,
-        user1Name: senderName.isNotEmpty ? senderName : currentUser.email ?? 'User',
+        user1Name: senderName.isNotEmpty
+            ? senderName
+            : currentUser.email ?? 'User',
         user1Role: senderRole,
         user2Id: _selectedUserId!,
         user2Name: _selectedUserName!,
@@ -412,7 +425,9 @@ Sent from LifeCare Connect
       await MessageService.sendMessage(
         conversationId: conversationId,
         senderId: currentUser.uid,
-        senderName: senderName.isNotEmpty ? senderName : currentUser.email ?? 'User',
+        senderName: senderName.isNotEmpty
+            ? senderName
+            : currentUser.email ?? 'User',
         senderRole: senderRole,
         receiverId: _selectedUserId!,
         receiverName: _selectedUserName!,
@@ -438,7 +453,6 @@ Sent from LifeCare Connect
         _selectedUserName = null;
         _selectedUserRole = null;
       });
-
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

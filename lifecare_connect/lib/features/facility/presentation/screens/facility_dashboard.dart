@@ -15,63 +15,62 @@ import 'facility_analytics_screen.dart';
 import 'facility_services_screen.dart';
 import 'facility_staff_list.dart';
 import 'package:go_router/go_router.dart';
-  Future<void> _handleLogout(BuildContext context) async {
-    _showLogoutDialog(context);
-  }
 
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.logout, color: Colors.red),
-            SizedBox(width: 8),
-            Text('Logout'),
-          ],
-        ),
-        content: Text('Are you sure you want to logout from your account?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context); // Close the dialog before logging out
-              await _performLogout(context);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: Text('Logout'),
-          ),
+Future<void> _handleLogout(BuildContext context) async {
+  _showLogoutDialog(context);
+}
+
+void _showLogoutDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Row(
+        children: [
+          Icon(Icons.logout, color: Colors.red),
+          SizedBox(width: 8),
+          Text('Logout'),
         ],
       ),
-    );
-  }
-
-  Future<void> _performLogout(BuildContext context) async {
-    try {
-      await FirebaseAuth.instance.signOut();
-      if (context.mounted) {
-        context.go('/login');
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Logout failed: ${e.toString()}"),
+      content: Text('Are you sure you want to logout from your account?'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            Navigator.pop(context); // Close the dialog before logging out
+            await _performLogout(context);
+          },
+          style: ElevatedButton.styleFrom(
             backgroundColor: Colors.red,
-            duration: Duration(seconds: 3),
+            foregroundColor: Colors.white,
           ),
-        );
-      }
+          child: Text('Logout'),
+        ),
+      ],
+    ),
+  );
+}
+
+Future<void> _performLogout(BuildContext context) async {
+  try {
+    await FirebaseAuth.instance.signOut();
+    if (context.mounted) {
+      context.go('/login');
+    }
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Logout failed: ${e.toString()}"),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
   }
-
-
+}
 
 class FacilityDashboard extends StatefulWidget {
   const FacilityDashboard({super.key});
@@ -98,67 +97,47 @@ class _FacilityDashboardState extends State<FacilityDashboard> {
         .where('participantIds', arrayContains: userId)
         .snapshots()
         .listen((snapshot) {
-      int totalUnread = 0;
-      for (final doc in snapshot.docs) {
-        final data = doc.data();
-        final unreadCounts = data['unreadCounts'] as Map<String, dynamic>?;
-        if (unreadCounts != null && unreadCounts[userId] != null) {
-          totalUnread += unreadCounts[userId] is int ? unreadCounts[userId] as int : 0;
-        }
-      }
-      if (mounted) {
-        setState(() {
-          _unreadCount = totalUnread;
+          int totalUnread = 0;
+          for (final doc in snapshot.docs) {
+            final data = doc.data();
+            final unreadCounts = data['unreadCounts'] as Map<String, dynamic>?;
+            if (unreadCounts != null && unreadCounts[userId] != null) {
+              totalUnread += unreadCounts[userId] is int
+                  ? unreadCounts[userId] as int
+                  : 0;
+            }
+          }
+          if (mounted) {
+            setState(() {
+              _unreadCount = totalUnread;
+            });
+          }
         });
-      }
-    });
   }
 
   List<Map<String, dynamic>> get dashboardItems => [
-        {
-          "icon": Icons.calendar_today,
-          "label": "Bookings",
-          "action": "bookings"
-        },
-        {
-          "icon": Icons.chat,
-          "label": "Messages",
-          "action": "messages"
-        },
-        {
-          "icon": Icons.people,
-          "label": "My Patients",
-          "action": "patients"
-        },
-        {
-          "icon": Icons.medical_services,
-          "label": "Services",
-          "action": "services"
-        },
-        {
-          "icon": Icons.analytics,
-          "label": "Reports & Analytics",
-          "action": "analytics"
-        },
-        {
-          "icon": Icons.group,
-          "label": "Staff",
-          "action": "staff"
-        },
-        {
-          "icon": Icons.account_balance_wallet,
-          "label": "Wallet",
-          "action": "wallet"
-        },
-      ];
+    {"icon": Icons.calendar_today, "label": "Bookings", "action": "bookings"},
+    {"icon": Icons.chat, "label": "Messages", "action": "messages"},
+    {"icon": Icons.people, "label": "My Patients", "action": "patients"},
+    {"icon": Icons.medical_services, "label": "Services", "action": "services"},
+    {
+      "icon": Icons.analytics,
+      "label": "Reports & Analytics",
+      "action": "analytics",
+    },
+    {"icon": Icons.group, "label": "Staff", "action": "staff"},
+    {
+      "icon": Icons.account_balance_wallet,
+      "label": "Wallet",
+      "action": "wallet",
+    },
+  ];
 
   void _navigateToProfile(BuildContext context) {
     try {
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => const FacilityProfileScreen(),
-        ),
+        MaterialPageRoute(builder: (context) => const FacilityProfileScreen()),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -174,9 +153,7 @@ class _FacilityDashboardState extends State<FacilityDashboard> {
     try {
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => const FacilitySettingsScreen(),
-        ),
+        MaterialPageRoute(builder: (context) => const FacilitySettingsScreen()),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -192,9 +169,7 @@ class _FacilityDashboardState extends State<FacilityDashboard> {
     try {
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => const FacilityBookingScreen(),
-        ),
+        MaterialPageRoute(builder: (context) => const FacilityBookingScreen()),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -210,9 +185,7 @@ class _FacilityDashboardState extends State<FacilityDashboard> {
     try {
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => const FacilityMessagesScreen(),
-        ),
+        MaterialPageRoute(builder: (context) => const FacilityMessagesScreen()),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -264,9 +237,7 @@ class _FacilityDashboardState extends State<FacilityDashboard> {
     try {
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => const FacilityServicesScreen(),
-        ),
+        MaterialPageRoute(builder: (context) => const FacilityServicesScreen()),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -299,7 +270,8 @@ class _FacilityDashboardState extends State<FacilityDashboard> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => FacilityStaffListScreen(facilityName: 'chana health center'),
+            builder: (_) =>
+                FacilityStaffListScreen(facilityName: 'chana health center'),
           ),
         );
         break;
@@ -367,7 +339,10 @@ class _FacilityDashboardState extends State<FacilityDashboard> {
                   right: 8,
                   top: 8,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.red,
                       borderRadius: BorderRadius.circular(12),
@@ -421,10 +396,19 @@ class _FacilityDashboardState extends State<FacilityDashboard> {
               item["label"],
               style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
             ),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 18, color: Colors.grey),
+            trailing: const Icon(
+              Icons.arrow_forward_ios,
+              size: 18,
+              color: Colors.grey,
+            ),
             onTap: () => _handleDashboardItemTap(context, item['action']),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 8,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           );
         },
       ),

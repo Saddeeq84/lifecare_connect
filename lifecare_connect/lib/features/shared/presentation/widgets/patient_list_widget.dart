@@ -74,8 +74,8 @@ class _PatientListWidgetState extends State<PatientListWidget> {
     _debounceTimer = Timer(const Duration(milliseconds: 300), () {
       setState(() {
         _searchQuery = _searchController.text.toLowerCase();
-          _currentBatch = 1;
-          _filterPatients();
+        _currentBatch = 1;
+        _filterPatients();
       });
     });
   }
@@ -87,12 +87,14 @@ class _PatientListWidgetState extends State<PatientListWidget> {
     } else {
       filtered = _allPatients.where((patient) {
         final data = patient.data() as Map<String, dynamic>;
-        final name = (data['name'] ?? data['fullName'] ?? '').toString().toLowerCase();
+        final name = (data['name'] ?? data['fullName'] ?? '')
+            .toString()
+            .toLowerCase();
         final phone = (data['phone'] ?? '').toString().toLowerCase();
         final nationalId = (data['nationalId'] ?? '').toString().toLowerCase();
         return name.contains(_searchQuery) ||
-               phone.contains(_searchQuery) ||
-               nationalId.contains(_searchQuery);
+            phone.contains(_searchQuery) ||
+            nationalId.contains(_searchQuery);
       }).toList();
     }
     int end = _currentBatch * _batchSize;
@@ -106,10 +108,10 @@ class _PatientListWidgetState extends State<PatientListWidget> {
 
     switch (widget.userRole) {
       case 'chw':
-        message = widget.showOnlyOwnPatients 
-            ? 'No patients registered by you' 
+        message = widget.showOnlyOwnPatients
+            ? 'No patients registered by you'
             : 'No patients found';
-        description = widget.showOnlyOwnPatients 
+        description = widget.showOnlyOwnPatients
             ? 'Register a patient to get started'
             : 'There are currently no patients in the system';
         break;
@@ -135,11 +137,7 @@ class _PatientListWidgetState extends State<PatientListWidget> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.people_outline,
-            size: 64,
-            color: Colors.teal[200],
-          ),
+          Icon(Icons.people_outline, size: 64, color: Colors.teal[200]),
           const SizedBox(height: 16),
           Text(
             message,
@@ -153,18 +151,11 @@ class _PatientListWidgetState extends State<PatientListWidget> {
           const SizedBox(height: 8),
           Text(
             description,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
-          Icon(
-            Icons.medical_services,
-            size: 48,
-            color: Colors.teal[200],
-          ),
+          Icon(Icons.medical_services, size: 48, color: Colors.teal[200]),
         ],
       ),
     );
@@ -208,11 +199,18 @@ class _PatientListWidgetState extends State<PatientListWidget> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                      const Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: Colors.red,
+                      ),
                       const SizedBox(height: 16),
                       const Text(
                         'Error loading patients',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -255,11 +253,18 @@ class _PatientListWidgetState extends State<PatientListWidget> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.search_off, size: 64, color: Colors.grey[400]),
+                        Icon(
+                          Icons.search_off,
+                          size: 64,
+                          color: Colors.grey[400],
+                        ),
                         const SizedBox(height: 16),
                         const Text(
                           'No patients found',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -281,10 +286,12 @@ class _PatientListWidgetState extends State<PatientListWidget> {
                       itemCount: patients.length,
                       itemBuilder: (context, index) {
                         final patient = patients[index];
-                        final patientData = patient.data() as Map<String, dynamic>;
-                        final patientName = patientData['name'] ?? 
-                                          patientData['fullName'] ?? 
-                                          'Unknown Patient';
+                        final patientData =
+                            patient.data() as Map<String, dynamic>;
+                        final patientName =
+                            patientData['name'] ??
+                            patientData['fullName'] ??
+                            'Unknown Patient';
 
                         return Card(
                           margin: const EdgeInsets.only(bottom: 16),
@@ -295,7 +302,9 @@ class _PatientListWidgetState extends State<PatientListWidget> {
                             ),
                             title: Text(
                               patientName,
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -317,17 +326,23 @@ class _PatientListWidgetState extends State<PatientListWidget> {
                       },
                     ),
                   ),
-                  if (_filteredPatients.length < (_allPatients.where((patient) {
+                  if (_filteredPatients.length <
+                      (_allPatients.where((patient) {
                         final data = patient.data() as Map<String, dynamic>;
-                        final name = (data['name'] ?? data['fullName'] ?? '').toString().toLowerCase();
-                        final phone = (data['phone'] ?? '').toString().toLowerCase();
-                        final nationalId = (data['nationalId'] ?? '').toString().toLowerCase();
+                        final name = (data['name'] ?? data['fullName'] ?? '')
+                            .toString()
+                            .toLowerCase();
+                        final phone = (data['phone'] ?? '')
+                            .toString()
+                            .toLowerCase();
+                        final nationalId = (data['nationalId'] ?? '')
+                            .toString()
+                            .toLowerCase();
                         return _searchQuery.isEmpty ||
-                          name.contains(_searchQuery) ||
-                          phone.contains(_searchQuery) ||
-                          nationalId.contains(_searchQuery);
-                      }).length)
-                  )
+                            name.contains(_searchQuery) ||
+                            phone.contains(_searchQuery) ||
+                            nationalId.contains(_searchQuery);
+                      }).length))
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: ElevatedButton(
@@ -351,7 +366,7 @@ class _PatientListWidgetState extends State<PatientListWidget> {
 
   Stream<QuerySnapshot> _buildPatientQuery() {
     final currentUser = FirebaseAuth.instance.currentUser;
-    
+
     if (currentUser == null) {
       // Return empty stream if no user
       return const Stream.empty();
@@ -367,7 +382,10 @@ class _PatientListWidgetState extends State<PatientListWidget> {
     }
 
     // For CHW, doctor, facility - show only patients they've interacted with
-    if (widget.showOnlyOwnPatients || widget.userRole == 'chw' || widget.userRole == 'doctor' || widget.userRole == 'facility') {
+    if (widget.showOnlyOwnPatients ||
+        widget.userRole == 'chw' ||
+        widget.userRole == 'doctor' ||
+        widget.userRole == 'facility') {
       return _buildInteractedPatientsQuery(currentUser.uid);
     }
 
@@ -393,7 +411,7 @@ class _PatientListWidgetState extends State<PatientListWidget> {
           .where('role', isEqualTo: 'patient')
           .where('createdBy', isEqualTo: userId)
           .get();
-      
+
       for (final doc in registeredPatients.docs) {
         patientIds.add(doc.id);
       }
@@ -428,13 +446,15 @@ class _PatientListWidgetState extends State<PatientListWidget> {
                 .where('providerId', isEqualTo: userId)
                 .limit(1)
                 .get();
-            
+
             if (nestedRecords.docs.isNotEmpty) {
               patientIds.add(patientDoc.id);
             }
           } catch (e) {
             // Skip if nested collection doesn't exist, access denied, or permission issues
-            debugPrint('Skipping nested health records for patient ${patientDoc.id}: Permission denied or collection not accessible');
+            debugPrint(
+              'Skipping nested health records for patient ${patientDoc.id}: Permission denied or collection not accessible',
+            );
           }
         }
       }
@@ -496,19 +516,21 @@ class _PatientListWidgetState extends State<PatientListWidget> {
       final List<QueryDocumentSnapshot> allDocs = [];
       final List<String> patientIdsList = patientIds.toList();
       const int batchSize = 10; // Firestore 'in' query limit
-      
+
       for (int i = 0; i < patientIdsList.length; i += batchSize) {
         final batch = patientIdsList.sublist(
-          i, 
-          i + batchSize > patientIdsList.length ? patientIdsList.length : i + batchSize
+          i,
+          i + batchSize > patientIdsList.length
+              ? patientIdsList.length
+              : i + batchSize,
         );
-        
+
         final batchQuery = await FirebaseFirestore.instance
             .collection('users')
             .where('role', isEqualTo: 'patient')
             .where(FieldPath.documentId, whereIn: batch)
             .get();
-            
+
         allDocs.addAll(batchQuery.docs);
       }
 
@@ -521,10 +543,11 @@ class _PatientListWidgetState extends State<PatientListWidget> {
         return aName.compareTo(bName);
       });
 
-      yield _CombinedQuerySnapshot(allDocs.cast<QueryDocumentSnapshot<Map<String, dynamic>>>());
-
+      yield _CombinedQuerySnapshot(
+        allDocs.cast<QueryDocumentSnapshot<Map<String, dynamic>>>(),
+      );
     } catch (e) {
-        throw Exception('Failed to load patients: $e');
-      }
+      throw Exception('Failed to load patients: $e');
     }
   }
+}

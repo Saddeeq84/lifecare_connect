@@ -8,7 +8,8 @@ class TrainingMaterial {
   final String? fileUrl; // URL for downloadable files (PDFs, videos, etc.)
   final String? thumbnailUrl; // Thumbnail image URL
   final String type; // 'video', 'pdf', 'article', 'interactive', 'quiz'
-  final String category; // 'maternal-health', 'child-health', 'general-health', 'emergency-care', 'nutrition'
+  final String
+  category; // 'maternal-health', 'child-health', 'general-health', 'emergency-care', 'nutrition'
   final List<String> targetRoles; // ['chw', 'patient', 'doctor', 'facility']
   final String difficulty; // 'beginner', 'intermediate', 'advanced'
   final int estimatedDurationMinutes;
@@ -70,14 +71,12 @@ class TrainingMaterial {
       thumbnailUrl: data['thumbnailUrl'],
       type: data['type'] ?? 'article',
       category: data['category'] ?? 'general-health',
-      targetRoles: data['targetRoles'] != null 
-          ? List<String>.from(data['targetRoles']) 
+      targetRoles: data['targetRoles'] != null
+          ? List<String>.from(data['targetRoles'])
           : ['chw'],
       difficulty: data['difficulty'] ?? 'beginner',
       estimatedDurationMinutes: data['estimatedDurationMinutes'] ?? 15,
-      tags: data['tags'] != null 
-          ? List<String>.from(data['tags']) 
-          : [],
+      tags: data['tags'] != null ? List<String>.from(data['tags']) : [],
       status: data['status'] ?? 'draft',
       version: data['version'] ?? 1,
       language: data['language'] ?? 'en',
@@ -92,8 +91,8 @@ class TrainingMaterial {
       ratingCount: data['ratingCount'] ?? 0,
       isRequired: data['isRequired'] ?? false,
       expirationDate: (data['expirationDate'] as Timestamp?)?.toDate(),
-      prerequisites: data['prerequisites'] != null 
-          ? List<String>.from(data['prerequisites']) 
+      prerequisites: data['prerequisites'] != null
+          ? List<String>.from(data['prerequisites'])
           : null,
     );
   }
@@ -124,7 +123,9 @@ class TrainingMaterial {
       'averageRating': averageRating,
       'ratingCount': ratingCount,
       'isRequired': isRequired,
-      'expirationDate': expirationDate != null ? Timestamp.fromDate(expirationDate!) : null,
+      'expirationDate': expirationDate != null
+          ? Timestamp.fromDate(expirationDate!)
+          : null,
       'prerequisites': prerequisites,
     };
   }
@@ -211,7 +212,8 @@ class UserProgress {
   final DateTime? completedAt;
   final DateTime? lastAccessedAt;
   final int timeSpentMinutes;
-  final Map<String, dynamic>? data; // Additional progress data (quiz scores, etc.)
+  final Map<String, dynamic>?
+  data; // Additional progress data (quiz scores, etc.)
   final double? userRating;
   final String? userReview;
   final DateTime createdAt;
@@ -261,8 +263,12 @@ class UserProgress {
       'status': status,
       'progressPercentage': progressPercentage,
       'startedAt': startedAt != null ? Timestamp.fromDate(startedAt!) : null,
-      'completedAt': completedAt != null ? Timestamp.fromDate(completedAt!) : null,
-      'lastAccessedAt': lastAccessedAt != null ? Timestamp.fromDate(lastAccessedAt!) : null,
+      'completedAt': completedAt != null
+          ? Timestamp.fromDate(completedAt!)
+          : null,
+      'lastAccessedAt': lastAccessedAt != null
+          ? Timestamp.fromDate(lastAccessedAt!)
+          : null,
       'timeSpentMinutes': timeSpentMinutes,
       'data': data,
       'userRating': userRating,

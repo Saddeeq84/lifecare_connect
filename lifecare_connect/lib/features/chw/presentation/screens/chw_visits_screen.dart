@@ -12,9 +12,7 @@ class CHWVisitsScreen extends StatelessWidget {
     final String chwId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
     if (chwId.isEmpty) {
-      return const Scaffold(
-        body: Center(child: Text('Not authenticated')),
-      );
+      return const Scaffold(body: Center(child: Text('Not authenticated')));
     }
 
     final Stream<QuerySnapshot> visitsStream = FirebaseFirestore.instance
@@ -47,22 +45,30 @@ class CHWVisitsScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               final data = visits[index].data() as Map<String, dynamic>;
 
-              final scheduledDate = (data['scheduledDate'] as Timestamp).toDate();
+              final scheduledDate = (data['scheduledDate'] as Timestamp)
+                  .toDate();
               final formattedDate =
                   "${scheduledDate.day}/${scheduledDate.month}/${scheduledDate.year} ${scheduledDate.hour.toString().padLeft(2, '0')}:${scheduledDate.minute.toString().padLeft(2, '0')}";
 
               return ListTile(
                 leading: const Icon(Icons.calendar_today, color: Colors.teal),
                 title: Text(data['patientName'] ?? 'Unknown Patient'),
-                subtitle: Text('${data['visitType'] ?? 'Visit'} • $formattedDate'),
+                subtitle: Text(
+                  '${data['visitType'] ?? 'Visit'} • $formattedDate',
+                ),
                 trailing: Icon(
-                  data['status'] == 'completed' ? Icons.check_circle : Icons.pending,
-                  color: data['status'] == 'completed' ? Colors.green : Colors.orange,
+                  data['status'] == 'completed'
+                      ? Icons.check_circle
+                      : Icons.pending,
+                  color: data['status'] == 'completed'
+                      ? Colors.green
+                      : Colors.orange,
                 ),
                 onTap: () async {
                   final result = await Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => CHWVisitDetailScreen(visitId: visits[index].id),
+                      builder: (_) =>
+                          CHWVisitDetailScreen(visitId: visits[index].id),
                     ),
                   );
                   if (result == true) {

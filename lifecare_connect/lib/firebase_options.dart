@@ -1,5 +1,6 @@
 // Firebase configuration for LifeCare Connect
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
@@ -30,8 +31,8 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyAAJqnlBCZJUQ6bGdfbiuVJHVflW4SuHhg',
+  static FirebaseOptions get web => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_API_KEY'] ?? '',
     appId: '1:815876091951:web:fd346056ca8453611616da',
     messagingSenderId: '815876091951',
     projectId: 'lifecare-connect',
@@ -40,36 +41,38 @@ class DefaultFirebaseOptions {
     measurementId: 'G-XXXXXXXXXX',
   );
 
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAAJqnlBCZJUQ6bGdfbiuVJHVflW4SuHhg',
+  static FirebaseOptions get android => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_API_KEY'] ?? '',
     appId: '1:815876091951:android:fd346056ca8453611616da',
     messagingSenderId: '815876091951',
     projectId: 'lifecare-connect',
     storageBucket: 'lifecare-connect.appspot.com',
   );
 
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAAJqnlBCZJUQ6bGdfbiuVJHVflW4SuHhg',
+  static FirebaseOptions get ios => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_API_KEY'] ?? '',
     appId: '1:815876091951:ios:fd346056ca8453611616da',
     messagingSenderId: '815876091951',
     projectId: 'lifecare-connect',
     storageBucket: 'lifecare-connect.appspot.com',
-    iosClientId: '815876091951-0s9vb4h4euc6sq2s5dnlcn5leflu39uo.apps.googleusercontent.com',
+    iosClientId:
+        '815876091951-0s9vb4h4euc6sq2s5dnlcn5leflu39uo.apps.googleusercontent.com',
     iosBundleId: 'com.rhemn.lifecare_connect',
   );
 
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyAAJqnlBCZJUQ6bGdfbiuVJHVflW4SuHhg',
+  static FirebaseOptions get macos => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_API_KEY'] ?? '',
     appId: '1:815876091951:macos:fd346056ca8453611616da',
     messagingSenderId: '815876091951',
     projectId: 'lifecare-connect',
     storageBucket: 'lifecare-connect.appspot.com',
-    iosClientId: '815876091951-0s9vb4h4euc6sq2s5dnlcn5leflu39uo.apps.googleusercontent.com',
+    iosClientId:
+        '815876091951-0s9vb4h4euc6sq2s5dnlcn5leflu39uo.apps.googleusercontent.com',
     iosBundleId: 'com.rhemn.lifecare_connect',
   );
 
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyAAJqnlBCZJUQ6bGdfbiuVJHVflW4SuHhg',
+  static FirebaseOptions get windows => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_API_KEY'] ?? '',
     appId: '1:815876091951:windows:fd346056ca8453611616da',
     messagingSenderId: '815876091951',
     projectId: 'lifecare-connect',

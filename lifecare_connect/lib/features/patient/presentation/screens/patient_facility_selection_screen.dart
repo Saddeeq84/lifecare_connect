@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../facility/presentation/screens/patient_facility_booking_screen.dart';
 
-
-typedef FacilitySelectedCallback = void Function(String facilityId, Map<String, dynamic> facilityData);
+typedef FacilitySelectedCallback =
+    void Function(String facilityId, Map<String, dynamic> facilityData);
 
 class PatientFacilitySelectionScreen extends StatelessWidget {
   final String categoryType;
@@ -21,7 +21,10 @@ class PatientFacilitySelectionScreen extends StatelessWidget {
 
   void _onFacilitySelected(BuildContext context, DocumentSnapshot facilityDoc) {
     if (onFacilitySelected != null) {
-      onFacilitySelected!(facilityDoc.id, facilityDoc.data() as Map<String, dynamic>);
+      onFacilitySelected!(
+        facilityDoc.id,
+        facilityDoc.data() as Map<String, dynamic>,
+      );
     } else {
       // Navigate directly to booking screen for selected facility
       Navigator.push(
@@ -59,28 +62,26 @@ class PatientFacilitySelectionScreen extends StatelessWidget {
             ),
             child: Column(
               children: [
-                Icon(Icons.medical_services, size: 48, color: Colors.teal.shade700),
+                Icon(
+                  Icons.medical_services,
+                  size: 48,
+                  color: Colors.teal.shade700,
+                ),
                 const SizedBox(height: 8),
                 const Text(
                   'Request Medical Services',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
                 const Text(
                   'Select a healthcare facility to request services or medical supplies',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
                   textAlign: TextAlign.center,
                 ),
               ],
             ),
           ),
-          
+
           // Facility Types Info
           Container(
             margin: const EdgeInsets.all(16),
@@ -118,7 +119,7 @@ class PatientFacilitySelectionScreen extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // Facility List
           Expanded(
             child: Padding(
@@ -140,9 +141,7 @@ class PatientFacilitySelectionScreen extends StatelessWidget {
                     style: TextStyle(color: Colors.grey),
                   ),
                   const SizedBox(height: 16),
-                  Expanded(
-                    child: _buildFacilityList(),
-                  ),
+                  Expanded(child: _buildFacilityList()),
                 ],
               ),
             ),
@@ -159,10 +158,12 @@ class PatientFacilitySelectionScreen extends StatelessWidget {
         .where('role', isEqualTo: 'facility')
         .where('isActive', isEqualTo: true)
         .where('isApproved', isEqualTo: true)
-        .where(Filter.or(
-          Filter('type', isEqualTo: categoryType),
-          Filter('facilityType', isEqualTo: categoryType),
-        ));
+        .where(
+          Filter.or(
+            Filter('type', isEqualTo: categoryType),
+            Filter('facilityType', isEqualTo: categoryType),
+          ),
+        );
     return StreamBuilder<QuerySnapshot>(
       stream: facilitiesQuery.snapshots(),
       builder: (context, snapshot) {
@@ -185,18 +186,17 @@ class PatientFacilitySelectionScreen extends StatelessWidget {
           itemBuilder: (context, index) {
             final facility = docs[index];
             final data = facility.data() as Map<String, dynamic>;
-            final name = data['facilityName'] ?? data['name'] ?? 'Unknown Facility';
+            final name =
+                data['facilityName'] ?? data['name'] ?? 'Unknown Facility';
             final type = data['type'] ?? data['facilityType'] ?? 'Unknown Type';
-            final location = data['location'] ?? data['address'] ?? 'Unknown Location';
+            final location =
+                data['location'] ?? data['address'] ?? 'Unknown Location';
             final phone = data['phone'] ?? 'N/A';
 
             return Card(
               margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
               child: ListTile(
-                leading: Icon(
-                  _getFacilityIcon(type),
-                  color: Colors.teal,
-                ),
+                leading: Icon(_getFacilityIcon(type), color: Colors.teal),
                 title: Text(
                   name,
                   style: const TextStyle(fontWeight: FontWeight.bold),

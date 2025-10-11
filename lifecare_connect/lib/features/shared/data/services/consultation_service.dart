@@ -50,9 +50,7 @@ class ConsultationService {
       };
 
       // Save to health_records instead of consultations
-      final docRef = await _firestore
-          .collection('health_records')
-          .add({
+      final docRef = await _firestore.collection('health_records').add({
         'type': 'DOCTOR_CONSULTATION',
         'patientUid': patientId,
         'providerId': doctorId,
@@ -96,23 +94,36 @@ class ConsultationService {
       };
 
       if (status != null) updateData['status'] = status;
-      if (actualStartTime != null) updateData['actualStartTime'] = Timestamp.fromDate(actualStartTime);
-      if (actualEndTime != null) updateData['actualEndTime'] = Timestamp.fromDate(actualEndTime);
+      if (actualStartTime != null) {
+        updateData['actualStartTime'] = Timestamp.fromDate(actualStartTime);
+      }
+      if (actualEndTime != null) {
+        updateData['actualEndTime'] = Timestamp.fromDate(actualEndTime);
+      }
       if (diagnosis != null) updateData['diagnosis'] = diagnosis;
       if (prescriptions != null) updateData['prescriptions'] = prescriptions;
-      if (recommendations != null) updateData['recommendations'] = recommendations;
-      if (followUpInstructions != null) updateData['followUpInstructions'] = followUpInstructions;
-      if (nextAppointmentDate != null) updateData['nextAppointmentDate'] = Timestamp.fromDate(nextAppointmentDate);
+      if (recommendations != null) {
+        updateData['recommendations'] = recommendations;
+      }
+      if (followUpInstructions != null) {
+        updateData['followUpInstructions'] = followUpInstructions;
+      }
+      if (nextAppointmentDate != null) {
+        updateData['nextAppointmentDate'] = Timestamp.fromDate(
+          nextAppointmentDate,
+        );
+      }
       if (vitals != null) updateData['vitals'] = vitals;
       if (notes != null) updateData['notes'] = notes;
       if (cancelledBy != null) updateData['cancelledBy'] = cancelledBy;
-      if (cancellationReason != null) updateData['cancellationReason'] = cancellationReason;
+      if (cancellationReason != null) {
+        updateData['cancellationReason'] = cancellationReason;
+      }
 
       // Update in health_records instead of consultations
-      await _firestore
-          .collection('health_records')
-          .doc(consultationId)
-          .update({'data': updateData});
+      await _firestore.collection('health_records').doc(consultationId).update({
+        'data': updateData,
+      });
     } catch (e) {
       throw Exception('Failed to update consultation: $e');
     }
@@ -168,10 +179,7 @@ class ConsultationService {
 
   /// Mark consultation as no-show
   static Future<void> markNoShow(String consultationId) async {
-    await updateConsultation(
-      consultationId: consultationId,
-      status: 'no-show',
-    );
+    await updateConsultation(consultationId: consultationId, status: 'no-show');
   }
 
   /// Get consultations for a specific doctor
@@ -232,8 +240,14 @@ class ConsultationService {
     return _firestore
         .collection('consultations')
         .where('doctorId', isEqualTo: doctorId)
-        .where('scheduledDateTime', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
-        .where('scheduledDateTime', isLessThanOrEqualTo: Timestamp.fromDate(endOfDay))
+        .where(
+          'scheduledDateTime',
+          isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay),
+        )
+        .where(
+          'scheduledDateTime',
+          isLessThanOrEqualTo: Timestamp.fromDate(endOfDay),
+        )
         .orderBy('scheduledDateTime', descending: false)
         .snapshots();
   }
@@ -256,7 +270,10 @@ class ConsultationService {
         .collection('consultations')
         .where('patientId', isEqualTo: patientId)
         .where('status', isEqualTo: 'scheduled')
-        .where('scheduledDateTime', isGreaterThan: Timestamp.fromDate(DateTime.now()))
+        .where(
+          'scheduledDateTime',
+          isGreaterThan: Timestamp.fromDate(DateTime.now()),
+        )
         .orderBy('scheduledDateTime', descending: false);
 
     if (limitCount != null) {
@@ -295,17 +312,31 @@ class ConsultationService {
       }
 
       final snapshot = await query.get();
-      
+
       final consultations = snapshot.docs
           .map((doc) => Consultation.fromFirestore(doc))
-          .where((consultation) =>
-              consultation.patientName.toLowerCase().contains(searchTerm.toLowerCase()) ||
-              consultation.doctorName.toLowerCase().contains(searchTerm.toLowerCase()) ||
-              (consultation.diagnosis?.toLowerCase().contains(searchTerm.toLowerCase()) ?? false) ||
-              (consultation.reason?.toLowerCase().contains(searchTerm.toLowerCase()) ?? false))
+          .where(
+            (consultation) =>
+                consultation.patientName.toLowerCase().contains(
+                  searchTerm.toLowerCase(),
+                ) ||
+                consultation.doctorName.toLowerCase().contains(
+                  searchTerm.toLowerCase(),
+                ) ||
+                (consultation.diagnosis?.toLowerCase().contains(
+                      searchTerm.toLowerCase(),
+                    ) ??
+                    false) ||
+                (consultation.reason?.toLowerCase().contains(
+                      searchTerm.toLowerCase(),
+                    ) ??
+                    false),
+          )
           .toList();
 
-      consultations.sort((a, b) => b.scheduledDateTime.compareTo(a.scheduledDateTime));
+      consultations.sort(
+        (a, b) => b.scheduledDateTime.compareTo(a.scheduledDateTime),
+      );
 
       if (limitCount != null && consultations.length > limitCount) {
         return consultations.take(limitCount).toList();
@@ -329,14 +360,22 @@ class ConsultationService {
           .where('doctorId', isEqualTo: doctorId);
 
       if (startDate != null) {
-        query = query.where('scheduledDateTime', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate));
+        query = query.where(
+          'scheduledDateTime',
+          isGreaterThanOrEqualTo: Timestamp.fromDate(startDate),
+        );
       }
       if (endDate != null) {
-        query = query.where('scheduledDateTime', isLessThanOrEqualTo: Timestamp.fromDate(endDate));
+        query = query.where(
+          'scheduledDateTime',
+          isLessThanOrEqualTo: Timestamp.fromDate(endDate),
+        );
       }
 
       final snapshot = await query.get();
-      final consultations = snapshot.docs.map((doc) => Consultation.fromFirestore(doc)).toList();
+      final consultations = snapshot.docs
+          .map((doc) => Consultation.fromFirestore(doc))
+          .toList();
 
       return {
         'total': consultations.length,
@@ -344,7 +383,9 @@ class ConsultationService {
         'completed': consultations.where((c) => c.status == 'completed').length,
         'cancelled': consultations.where((c) => c.status == 'cancelled').length,
         'no_show': consultations.where((c) => c.status == 'no-show').length,
-        'in_progress': consultations.where((c) => c.status == 'in-progress').length,
+        'in_progress': consultations
+            .where((c) => c.status == 'in-progress')
+            .length,
       };
     } catch (e) {
       throw Exception('Failed to get consultation statistics: $e');
@@ -366,19 +407,34 @@ class ConsultationService {
           .collection('consultations')
           .where('doctorId', isEqualTo: doctorId)
           .where('status', whereIn: ['scheduled', 'in-progress'])
-          .where('scheduledDateTime', isGreaterThanOrEqualTo: Timestamp.fromDate(startTime.subtract(Duration(hours: 2))))
-          .where('scheduledDateTime', isLessThanOrEqualTo: Timestamp.fromDate(endTime.add(Duration(hours: 2))));
+          .where(
+            'scheduledDateTime',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(
+              startTime.subtract(Duration(hours: 2)),
+            ),
+          )
+          .where(
+            'scheduledDateTime',
+            isLessThanOrEqualTo: Timestamp.fromDate(
+              endTime.add(Duration(hours: 2)),
+            ),
+          );
 
       final snapshot = await query.get();
-      final consultations = snapshot.docs.map((doc) => Consultation.fromFirestore(doc)).toList();
+      final consultations = snapshot.docs
+          .map((doc) => Consultation.fromFirestore(doc))
+          .toList();
 
       for (final consultation in consultations) {
-        if (excludeConsultationId != null && consultation.id == excludeConsultationId) {
+        if (excludeConsultationId != null &&
+            consultation.id == excludeConsultationId) {
           continue;
         }
 
         final existingStart = consultation.scheduledDateTime;
-        final existingEnd = consultation.scheduledDateTime.add(Duration(minutes: consultation.estimatedDurationMinutes));
+        final existingEnd = consultation.scheduledDateTime.add(
+          Duration(minutes: consultation.estimatedDurationMinutes),
+        );
 
         // Check for overlap
         if (startTime.isBefore(existingEnd) && endTime.isAfter(existingStart)) {
@@ -393,7 +449,9 @@ class ConsultationService {
   }
 
   /// Get single consultation by ID
-  static Future<Consultation?> getConsultationById(String consultationId) async {
+  static Future<Consultation?> getConsultationById(
+    String consultationId,
+  ) async {
     try {
       final doc = await _firestore
           .collection('consultations')
@@ -412,10 +470,7 @@ class ConsultationService {
   /// Delete consultation
   static Future<void> deleteConsultation(String consultationId) async {
     try {
-      await _firestore
-          .collection('consultations')
-          .doc(consultationId)
-          .delete();
+      await _firestore.collection('consultations').doc(consultationId).delete();
     } catch (e) {
       throw Exception('Failed to delete consultation: $e');
     }
@@ -430,7 +485,8 @@ class ConsultationService {
       final consultationData = {
         'patientId': appointment.patientId,
         'patientName': appointment.patientName,
-        'doctorId': appointment.providerId, // The provider becomes the doctor in consultation
+        'doctorId': appointment
+            .providerId, // The provider becomes the doctor in consultation
         'doctorName': appointment.providerName,
         'facilityId': appointment.facilityId,
         'facilityName': appointment.facilityName,
@@ -448,7 +504,9 @@ class ConsultationService {
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
         'createdBy': createdBy,
-        'chwId': appointment.providerType == 'CHW' ? appointment.providerId : null,
+        'chwId': appointment.providerType == 'CHW'
+            ? appointment.providerId
+            : null,
         'providerId': appointment.providerId,
         'providerName': appointment.providerName,
         'providerType': appointment.providerType,

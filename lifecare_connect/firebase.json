@@ -19,6 +19,10 @@
         "destination": "/privacy.html"
       },
       {
+        "source": "/agora-token",
+        "function": "agoraToken"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

@@ -19,9 +19,32 @@ exports.sendAdminApprovalEmail = functions.https.onRequest(async (req, res) => {
   }
 });
 
-// Export approval/rejection email functions for deployment
 exports.sendAccountApprovedEmail = require('./account_status_emails').sendAccountApprovedEmail;
 exports.sendAccountRejectedEmail = require('./account_status_emails').sendAccountRejectedEmail;
 
-// Automatically set Content-Disposition:inline for all future PDF uploads
 exports.setPdfInlineDisposition = require('./setPdfInlineDisposition').setPdfInlineDisposition;
+
+const { RtcTokenBuilder, RtcRole } = require('agora-access-token');
+
+// Use Firebase environment config for secrets
+const APP_ID = functions.config().agora.app_id;
+const APP_CERTIFICATE = functions.config().agora.app_certificate;
+
+exports.agoraToken = functions.https.onRequest((req, res) => {
+  const channelName = req.query.channelName;
+  const uid = req.query.uid || 0;
+  const role = RtcRole.PUBLISHER;
+  const expireTime = 3600; // 1 hour
+
+  if (!APP_ID || !APP_CERTIFICATE) {
+    return res.status(500).json({ error: 'Agora credentials not set' });
+  }
+  if (!channelName) {
+    return res.status(400).json({ error: 'Missing channelName' });
+  }
+
+  const token = RtcTokenBuilder.buildTokenWithUid(
+    APP_ID, APP_CERTIFICATE, channelName, uid, role, expireTime
+  );
+  res.json({ token });
+});

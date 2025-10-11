@@ -1,6 +1,6 @@
 name: lifecare_connect
 description: A mobile app for CHWs and healthcare providers to manage patients.
-version: 15.0.0+15
+version: 1.0.17+17
 publish_to: "none"
 
 environment:
@@ -47,8 +47,12 @@ dependencies:
   table_calendar: ^3.1.1
   open_file: ^3.3.2
 
+  # ✅ Payments
+
   # ✅ Real-time Communication
   agora_rtc_engine: ^6.5.3
+  stripe_sdk: ^5.0.0
+  flutter_dotenv: ^6.0.0
 dev_dependencies:
   flutter_lints: ^6.0.0
 

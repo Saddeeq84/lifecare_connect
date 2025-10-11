@@ -47,13 +47,12 @@ class ReferralService {
         'attachments': attachments,
       };
 
-      final docRef = await _firestore
-          .collection('referrals')
-          .add(referralData);
+      final docRef = await _firestore.collection('referrals').add(referralData);
 
-      // Send notification to the receiving provider about new referral
+      // Only notify the receiving provider (doctor) about new referral, not the referrer.
       try {
-        if (fromProviderType.toLowerCase() == 'chw' && toProviderType.toLowerCase() == 'doctor') {
+        if (fromProviderType.toLowerCase() == 'chw' &&
+            toProviderType.toLowerCase() == 'doctor') {
           await MessageService.notifyDoctorOfChwReferral(
             referralId: docRef.id,
             chwId: fromProviderId,
@@ -63,7 +62,8 @@ class ReferralService {
             urgency: urgency,
           );
           print('✅ CHW referral notification sent to doctor');
-        } else if (fromProviderType.toLowerCase() == 'doctor' && toProviderType.toLowerCase() == 'doctor') {
+        } else if (fromProviderType.toLowerCase() == 'doctor' &&
+            toProviderType.toLowerCase() == 'doctor') {
           await MessageService.notifyDoctorOfReferral(
             referralId: docRef.id,
             referringDoctorId: fromProviderId,
@@ -108,6 +108,66 @@ class ReferralService {
           .collection('referrals')
           .doc(referralId)
           .update(updateData);
+
+  // Send booking link to patient if approved or accepted, and a short message to the referrer
+  if (status.toLowerCase() == 'approved' || status.toLowerCase() == 'accepted') {
+        final referralDoc = await _firestore.collection('referrals').doc(referralId).get();
+        if (referralDoc.exists) {
+          final data = referralDoc.data() as Map<String, dynamic>;
+          final patientId = data['patientId'] as String?;
+          final patientName = data['patientName'] as String?;
+          final toProviderId = data['toProviderId'] as String?;
+          final toProviderName = data['toProviderName'] as String?;
+          final toProviderType = data['toProviderType'] as String?;
+          final fromProviderId = data['fromProviderId'] as String?;
+          final fromProviderName = data['fromProviderName'] as String?;
+          final fromProviderType = data['fromProviderType'] as String?;
+          if (patientId != null && toProviderId != null && toProviderName != null) {
+            final bookingLink = '/book-appointment?doctorId=$toProviderId&type=specialist_referral';
+            final messageContent =
+              'Your referral to Dr. $toProviderName has been approved.\n\n'
+              'You can book your specialist consultation using this link: $bookingLink\n\n'
+              'Alternatively, you may also book your appointment by going to the "My Referrals" tab and clicking the "Book Appointment" button.';
+            // Get or create conversation between doctor and patient
+            final conversationId = await MessageService.createOrGetConversation(
+              user1Id: toProviderId,
+              user1Name: toProviderName,
+              user1Role: toProviderType ?? 'doctor',
+              user2Id: patientId,
+              user2Name: patientName ?? '',
+              user2Role: 'patient',
+            );
+            await MessageService.sendMessage(
+              conversationId: conversationId,
+              senderId: toProviderId,
+              senderName: toProviderName,
+              senderRole: toProviderType ?? 'doctor',
+              receiverId: patientId,
+              receiverName: patientName ?? '',
+              receiverRole: 'patient',
+              content: messageContent,
+              type: 'referral_notification',
+              priority: 'high',
+            );
+          }
+          // Send a short message to the referrer (CHW or doctor)
+          if (fromProviderId != null && fromProviderName != null && fromProviderType != null && toProviderName != null) {
+            final referrerMessage = 'Your referral to Dr. $toProviderName has been accepted.';
+            await MessageService.sendMessage(
+              conversationId: fromProviderId,
+              senderId: toProviderId ?? '',
+              senderName: toProviderName,
+              senderRole: toProviderType ?? 'doctor',
+              receiverId: fromProviderId,
+              receiverName: fromProviderName,
+              receiverRole: fromProviderType,
+              content: referrerMessage,
+              type: 'referral_update',
+              priority: 'normal',
+            );
+          }
+        }
+      }
     } catch (e) {
       throw Exception('Failed to update referral status: $e');
     }
@@ -125,9 +185,18 @@ class ReferralService {
         .orderBy('createdAt', descending: true);
 
     if (status != null) {
-      query = query.where('status', isEqualTo: status);
+      if (status == 'approved') {
+        // Show both 'approved' and 'accepted' statuses for the approved tab
+        query = query.where('status', whereIn: ['approved', 'accepted']);
+      } else {
+        query = query.where('status', isEqualTo: status);
+      }
     } else if (statusList != null && statusList.isNotEmpty) {
-      query = query.where('status', whereIn: statusList);
+      // If statusList contains 'approved', include both 'approved' and 'accepted'
+      final expandedStatusList = statusList.contains('approved')
+          ? (statusList.toSet()..add('accepted')).toList()
+          : statusList;
+      query = query.where('status', whereIn: expandedStatusList);
     }
 
     return query.snapshots();
@@ -239,10 +308,7 @@ class ReferralService {
     required String notes,
   }) async {
     try {
-      await _firestore
-          .collection('referrals')
-          .doc(referralId)
-          .update({
+      await _firestore.collection('referrals').doc(referralId).update({
         'notes': notes,
         'updatedAt': FieldValue.serverTimestamp(),
       });
@@ -303,7 +369,7 @@ class ReferralService {
       for (final doc in referrals) {
         final data = doc.data() as Map<String, dynamic>;
         final status = data['status'] as String;
-        
+
         switch (status) {
           case 'pending':
             pending++;

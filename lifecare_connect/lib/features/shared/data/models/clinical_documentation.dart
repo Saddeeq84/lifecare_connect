@@ -9,39 +9,39 @@ class ClinicalDocumentation {
   final String providerName;
   final String providerType; // CHW, DOCTOR, NURSE
   final DateTime consultationDate;
-  
+
   // Clinical Assessment
   final String chiefComplaint;
   final HistoryOfPresentIllness hpi;
   final MedicalHistory medicalHistory;
   final SymptomEvaluation symptoms;
-  
+
   // Review of Medical Data
   final List<LabResult> labResults;
   final List<ImagingResult> imagingResults;
   final String? previousEMRNotes;
   final VitalSigns? vitalSigns;
-  
+
   // Diagnosis & Clinical Decision
   final String provisionalDiagnosis;
   final List<String> differentialDiagnoses;
   final List<String> supportiveToolsUsed;
-  
+
   // Treatment & Advice
   final List<Medication> medicationsPrescribed;
   final List<String> nonPharmacologicalAdvice;
   final String homeMonitoringPlan;
   final List<Referral> referralsOrdered;
-  
+
   // Post-consultation Summary
   final FollowUpPlan followUpPlan;
   final List<String> patientEducationProvided;
   final String emergencyAdvice;
-  
+
   // Feedback & Evaluation
   final String? patientFeedback;
   final int? satisfactionRating; // 1-5 scale
-  
+
   // Metadata
   final DateTime createdAt;
   final DateTime? updatedAt;
@@ -87,7 +87,7 @@ class ClinicalDocumentation {
 
   factory ClinicalDocumentation.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    
+
     return ClinicalDocumentation(
       id: doc.id,
       consultationId: data['consultationId'] ?? '',
@@ -108,28 +108,34 @@ class ClinicalDocumentation {
           .map((e) => ImagingResult.fromMap(e as Map<String, dynamic>))
           .toList(),
       previousEMRNotes: data['previousEMRNotes'],
-      vitalSigns: data['vitalSigns'] != null 
+      vitalSigns: data['vitalSigns'] != null
           ? VitalSigns.fromMap(data['vitalSigns'] as Map<String, dynamic>)
           : null,
       provisionalDiagnosis: data['provisionalDiagnosis'] ?? '',
-      differentialDiagnoses: List<String>.from(data['differentialDiagnoses'] ?? []),
+      differentialDiagnoses: List<String>.from(
+        data['differentialDiagnoses'] ?? [],
+      ),
       supportiveToolsUsed: List<String>.from(data['supportiveToolsUsed'] ?? []),
       medicationsPrescribed: (data['medicationsPrescribed'] as List? ?? [])
           .map((e) => Medication.fromMap(e as Map<String, dynamic>))
           .toList(),
-      nonPharmacologicalAdvice: List<String>.from(data['nonPharmacologicalAdvice'] ?? []),
+      nonPharmacologicalAdvice: List<String>.from(
+        data['nonPharmacologicalAdvice'] ?? [],
+      ),
       homeMonitoringPlan: data['homeMonitoringPlan'] ?? '',
       referralsOrdered: (data['referralsOrdered'] as List? ?? [])
           .map((e) => Referral.fromMap(e as Map<String, dynamic>))
           .toList(),
       followUpPlan: FollowUpPlan.fromMap(data['followUpPlan'] ?? {}),
-      patientEducationProvided: List<String>.from(data['patientEducationProvided'] ?? []),
+      patientEducationProvided: List<String>.from(
+        data['patientEducationProvided'] ?? [],
+      ),
       emergencyAdvice: data['emergencyAdvice'] ?? '',
       patientFeedback: data['patientFeedback'],
       satisfactionRating: data['satisfactionRating'],
       createdAt: (data['createdAt'] as Timestamp).toDate(),
-      updatedAt: data['updatedAt'] != null 
-          ? (data['updatedAt'] as Timestamp).toDate() 
+      updatedAt: data['updatedAt'] != null
+          ? (data['updatedAt'] as Timestamp).toDate()
           : null,
       status: data['status'] ?? 'draft',
       attachments: List<String>.from(data['attachments'] ?? []),
@@ -157,7 +163,9 @@ class ClinicalDocumentation {
       'provisionalDiagnosis': provisionalDiagnosis,
       'differentialDiagnoses': differentialDiagnoses,
       'supportiveToolsUsed': supportiveToolsUsed,
-      'medicationsPrescribed': medicationsPrescribed.map((e) => e.toMap()).toList(),
+      'medicationsPrescribed': medicationsPrescribed
+          .map((e) => e.toMap())
+          .toList(),
       'nonPharmacologicalAdvice': nonPharmacologicalAdvice,
       'homeMonitoringPlan': homeMonitoringPlan,
       'referralsOrdered': referralsOrdered.map((e) => e.toMap()).toList(),
@@ -505,7 +513,7 @@ class Referral {
       destination: map['destination'] ?? '',
       reason: map['reason'] ?? '',
       urgency: map['urgency'] ?? '',
-      scheduledDate: map['scheduledDate'] != null 
+      scheduledDate: map['scheduledDate'] != null
           ? (map['scheduledDate'] as Timestamp).toDate()
           : null,
     );
@@ -517,8 +525,8 @@ class Referral {
       'destination': destination,
       'reason': reason,
       'urgency': urgency,
-      'scheduledDate': scheduledDate != null 
-          ? Timestamp.fromDate(scheduledDate!) 
+      'scheduledDate': scheduledDate != null
+          ? Timestamp.fromDate(scheduledDate!)
           : null,
     };
   }
@@ -540,7 +548,7 @@ class FollowUpPlan {
   factory FollowUpPlan.fromMap(Map<String, dynamic> map) {
     return FollowUpPlan(
       nextVisit: map['nextVisit'] ?? '',
-      nextVisitDate: map['nextVisitDate'] != null 
+      nextVisitDate: map['nextVisitDate'] != null
           ? (map['nextVisitDate'] as Timestamp).toDate()
           : null,
       communicationMethod: map['communicationMethod'] ?? '',
@@ -551,8 +559,8 @@ class FollowUpPlan {
   Map<String, dynamic> toMap() {
     return {
       'nextVisit': nextVisit,
-      'nextVisitDate': nextVisitDate != null 
-          ? Timestamp.fromDate(nextVisitDate!) 
+      'nextVisitDate': nextVisitDate != null
+          ? Timestamp.fromDate(nextVisitDate!)
           : null,
       'communicationMethod': communicationMethod,
       'summaryProvided': summaryProvided,

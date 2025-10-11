@@ -47,11 +47,24 @@ class _ContactScreenState extends State<ContactScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.check_circle_outline, color: Colors.teal, size: 60),
+                    Icon(
+                      Icons.check_circle_outline,
+                      color: Colors.teal,
+                      size: 60,
+                    ),
                     SizedBox(height: 18),
-                    Text('Thank you for contacting us!', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    Text(
+                      'Thank you for contacting us!',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     SizedBox(height: 8),
-                    Text('We have received your message and will get back to you soon.', textAlign: TextAlign.center),
+                    Text(
+                      'We have received your message and will get back to you soon.',
+                      textAlign: TextAlign.center,
+                    ),
                   ],
                 ),
               )
@@ -59,9 +72,19 @@ class _ContactScreenState extends State<ContactScreen> {
                 key: _formKey,
                 child: ListView(
                   children: [
-                    const Text('Contact Us', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.teal)),
+                    const Text(
+                      'Contact Us',
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.teal,
+                      ),
+                    ),
                     const SizedBox(height: 18),
-                    const Text('For any inquiries, please fill out the form below.', style: TextStyle(fontSize: 16)),
+                    const Text(
+                      'For any inquiries, please fill out the form below.',
+                      style: TextStyle(fontSize: 16),
+                    ),
                     const SizedBox(height: 24),
                     TextFormField(
                       controller: _nameController,
@@ -88,7 +111,9 @@ class _ContactScreenState extends State<ContactScreen> {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your email';
                         }
-                        if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+').hasMatch(value)) {
+                        if (!RegExp(
+                          r'^[^@\s]+@[^@\s]+\.[^@\s]+',
+                        ).hasMatch(value)) {
                           return 'Please enter a valid email address';
                         }
                         return null;
@@ -116,7 +141,10 @@ class _ContactScreenState extends State<ContactScreen> {
                         backgroundColor: Colors.teal,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       child: const Text('Send Message'),
                     ),

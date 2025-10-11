@@ -9,7 +9,11 @@ class MaterialViewerScreen extends StatelessWidget {
   final String url;
   final String type;
 
-  const MaterialViewerScreen({super.key, required this.url, required this.type});
+  const MaterialViewerScreen({
+    super.key,
+    required this.url,
+    required this.type,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -21,22 +25,25 @@ class MaterialViewerScreen extends StatelessWidget {
       body: type == 'pdf'
           ? SfPdfViewer.network(url)
           : type == 'video'
-              ? VideoPlayerWidget(videoUrl: url)
-              : Center(
-                  child: ElevatedButton.icon(
-                    onPressed: () async {
-                      if (await canLaunchUrl(Uri.parse(url))) {
-                        launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('❌ Cannot open URL')),
-                        );
-                      }
-                    },
-                    icon: const Icon(Icons.open_in_browser),
-                    label: const Text("Open in Browser"),
-                  ),
-                ),
+          ? VideoPlayerWidget(videoUrl: url)
+          : Center(
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  if (await canLaunchUrl(Uri.parse(url))) {
+                    launchUrl(
+                      Uri.parse(url),
+                      mode: LaunchMode.externalApplication,
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('❌ Cannot open URL')),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.open_in_browser),
+                label: const Text("Open in Browser"),
+              ),
+            ),
     );
   }
 }
@@ -101,7 +108,9 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                     children: [
                       IconButton(
                         icon: Icon(
-                          _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                          _controller.value.isPlaying
+                              ? Icons.pause
+                              : Icons.play_arrow,
                           color: Colors.white,
                           size: 32,
                         ),

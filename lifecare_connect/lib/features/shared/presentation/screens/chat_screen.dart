@@ -50,13 +50,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _loadUserInfo() async {
     if (_currentUserId == null) return;
-    
+
     try {
       final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(_currentUserId!)
           .get();
-      
+
       if (userDoc.exists) {
         final userData = userDoc.data() as Map<String, dynamic>;
         setState(() {
@@ -78,14 +78,14 @@ class _ChatScreenState extends State<ChatScreen> {
         final messages = snapshot.docs
             .map((doc) => Message.fromFirestore(doc))
             .toList();
-        
+
         messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-        
+
         setState(() {
           _messages = messages;
           _isLoading = false;
         });
-        
+
         // Auto-scroll to bottom when new messages arrive
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (_scrollController.hasClients) {
@@ -112,7 +112,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _markConversationAsRead() async {
     if (_currentUserId == null) return;
-    
+
     try {
       await MessageService.markConversationAsRead(
         conversationId: widget.conversationId,
@@ -126,9 +126,9 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _sendMessage() async {
     final content = _messageController.text.trim();
     if (content.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Message cannot be empty.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Message cannot be empty.')));
       return;
     }
     if (_isSending || _currentUserId == null) return;
@@ -139,23 +139,29 @@ class _ChatScreenState extends State<ChatScreen> {
 
     try {
       // Get conversation to find receiver details
-      final conversation = await MessageService.getConversationById(widget.conversationId);
+      final conversation = await MessageService.getConversationById(
+        widget.conversationId,
+      );
       if (conversation == null || conversation.participantIds.length < 2) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Conversation not found or participants missing.')),
+            const SnackBar(
+              content: Text('Conversation not found or participants missing.'),
+            ),
           );
         }
         return;
       }
 
-      final receiverId = conversation.participantIds
-          .firstWhere((id) => id != _currentUserId, orElse: () => '');
+      final receiverId = conversation.participantIds.firstWhere(
+        (id) => id != _currentUserId,
+        orElse: () => '',
+      );
       if (receiverId.isEmpty) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Receiver not found.')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Receiver not found.')));
         }
         return;
       }
@@ -175,15 +181,15 @@ class _ChatScreenState extends State<ChatScreen> {
 
       _messageController.clear();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Message sent.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Message sent.')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to send message: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to send message: $e')));
       }
     } finally {
       setState(() {
@@ -222,14 +228,18 @@ class _ChatScreenState extends State<ChatScreen> {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 2, horizontal: 16),
       child: Row(
-        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isMe
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         children: [
           if (!isMe) ...[
             CircleAvatar(
               radius: 16,
               backgroundColor: _getRoleColor(message.senderRole),
               child: Text(
-                message.senderName.isNotEmpty ? message.senderName[0].toUpperCase() : '?',
+                message.senderName.isNotEmpty
+                    ? message.senderName[0].toUpperCase()
+                    : '?',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 12,
@@ -290,8 +300,8 @@ class _ChatScreenState extends State<ChatScreen> {
                           message.isRead
                               ? Icons.done_all
                               : message.isDelivered
-                                  ? Icons.done_all
-                                  : Icons.done,
+                              ? Icons.done_all
+                              : Icons.done,
                           size: 14,
                           color: message.isRead
                               ? Colors.blue[200]
@@ -310,7 +320,9 @@ class _ChatScreenState extends State<ChatScreen> {
               radius: 16,
               backgroundColor: _getRoleColor(_currentUserRole ?? ''),
               child: Text(
-                (_currentUserName?.isNotEmpty == true) ? _currentUserName![0].toUpperCase() : '?',
+                (_currentUserName?.isNotEmpty == true)
+                    ? _currentUserName![0].toUpperCase()
+                    : '?',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 12,
@@ -385,41 +397,40 @@ class _ChatScreenState extends State<ChatScreen> {
             child: _isLoading
                 ? Center(child: CircularProgressIndicator())
                 : _messages.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.chat_bubble_outline,
-                              size: 64,
-                              color: Colors.grey,
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              'No messages yet',
-                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                    color: Colors.grey,
-                                  ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'Start the conversation!',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Colors.grey,
-                                  ),
-                            ),
-                          ],
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.chat_bubble_outline,
+                          size: 64,
+                          color: Colors.grey,
                         ),
-                      )
-                    : ListView.builder(
-                        controller: _scrollController,
-                        itemCount: _messages.length,
-                        itemBuilder: (context, index) {
-                          return _buildMessageBubble(_messages[index]);
-                        },
-                      ),
+                        SizedBox(height: 16),
+                        Text(
+                          'No messages yet',
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(color: Colors.grey),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Start the conversation!',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    controller: _scrollController,
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      return _buildMessageBubble(_messages[index]);
+                    },
+                  ),
           ),
-          
+
           // Message input
           Container(
             padding: EdgeInsets.all(16),
@@ -466,7 +477,9 @@ class _ChatScreenState extends State<ChatScreen> {
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
                             ),
                           )
                         : Icon(Icons.send, color: Colors.white),
@@ -521,7 +534,9 @@ class _ChatScreenState extends State<ChatScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Clear Chat'),
-        content: Text('This will clear all messages in this chat. This action cannot be undone.'),
+        content: Text(
+          'This will clear all messages in this chat. This action cannot be undone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),

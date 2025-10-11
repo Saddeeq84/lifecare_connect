@@ -8,17 +8,17 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      
+
       // Color Scheme
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.primary,
         brightness: Brightness.light,
       ),
-      
+
       // Primary Swatch
       primarySwatch: _createMaterialColor(AppColors.primary),
       primaryColor: AppColors.primary,
-      
+
       // App Bar Theme
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.primary,
@@ -31,7 +31,7 @@ class AppTheme {
           color: AppColors.white,
         ),
       ),
-      
+
       // Elevated Button Theme
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -39,28 +39,24 @@ class AppTheme {
           foregroundColor: AppColors.white,
           elevation: 2,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           textStyle: AppTextStyles.buttonMedium,
         ),
       ),
-      
+
       // Outlined Button Theme
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
           side: const BorderSide(color: AppColors.primary),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           textStyle: AppTextStyles.buttonMedium.copyWith(
             color: AppColors.primary,
           ),
         ),
       ),
-      
+
       // Text Button Theme
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
@@ -71,7 +67,7 @@ class AppTheme {
           ),
         ),
       ),
-      
+
       // Input Decoration Theme
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -92,14 +88,17 @@ class AppTheme {
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: AppColors.error),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
         hintStyle: AppTextStyles.bodyMedium.copyWith(
           color: AppColors.textSecondary,
         ),
         labelStyle: AppTextStyles.label,
       ),
-      
-            // Card Theme
+
+      // Card Theme
       cardTheme: const CardThemeData(
         elevation: 2,
         shape: RoundedRectangleBorder(
@@ -107,13 +106,13 @@ class AppTheme {
         ),
         color: AppColors.surface,
       ),
-      
+
       // Scaffold Background
       scaffoldBackgroundColor: AppColors.scaffoldBackground,
-      
+
       // Font Family
       fontFamily: 'OpenSans',
-      
+
       // Text Theme
       textTheme: const TextTheme(
         displayLarge: AppTextStyles.h1,
@@ -128,18 +127,15 @@ class AppTheme {
         labelLarge: AppTextStyles.label,
         labelMedium: AppTextStyles.caption,
       ),
-      
+
       // Icon Theme
-      iconTheme: const IconThemeData(
-        color: AppColors.textPrimary,
-        size: 24,
-      ),
-      
+      iconTheme: const IconThemeData(color: AppColors.textPrimary, size: 24),
+
       // Progress Indicator Theme
       progressIndicatorTheme: const ProgressIndicatorThemeData(
         color: AppColors.primary,
       ),
-      
+
       // Floating Action Button Theme
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: AppColors.primary,
@@ -147,23 +143,23 @@ class AppTheme {
       ),
     );
   }
-  
+
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      
+
       // Color Scheme
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.primary,
         brightness: Brightness.dark,
       ),
-      
+
       // Add dark theme customizations here
       fontFamily: 'OpenSans',
     );
   }
-  
+
   static MaterialColor _createMaterialColor(Color color) {
     List strengths = <double>[.05];
     Map<int, Color> swatch = {};

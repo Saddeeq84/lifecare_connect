@@ -5,7 +5,8 @@ import 'patient_facility_booking_screen.dart';
 class FacilityListScreen extends StatelessWidget {
   final String categoryType;
   final String categoryLabel;
-  final void Function(String facilityId, Map<String, dynamic> facilityData)? onFacilitySelected;
+  final void Function(String facilityId, Map<String, dynamic> facilityData)?
+  onFacilitySelected;
 
   const FacilityListScreen({
     super.key,
@@ -38,7 +39,9 @@ class FacilityListScreen extends StatelessWidget {
           final facilities = snapshot.data?.docs ?? [];
 
           if (facilities.isEmpty) {
-            return const Center(child: Text('No facilities found in this category.'));
+            return const Center(
+              child: Text('No facilities found in this category.'),
+            );
           }
 
           return ListView.builder(
@@ -58,10 +61,18 @@ class FacilityListScreen extends StatelessWidget {
                   leading: logoUrl.isNotEmpty
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(6),
-                          child: Image.network(logoUrl, width: 48, height: 48, fit: BoxFit.cover),
+                          child: Image.network(
+                            logoUrl,
+                            width: 48,
+                            height: 48,
+                            fit: BoxFit.cover,
+                          ),
                         )
                       : const Icon(Icons.local_hospital, color: Colors.green),
-                  title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  title: Text(
+                    name,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   subtitle: Text('$address\n📞 $contact'),
                   isThreeLine: true,
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
@@ -89,6 +100,7 @@ class FacilityListScreen extends StatelessWidget {
     );
   }
 }
+
 // -------------------- End of Facility List Screen --------------------
 // This code provides a dynamic list of facilities based on category type, allowing users to view details
 // and book appointments directly from the list.

@@ -20,7 +20,7 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
   late TabController _tabController;
   bool isLoading = true;
   String? currentUserId;
-  
+
   // Analytics Data
   Map<String, int> userStats = {};
   Map<String, int> activityStats = {};
@@ -28,11 +28,13 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
   List<Map<String, dynamic>> recentActivities = [];
   List<Map<String, dynamic>> recentAppointments = [];
   List<Map<String, dynamic>> recentReferrals = [];
-  
+
   // Date Range Selection
-  DateTime selectedStartDate = DateTime.now().subtract(const Duration(days: 30));
+  DateTime selectedStartDate = DateTime.now().subtract(
+    const Duration(days: 30),
+  );
   DateTime selectedEndDate = DateTime.now();
-  
+
   @override
   void initState() {
     super.initState();
@@ -49,7 +51,7 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
 
   Future<void> _loadAnalytics() async {
     setState(() => isLoading = true);
-    
+
     try {
       await Future.wait([
         _loadUserStatistics(),
@@ -62,9 +64,9 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
     } catch (e) {
       print('Error loading analytics: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading analytics: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading analytics: $e')));
       }
     } finally {
       if (mounted) {
@@ -86,15 +88,28 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
       // New users this month
       final newUsersSnapshot = await FirebaseFirestore.instance
           .collection('users')
-          .where('created_at', isGreaterThanOrEqualTo: Timestamp.fromDate(thisMonth))
+          .where(
+            'created_at',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(thisMonth),
+          )
           .get();
 
       // Users by role
-      final adminCount = usersSnapshot.docs.where((doc) => doc.data()['role'] == 'admin').length;
-      final doctorCount = usersSnapshot.docs.where((doc) => doc.data()['role'] == 'doctor').length;
-      final chwCount = usersSnapshot.docs.where((doc) => doc.data()['role'] == 'chw').length;
-      final patientCount = usersSnapshot.docs.where((doc) => doc.data()['role'] == 'patient').length;
-      final facilityCount = usersSnapshot.docs.where((doc) => doc.data()['role'] == 'facility').length;
+      final adminCount = usersSnapshot.docs
+          .where((doc) => doc.data()['role'] == 'admin')
+          .length;
+      final doctorCount = usersSnapshot.docs
+          .where((doc) => doc.data()['role'] == 'doctor')
+          .length;
+      final chwCount = usersSnapshot.docs
+          .where((doc) => doc.data()['role'] == 'chw')
+          .length;
+      final patientCount = usersSnapshot.docs
+          .where((doc) => doc.data()['role'] == 'patient')
+          .length;
+      final facilityCount = usersSnapshot.docs
+          .where((doc) => doc.data()['role'] == 'facility')
+          .length;
 
       setState(() {
         userStats = {
@@ -124,7 +139,10 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
 
       final monthlyAppointments = await FirebaseFirestore.instance
           .collection('appointments')
-          .where('created_at', isGreaterThanOrEqualTo: Timestamp.fromDate(thisMonth))
+          .where(
+            'created_at',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(thisMonth),
+          )
           .get();
 
       // Consultations
@@ -134,7 +152,10 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
 
       final monthlyConsultations = await FirebaseFirestore.instance
           .collection('consultations')
-          .where('created_at', isGreaterThanOrEqualTo: Timestamp.fromDate(thisMonth))
+          .where(
+            'created_at',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(thisMonth),
+          )
           .get();
 
       // Referrals
@@ -144,7 +165,10 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
 
       final monthlyReferrals = await FirebaseFirestore.instance
           .collection('referrals')
-          .where('created_at', isGreaterThanOrEqualTo: Timestamp.fromDate(thisMonth))
+          .where(
+            'created_at',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(thisMonth),
+          )
           .get();
 
       setState(() {
@@ -201,51 +225,81 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
       for (var doc in facilitiesSnapshot.docs) {
         final data = doc.data();
         final type = data['type']?.toString().toLowerCase() ?? '';
-        
+
         if (type.contains('hospital')) {
-          facilityCategoriesFromHealthFacilities['hospitals'] = facilityCategoriesFromHealthFacilities['hospitals']! + 1;
+          facilityCategoriesFromHealthFacilities['hospitals'] =
+              facilityCategoriesFromHealthFacilities['hospitals']! + 1;
         } else if (type.contains('laboratory') || type.contains('lab')) {
-          facilityCategoriesFromHealthFacilities['laboratories'] = facilityCategoriesFromHealthFacilities['laboratories']! + 1;
+          facilityCategoriesFromHealthFacilities['laboratories'] =
+              facilityCategoriesFromHealthFacilities['laboratories']! + 1;
         } else if (type.contains('pharmacy') || type.contains('drug')) {
-          facilityCategoriesFromHealthFacilities['pharmacies'] = facilityCategoriesFromHealthFacilities['pharmacies']! + 1;
-        } else if (type.contains('scan') || type.contains('imaging') || type.contains('radiology')) {
-          facilityCategoriesFromHealthFacilities['scan_centers'] = facilityCategoriesFromHealthFacilities['scan_centers']! + 1;
+          facilityCategoriesFromHealthFacilities['pharmacies'] =
+              facilityCategoriesFromHealthFacilities['pharmacies']! + 1;
+        } else if (type.contains('scan') ||
+            type.contains('imaging') ||
+            type.contains('radiology')) {
+          facilityCategoriesFromHealthFacilities['scan_centers'] =
+              facilityCategoriesFromHealthFacilities['scan_centers']! + 1;
         } else {
-          facilityCategoriesFromHealthFacilities['others'] = facilityCategoriesFromHealthFacilities['others']! + 1;
+          facilityCategoriesFromHealthFacilities['others'] =
+              facilityCategoriesFromHealthFacilities['others']! + 1;
         }
       }
 
       // Process users with role 'facility'
       for (var doc in facilityUsersSnapshot.docs) {
         final data = doc.data();
-        final facilityType = data['facilityType']?.toString().toLowerCase() ?? 
-                           data['type']?.toString().toLowerCase() ?? '';
-        
+        final facilityType =
+            data['facilityType']?.toString().toLowerCase() ??
+            data['type']?.toString().toLowerCase() ??
+            '';
+
         if (facilityType.contains('hospital')) {
-          facilityCategoriesFromUsers['hospitals'] = facilityCategoriesFromUsers['hospitals']! + 1;
-        } else if (facilityType.contains('laboratory') || facilityType.contains('lab')) {
-          facilityCategoriesFromUsers['laboratories'] = facilityCategoriesFromUsers['laboratories']! + 1;
-        } else if (facilityType.contains('pharmacy') || facilityType.contains('drug')) {
-          facilityCategoriesFromUsers['pharmacies'] = facilityCategoriesFromUsers['pharmacies']! + 1;
-        } else if (facilityType.contains('scan') || facilityType.contains('imaging') || facilityType.contains('radiology')) {
-          facilityCategoriesFromUsers['scan_centers'] = facilityCategoriesFromUsers['scan_centers']! + 1;
+          facilityCategoriesFromUsers['hospitals'] =
+              facilityCategoriesFromUsers['hospitals']! + 1;
+        } else if (facilityType.contains('laboratory') ||
+            facilityType.contains('lab')) {
+          facilityCategoriesFromUsers['laboratories'] =
+              facilityCategoriesFromUsers['laboratories']! + 1;
+        } else if (facilityType.contains('pharmacy') ||
+            facilityType.contains('drug')) {
+          facilityCategoriesFromUsers['pharmacies'] =
+              facilityCategoriesFromUsers['pharmacies']! + 1;
+        } else if (facilityType.contains('scan') ||
+            facilityType.contains('imaging') ||
+            facilityType.contains('radiology')) {
+          facilityCategoriesFromUsers['scan_centers'] =
+              facilityCategoriesFromUsers['scan_centers']! + 1;
         } else if (facilityType.isNotEmpty) {
-          facilityCategoriesFromUsers['others'] = facilityCategoriesFromUsers['others']! + 1;
+          facilityCategoriesFromUsers['others'] =
+              facilityCategoriesFromUsers['others']! + 1;
         }
       }
 
       // Combine counts from both sources
       Map<String, int> combinedFacilityCategories = {
-        'hospitals': facilityCategoriesFromHealthFacilities['hospitals']! + facilityCategoriesFromUsers['hospitals']!,
-        'laboratories': facilityCategoriesFromHealthFacilities['laboratories']! + facilityCategoriesFromUsers['laboratories']!,
-        'pharmacies': facilityCategoriesFromHealthFacilities['pharmacies']! + facilityCategoriesFromUsers['pharmacies']!,
-        'scan_centers': facilityCategoriesFromHealthFacilities['scan_centers']! + facilityCategoriesFromUsers['scan_centers']!,
-        'others': facilityCategoriesFromHealthFacilities['others']! + facilityCategoriesFromUsers['others']!,
+        'hospitals':
+            facilityCategoriesFromHealthFacilities['hospitals']! +
+            facilityCategoriesFromUsers['hospitals']!,
+        'laboratories':
+            facilityCategoriesFromHealthFacilities['laboratories']! +
+            facilityCategoriesFromUsers['laboratories']!,
+        'pharmacies':
+            facilityCategoriesFromHealthFacilities['pharmacies']! +
+            facilityCategoriesFromUsers['pharmacies']!,
+        'scan_centers':
+            facilityCategoriesFromHealthFacilities['scan_centers']! +
+            facilityCategoriesFromUsers['scan_centers']!,
+        'others':
+            facilityCategoriesFromHealthFacilities['others']! +
+            facilityCategoriesFromUsers['others']!,
       };
 
       setState(() {
         healthcareStats = {
-          'totalFacilities': facilitiesSnapshot.docs.length + facilityUsersSnapshot.docs.length,
+          'totalFacilities':
+              facilitiesSnapshot.docs.length +
+              facilityUsersSnapshot.docs.length,
           'totalTrainings': trainingsSnapshot.docs.length,
           'facilityCategories': combinedFacilityCategories,
         };
@@ -433,12 +487,42 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
               mainAxisSpacing: 16,
               childAspectRatio: 2.5,
               children: [
-                _buildStatCard('Total Users', userStats['total'] ?? 0, Icons.group, Colors.blue),
-                _buildStatCard('New This Month', userStats['newThisMonth'] ?? 0, Icons.person_add, Colors.green),
-                _buildStatCard('Doctors', userStats['doctors'] ?? 0, Icons.medical_services, Colors.red),
-                _buildStatCard('CHWs', userStats['chws'] ?? 0, Icons.health_and_safety, Colors.orange),
-                _buildStatCard('Patients', userStats['patients'] ?? 0, Icons.personal_injury, Colors.purple),
-                _buildStatCard('Facilities', userStats['facilities'] ?? 0, Icons.local_hospital, Colors.teal),
+                _buildStatCard(
+                  'Total Users',
+                  userStats['total'] ?? 0,
+                  Icons.group,
+                  Colors.blue,
+                ),
+                _buildStatCard(
+                  'New This Month',
+                  userStats['newThisMonth'] ?? 0,
+                  Icons.person_add,
+                  Colors.green,
+                ),
+                _buildStatCard(
+                  'Doctors',
+                  userStats['doctors'] ?? 0,
+                  Icons.medical_services,
+                  Colors.red,
+                ),
+                _buildStatCard(
+                  'CHWs',
+                  userStats['chws'] ?? 0,
+                  Icons.health_and_safety,
+                  Colors.orange,
+                ),
+                _buildStatCard(
+                  'Patients',
+                  userStats['patients'] ?? 0,
+                  Icons.personal_injury,
+                  Colors.purple,
+                ),
+                _buildStatCard(
+                  'Facilities',
+                  userStats['facilities'] ?? 0,
+                  Icons.local_hospital,
+                  Colors.teal,
+                ),
               ],
             ),
           ],
@@ -477,12 +561,42 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
               mainAxisSpacing: 16,
               childAspectRatio: 2.5,
               children: [
-                _buildStatCard('Total Appointments', activityStats['totalAppointments'] ?? 0, Icons.calendar_today, Colors.blue),
-                _buildStatCard('Monthly Appointments', activityStats['monthlyAppointments'] ?? 0, Icons.today, Colors.green),
-                _buildStatCard('Total Consultations', activityStats['totalConsultations'] ?? 0, Icons.medical_services, Colors.red),
-                _buildStatCard('Monthly Consultations', activityStats['monthlyConsultations'] ?? 0, Icons.healing, Colors.orange),
-                _buildStatCard('Total Referrals', activityStats['totalReferrals'] ?? 0, Icons.compare_arrows, Colors.purple),
-                _buildStatCard('Monthly Referrals', activityStats['monthlyReferrals'] ?? 0, Icons.arrow_forward, Colors.teal),
+                _buildStatCard(
+                  'Total Appointments',
+                  activityStats['totalAppointments'] ?? 0,
+                  Icons.calendar_today,
+                  Colors.blue,
+                ),
+                _buildStatCard(
+                  'Monthly Appointments',
+                  activityStats['monthlyAppointments'] ?? 0,
+                  Icons.today,
+                  Colors.green,
+                ),
+                _buildStatCard(
+                  'Total Consultations',
+                  activityStats['totalConsultations'] ?? 0,
+                  Icons.medical_services,
+                  Colors.red,
+                ),
+                _buildStatCard(
+                  'Monthly Consultations',
+                  activityStats['monthlyConsultations'] ?? 0,
+                  Icons.healing,
+                  Colors.orange,
+                ),
+                _buildStatCard(
+                  'Total Referrals',
+                  activityStats['totalReferrals'] ?? 0,
+                  Icons.compare_arrows,
+                  Colors.purple,
+                ),
+                _buildStatCard(
+                  'Monthly Referrals',
+                  activityStats['monthlyReferrals'] ?? 0,
+                  Icons.arrow_forward,
+                  Colors.teal,
+                ),
               ],
             ),
           ],
@@ -492,8 +606,9 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
   }
 
   Widget _buildHealthcareStatistics() {
-    final facilityCategories = healthcareStats['facilityCategories'] as Map<String, int>? ?? {};
-    
+    final facilityCategories =
+        healthcareStats['facilityCategories'] as Map<String, int>? ?? {};
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -515,32 +630,32 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Total facilities and trainings
             Row(
               children: [
                 Expanded(
                   child: _buildStatCard(
-                    'Total Facilities', 
-                    healthcareStats['totalFacilities'] ?? 0, 
-                    Icons.local_hospital, 
-                    Colors.teal
+                    'Total Facilities',
+                    healthcareStats['totalFacilities'] ?? 0,
+                    Icons.local_hospital,
+                    Colors.teal,
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: _buildStatCard(
-                    'Training Programs', 
-                    healthcareStats['totalTrainings'] ?? 0, 
-                    Icons.school, 
-                    Colors.green
+                    'Training Programs',
+                    healthcareStats['totalTrainings'] ?? 0,
+                    Icons.school,
+                    Colors.green,
                   ),
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Facility categories
             Text(
               'Facility Categories',
@@ -551,7 +666,7 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
               ),
             ),
             const SizedBox(height: 12),
-            
+
             GridView.count(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -561,40 +676,40 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
               childAspectRatio: 2.8,
               children: [
                 _buildStatCard(
-                  'Hospitals', 
-                  facilityCategories['hospitals'] ?? 0, 
-                  Icons.local_hospital, 
-                  Colors.red
+                  'Hospitals',
+                  facilityCategories['hospitals'] ?? 0,
+                  Icons.local_hospital,
+                  Colors.red,
                 ),
                 _buildStatCard(
-                  'Laboratories', 
-                  facilityCategories['laboratories'] ?? 0, 
-                  Icons.biotech, 
-                  Colors.purple
+                  'Laboratories',
+                  facilityCategories['laboratories'] ?? 0,
+                  Icons.biotech,
+                  Colors.purple,
                 ),
                 _buildStatCard(
-                  'Pharmacies', 
-                  facilityCategories['pharmacies'] ?? 0, 
-                  Icons.local_pharmacy, 
-                  Colors.orange
+                  'Pharmacies',
+                  facilityCategories['pharmacies'] ?? 0,
+                  Icons.local_pharmacy,
+                  Colors.orange,
                 ),
                 _buildStatCard(
-                  'Scan Centers', 
-                  facilityCategories['scan_centers'] ?? 0, 
-                  Icons.medical_services, 
-                  Colors.blue
+                  'Scan Centers',
+                  facilityCategories['scan_centers'] ?? 0,
+                  Icons.medical_services,
+                  Colors.blue,
                 ),
               ],
             ),
-            
+
             // Others category if there are any
             if ((facilityCategories['others'] ?? 0) > 0) ...[
               const SizedBox(height: 12),
               _buildStatCard(
-                'Other Facilities', 
-                facilityCategories['others'] ?? 0, 
-                Icons.business, 
-                Colors.grey
+                'Other Facilities',
+                facilityCategories['others'] ?? 0,
+                Icons.business,
+                Colors.grey,
               ),
             ],
           ],
@@ -641,7 +756,9 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
                       final activity = recentActivities[index];
                       final timestamp = activity['timestamp'] as Timestamp?;
                       final timeString = timestamp != null
-                          ? DateFormat('MMM dd, yyyy - HH:mm').format(timestamp.toDate())
+                          ? DateFormat(
+                              'MMM dd, yyyy - HH:mm',
+                            ).format(timestamp.toDate())
                           : 'Unknown time';
 
                       return ListTile(
@@ -687,7 +804,11 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.calendar_today, color: Colors.teal, size: 24),
+                    const Icon(
+                      Icons.calendar_today,
+                      color: Colors.teal,
+                      size: 24,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       'Appointments Management',
@@ -707,32 +828,32 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Quick stats
             Row(
               children: [
                 Expanded(
                   child: _buildStatCard(
-                    'Total', 
-                    activityStats['totalAppointments'] ?? 0, 
-                    Icons.calendar_today, 
-                    Colors.blue
+                    'Total',
+                    activityStats['totalAppointments'] ?? 0,
+                    Icons.calendar_today,
+                    Colors.blue,
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: _buildStatCard(
-                    'This Month', 
-                    activityStats['monthlyAppointments'] ?? 0, 
-                    Icons.today, 
-                    Colors.green
+                    'This Month',
+                    activityStats['monthlyAppointments'] ?? 0,
+                    Icons.today,
+                    Colors.green,
                   ),
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Recent appointments list
             Text(
               'Recent Appointments',
@@ -743,7 +864,7 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
               ),
             ),
             const SizedBox(height: 12),
-            
+
             recentAppointments.isEmpty
                 ? const Center(
                     child: Text(
@@ -755,16 +876,20 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: recentAppointments.take(5).length,
-                    separatorBuilder: (context, index) => const Divider(height: 1),
+                    separatorBuilder: (context, index) =>
+                        const Divider(height: 1),
                     itemBuilder: (context, index) {
                       final appointment = recentAppointments[index];
-                      final appointmentDate = appointment['appointmentDate'] as Timestamp?;
-                      
+                      final appointmentDate =
+                          appointment['appointmentDate'] as Timestamp?;
+
                       return ListTile(
                         dense: true,
                         leading: CircleAvatar(
                           radius: 20,
-                          backgroundColor: _getStatusColor(appointment['status']).withOpacity(0.1),
+                          backgroundColor: _getStatusColor(
+                            appointment['status'],
+                          ).withOpacity(0.1),
                           child: Icon(
                             Icons.calendar_today,
                             color: _getStatusColor(appointment['status']),
@@ -773,13 +898,22 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
                         ),
                         title: Text(
                           appointment['patientName'],
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Doctor: ${appointment['doctorName']}', style: const TextStyle(fontSize: 12)),
-                            Text('Type: ${appointment['type']}', style: const TextStyle(fontSize: 12)),
+                            Text(
+                              'Doctor: ${appointment['doctorName']}',
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            Text(
+                              'Type: ${appointment['type']}',
+                              style: const TextStyle(fontSize: 12),
+                            ),
                             if (appointmentDate != null)
                               Text(
                                 'Date: ${DateFormat('MMM dd, yyyy').format(appointmentDate.toDate())}',
@@ -788,11 +922,20 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
                           ],
                         ),
                         trailing: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
-                            color: _getStatusColor(appointment['status']).withOpacity(0.1),
+                            color: _getStatusColor(
+                              appointment['status'],
+                            ).withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: _getStatusColor(appointment['status']).withOpacity(0.3)),
+                            border: Border.all(
+                              color: _getStatusColor(
+                                appointment['status'],
+                              ).withOpacity(0.3),
+                            ),
                           ),
                           child: Text(
                             appointment['status'].toString().toUpperCase(),
@@ -824,7 +967,11 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.compare_arrows, color: Colors.teal, size: 24),
+                    const Icon(
+                      Icons.compare_arrows,
+                      color: Colors.teal,
+                      size: 24,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       'Referrals Management',
@@ -844,32 +991,32 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Quick stats
             Row(
               children: [
                 Expanded(
                   child: _buildStatCard(
-                    'Total', 
-                    activityStats['totalReferrals'] ?? 0, 
-                    Icons.compare_arrows, 
-                    Colors.purple
+                    'Total',
+                    activityStats['totalReferrals'] ?? 0,
+                    Icons.compare_arrows,
+                    Colors.purple,
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: _buildStatCard(
-                    'This Month', 
-                    activityStats['monthlyReferrals'] ?? 0, 
-                    Icons.arrow_forward, 
-                    Colors.teal
+                    'This Month',
+                    activityStats['monthlyReferrals'] ?? 0,
+                    Icons.arrow_forward,
+                    Colors.teal,
                   ),
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Recent referrals list
             Text(
               'Recent Referrals',
@@ -880,7 +1027,7 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
               ),
             ),
             const SizedBox(height: 12),
-            
+
             recentReferrals.isEmpty
                 ? const Center(
                     child: Text(
@@ -892,16 +1039,19 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: recentReferrals.take(5).length,
-                    separatorBuilder: (context, index) => const Divider(height: 1),
+                    separatorBuilder: (context, index) =>
+                        const Divider(height: 1),
                     itemBuilder: (context, index) {
                       final referral = recentReferrals[index];
                       final createdAt = referral['createdAt'] as Timestamp?;
-                      
+
                       return ListTile(
                         dense: true,
                         leading: CircleAvatar(
                           radius: 20,
-                          backgroundColor: _getUrgencyColor(referral['urgency']).withOpacity(0.1),
+                          backgroundColor: _getUrgencyColor(
+                            referral['urgency'],
+                          ).withOpacity(0.1),
                           child: Icon(
                             Icons.compare_arrows,
                             color: _getUrgencyColor(referral['urgency']),
@@ -910,14 +1060,26 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
                         ),
                         title: Text(
                           referral['patientName'],
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('From: ${referral['fromProvider']}', style: const TextStyle(fontSize: 12)),
-                            Text('To: ${referral['toFacility']}', style: const TextStyle(fontSize: 12)),
-                            Text('Reason: ${referral['reason']}', style: const TextStyle(fontSize: 12)),
+                            Text(
+                              'From: ${referral['fromProvider']}',
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            Text(
+                              'To: ${referral['toFacility']}',
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            Text(
+                              'Reason: ${referral['reason']}',
+                              style: const TextStyle(fontSize: 12),
+                            ),
                             if (createdAt != null)
                               Text(
                                 'Date: ${DateFormat('MMM dd, yyyy').format(createdAt.toDate())}',
@@ -929,11 +1091,20 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
-                                color: _getStatusColor(referral['status']).withOpacity(0.1),
+                                color: _getStatusColor(
+                                  referral['status'],
+                                ).withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: _getStatusColor(referral['status']).withOpacity(0.3)),
+                                border: Border.all(
+                                  color: _getStatusColor(
+                                    referral['status'],
+                                  ).withOpacity(0.3),
+                                ),
                               ),
                               child: Text(
                                 referral['status'].toString().toUpperCase(),
@@ -946,11 +1117,20 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
                             ),
                             const SizedBox(height: 4),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
-                                color: _getUrgencyColor(referral['urgency']).withOpacity(0.1),
+                                color: _getUrgencyColor(
+                                  referral['urgency'],
+                                ).withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: _getUrgencyColor(referral['urgency']).withOpacity(0.3)),
+                                border: Border.all(
+                                  color: _getUrgencyColor(
+                                    referral['urgency'],
+                                  ).withOpacity(0.3),
+                                ),
                               ),
                               child: Text(
                                 referral['urgency'].toString().toUpperCase(),
@@ -1083,10 +1263,7 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen>
           ),
           Text(
             title,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[700],
-            ),
+            style: TextStyle(fontSize: 12, color: Colors.grey[700]),
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,

@@ -10,10 +10,11 @@ class DoctorAnalyticsScreen extends StatefulWidget {
   State<DoctorAnalyticsScreen> createState() => _DoctorAnalyticsScreenState();
 }
 
-class _DoctorAnalyticsScreenState extends State<DoctorAnalyticsScreen> with TickerProviderStateMixin {
+class _DoctorAnalyticsScreenState extends State<DoctorAnalyticsScreen>
+    with TickerProviderStateMixin {
   late TabController _tabController;
   final String currentDoctorId = FirebaseAuth.instance.currentUser?.uid ?? '';
-  
+
   @override
   void initState() {
     super.initState();
@@ -43,18 +44,9 @@ class _DoctorAnalyticsScreenState extends State<DoctorAnalyticsScreen> with Tick
           unselectedLabelColor: Colors.white70,
           indicatorColor: Colors.white,
           tabs: const [
-            Tab(
-              icon: Icon(Icons.dashboard),
-              text: 'Overview',
-            ),
-            Tab(
-              icon: Icon(Icons.assignment),
-              text: 'Reports',
-            ),
-            Tab(
-              icon: Icon(Icons.analytics),
-              text: 'Analytics',
-            ),
+            Tab(icon: Icon(Icons.dashboard), text: 'Overview'),
+            Tab(icon: Icon(Icons.assignment), text: 'Reports'),
+            Tab(icon: Icon(Icons.analytics), text: 'Analytics'),
           ],
         ),
       ),
@@ -84,13 +76,9 @@ class DoctorOverviewTab extends StatelessWidget {
         children: [
           const Text(
             'Quick Overview',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          
 
           Row(
             children: [
@@ -114,7 +102,7 @@ class DoctorOverviewTab extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          
+
           Row(
             children: [
               Expanded(
@@ -136,26 +124,27 @@ class DoctorOverviewTab extends StatelessWidget {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 32),
-          
 
           const Text(
             'Recent Activity',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          
+
           _buildRecentActivity(),
         ],
       ),
     );
   }
 
-  Widget _buildStatCard(String title, IconData icon, Color color, Stream<QuerySnapshot> stream) {
+  Widget _buildStatCard(
+    String title,
+    IconData icon,
+    Color color,
+    Stream<QuerySnapshot> stream,
+  ) {
     return Card(
       elevation: 3,
       child: Padding(
@@ -166,10 +155,7 @@ class DoctorOverviewTab extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
@@ -183,7 +169,7 @@ class DoctorOverviewTab extends StatelessWidget {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   );
                 }
-                
+
                 final count = snapshot.data?.docs.length ?? 0;
                 return Text(
                   count.toString(),
@@ -230,7 +216,10 @@ class DoctorOverviewTab extends StatelessWidget {
               children: snapshot.data!.docs.map((doc) {
                 final data = doc.data() as Map<String, dynamic>;
                 return ListTile(
-                  leading: const Icon(Icons.calendar_today, color: Colors.indigo),
+                  leading: const Icon(
+                    Icons.calendar_today,
+                    color: Colors.indigo,
+                  ),
                   title: Text(data['patientName'] ?? 'Unknown Patient'),
                   subtitle: Text(data['type'] ?? 'Appointment'),
                   trailing: Text(_formatDate(data['appointmentDate'])),
@@ -273,7 +262,7 @@ class DoctorOverviewTab extends StatelessWidget {
 
   String _formatDate(dynamic timestamp) {
     if (timestamp == null) return 'Unknown';
-    
+
     DateTime date;
     if (timestamp is Timestamp) {
       date = timestamp.toDate();
@@ -282,7 +271,7 @@ class DoctorOverviewTab extends StatelessWidget {
     } else {
       return 'Unknown';
     }
-    
+
     return '${date.day}/${date.month}/${date.year}';
   }
 }
@@ -301,13 +290,9 @@ class DoctorReportsTab extends StatelessWidget {
         children: [
           const Text(
             'Generate Reports',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          
 
           _buildReportOption(
             context,
@@ -317,7 +302,7 @@ class DoctorReportsTab extends StatelessWidget {
             Colors.blue,
             () => _generatePatientReport(context),
           ),
-          
+
           _buildReportOption(
             context,
             'Appointment History',
@@ -326,7 +311,7 @@ class DoctorReportsTab extends StatelessWidget {
             Colors.green,
             () => _generateAppointmentReport(context),
           ),
-          
+
           _buildReportOption(
             context,
             'Referral Analytics',
@@ -335,7 +320,7 @@ class DoctorReportsTab extends StatelessWidget {
             Colors.orange,
             () => _generateReferralReport(context),
           ),
-          
+
           _buildReportOption(
             context,
             'Consultation Metrics',
@@ -344,19 +329,15 @@ class DoctorReportsTab extends StatelessWidget {
             Colors.purple,
             () => _generateConsultationReport(context),
           ),
-          
+
           const SizedBox(height: 32),
-          
 
           const Text(
             'Recent Reports',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          
+
           _buildRecentReports(),
         ],
       ),
@@ -378,10 +359,7 @@ class DoctorReportsTab extends StatelessWidget {
           backgroundColor: color.withValues(alpha: 0.1),
           child: Icon(icon, color: color),
         ),
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(description),
         trailing: const Icon(Icons.arrow_forward_ios),
         onTap: onTap,
@@ -445,16 +423,16 @@ class DoctorReportsTab extends StatelessWidget {
     _showComingSoonDialog(context, 'Consultation Metrics Report');
   }
 
-  void _viewReport(Map<String, dynamic> data, String reportId) {
-
-  }
+  void _viewReport(Map<String, dynamic> data, String reportId) {}
 
   void _showComingSoonDialog(BuildContext context, String reportType) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Coming Soon'),
-        content: Text('$reportType generation is under development and will be available soon.'),
+        content: Text(
+          '$reportType generation is under development and will be available soon.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -467,7 +445,7 @@ class DoctorReportsTab extends StatelessWidget {
 
   String _formatDate(dynamic timestamp) {
     if (timestamp == null) return 'Unknown';
-    
+
     DateTime date;
     if (timestamp is Timestamp) {
       date = timestamp.toDate();
@@ -476,7 +454,7 @@ class DoctorReportsTab extends StatelessWidget {
     } else {
       return 'Unknown';
     }
-    
+
     return '${date.day}/${date.month}/${date.year}';
   }
 }
@@ -495,42 +473,30 @@ class DoctorAnalyticsTab extends StatelessWidget {
         children: [
           const Text(
             'Performance Analytics',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          
 
           _buildPerformanceMetrics(),
-          
+
           const SizedBox(height: 32),
-          
 
           const Text(
             'Trends & Patterns',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          
+
           _buildTrendsSection(),
-          
+
           const SizedBox(height: 32),
-          
 
           const Text(
             'Key Insights',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          
+
           _buildInsightsSection(),
         ],
       ),
@@ -632,10 +598,7 @@ class DoctorAnalyticsTab extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               trend,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
           ],
         ),
@@ -652,10 +615,7 @@ class DoctorAnalyticsTab extends StatelessWidget {
           children: [
             const Text(
               'Monthly Activity Trends',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             Container(
@@ -722,10 +682,7 @@ class DoctorAnalyticsTab extends StatelessWidget {
           backgroundColor: color.withValues(alpha: 0.1),
           child: Icon(icon, color: color),
         ),
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(description),
       ),
     );

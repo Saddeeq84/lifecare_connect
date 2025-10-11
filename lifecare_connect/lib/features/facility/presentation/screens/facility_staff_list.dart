@@ -8,9 +8,13 @@ class FacilityStaffListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final collection = '${facilityName.toLowerCase().replaceAll(' ', '_')}_users';
+    final collection =
+        '${facilityName.toLowerCase().replaceAll(' ', '_')}_users';
     return Scaffold(
-      appBar: AppBar(title: const Text('All Staff'), leading: const BackButton()),
+      appBar: AppBar(
+        title: const Text('All Staff'),
+        leading: const BackButton(),
+      ),
       body: Column(
         children: [
           Padding(
@@ -28,7 +32,9 @@ class FacilityStaffListScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => FacilityStaffCreateAccountScreen(facilityName: facilityName),
+                      builder: (_) => FacilityStaffCreateAccountScreen(
+                        facilityName: facilityName,
+                      ),
                     ),
                   );
                 },
@@ -37,11 +43,17 @@ class FacilityStaffListScreen extends StatelessWidget {
           ),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection(collection).snapshots(),
+              stream: FirebaseFirestore.instance
+                  .collection(collection)
+                  .snapshots(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
                 final docs = snapshot.data!.docs;
-                if (docs.isEmpty) return const Center(child: Text('No staff found'));
+                if (docs.isEmpty) {
+                  return const Center(child: Text('No staff found'));
+                }
                 return ListView(
                   children: docs.map((doc) {
                     final data = doc.data() as Map<String, dynamic>;

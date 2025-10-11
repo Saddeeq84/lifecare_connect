@@ -8,7 +8,8 @@ class _PatientRegistrationForm extends StatefulWidget {
   const _PatientRegistrationForm({required this.isCHW});
 
   @override
-  State<_PatientRegistrationForm> createState() => _PatientRegistrationFormState();
+  State<_PatientRegistrationForm> createState() =>
+      _PatientRegistrationFormState();
 }
 
 class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
@@ -60,9 +61,9 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
       return;
     }
     if (_selectedGender == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select gender')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select gender')));
       return;
     }
     setState(() => _isLoading = true);
@@ -98,17 +99,20 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
     }
     // Check for duplicate phone number only for self-registration
     if (!widget.isCHW) {
-      final existing = await FirebaseFirestore.instance.collection('users')
-        .where('phone', isEqualTo: phone)
-        .limit(1)
-        .get();
+      final existing = await FirebaseFirestore.instance
+          .collection('users')
+          .where('phone', isEqualTo: phone)
+          .limit(1)
+          .get();
       if (existing.docs.isNotEmpty) {
         setState(() => _isLoading = false);
         await showDialog(
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Phone Number Exists'),
-            content: const Text('This phone number is already registered. Please use a different number.'),
+            content: const Text(
+              'This phone number is already registered. Please use a different number.',
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -194,32 +198,44 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
       try {
         // Create Firebase Auth user for patient with a temporary password
         final tempPassword = UniqueKey().toString();
-        final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: email,
-          password: tempPassword,
-        );
+        final userCredential = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(
+              email: email,
+              password: tempPassword,
+            );
         final patientUid = userCredential.user?.uid;
         // Create patient Firestore document
-        await FirebaseFirestore.instance.collection('users').doc(patientUid).set({
-          'uid': patientUid,
-          'name': _nameController.text.trim(),
-          'email': email,
-          'phone': phone,
-          'role': 'patient',
-          'createdAt': FieldValue.serverTimestamp(),
-          'isApproved': true,
-          'registeredBy': 'CHW',
-          'createdBy': FirebaseAuth.instance.currentUser?.uid,
-        });
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(patientUid)
+            .set({
+              'uid': patientUid,
+              'name': _nameController.text.trim(),
+              'email': email,
+              'phone': phone,
+              'role': 'patient',
+              'createdAt': FieldValue.serverTimestamp(),
+              'isApproved': true,
+              'registeredBy': 'CHW',
+              'createdBy': FirebaseAuth.instance.currentUser?.uid,
+            });
         // Send password setup link to patient email
         await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Patient registered! Password setup link sent to their email.'), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text(
+              'Patient registered! Password setup link sent to their email.',
+            ),
+            backgroundColor: Colors.green,
+          ),
         );
         Navigator.pop(context);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error creating patient account: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Error creating patient account: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } else {
@@ -243,7 +259,10 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
           'gender': _selectedGender ?? '',
           'dateOfBirth': _selectedDate,
         };
-        await FirebaseFirestore.instance.collection('users').doc(phoneUser.uid).set(patientData);
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(phoneUser.uid)
+            .set(patientData);
         // Sign out the patient user
         await FirebaseAuth.instance.signOut();
         // Show dialog to CHW to log back in
@@ -252,7 +271,9 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
           barrierDismissible: false,
           builder: (context) => AlertDialog(
             title: const Text('CHW Login Required'),
-            content: const Text('Patient account created successfully. Please log back in to continue as CHW.'),
+            content: const Text(
+              'Patient account created successfully. Please log back in to continue as CHW.',
+            ),
             actions: [
               TextButton(
                 onPressed: () {
@@ -266,7 +287,10 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Registration failed: No user found.'), backgroundColor: Colors.red),
+          const SnackBar(
+            content: Text('Registration failed: No user found.'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -280,45 +304,74 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
         key: _formKey,
         child: ListView(
           children: [
-            Text(widget.isCHW ? 'Patient Registration by Email' : 'Patient Self Registration', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              widget.isCHW
+                  ? 'Patient Registration by Email'
+                  : 'Patient Self Registration',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Full Name', border: OutlineInputBorder()),
-              validator: (val) => val == null || val.isEmpty ? 'Enter patient name' : null,
+              decoration: const InputDecoration(
+                labelText: 'Full Name',
+                border: OutlineInputBorder(),
+              ),
+              validator: (val) =>
+                  val == null || val.isEmpty ? 'Enter patient name' : null,
             ),
             const SizedBox(height: 10),
             if (widget.isCHW) ...[
               TextFormField(
                 controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
-                validator: (val) => val != null && val.contains('@') ? null : 'Enter a valid email',
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (val) => val != null && val.contains('@')
+                    ? null
+                    : 'Enter a valid email',
               ),
               const SizedBox(height: 10),
             ] else ...[
               TextFormField(
                 controller: _phoneController,
-                decoration: const InputDecoration(labelText: 'Phone Number', border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                  labelText: 'Phone Number',
+                  border: OutlineInputBorder(),
+                ),
                 keyboardType: TextInputType.phone,
-                validator: (val) => val != null && val.length >= 10 ? null : 'Enter a valid phone number',
+                validator: (val) => val != null && val.length >= 10
+                    ? null
+                    : 'Enter a valid phone number',
               ),
               TextFormField(
                 controller: _phoneController,
-                decoration: const InputDecoration(labelText: 'Phone Number', border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                  labelText: 'Phone Number',
+                  border: OutlineInputBorder(),
+                ),
                 keyboardType: TextInputType.phone,
                 validator: (val) {
                   if (val == null || val.isEmpty) return 'Enter phone number';
                   final localPattern = RegExp(r'^(0[789][01]\d{8})$');
                   final intlPattern = RegExp(r'^\+234[789][01]\d{8}$');
-                  if (localPattern.hasMatch(val) || intlPattern.hasMatch(val)) return null;
+                  if (localPattern.hasMatch(val) || intlPattern.hasMatch(val)) {
+                    return null;
+                  }
                   return 'Enter a valid Nigerian phone number (e.g. 070..., 081..., +23470...)';
                 },
               ),
               const SizedBox(height: 10),
               TextFormField(
                 controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
-                validator: (val) => val != null && val.contains('@') ? null : 'Enter a valid email',
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (val) => val != null && val.contains('@')
+                    ? null
+                    : 'Enter a valid email',
               ),
               const SizedBox(height: 10),
               TextFormField(
@@ -328,11 +381,18 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
                   labelText: 'Password',
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
-                    icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
-                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
                   ),
                 ),
-                validator: (val) => val != null && val.length >= 6 ? null : 'Minimum 6 characters',
+                validator: (val) => val != null && val.length >= 6
+                    ? null
+                    : 'Minimum 6 characters',
               ),
               const SizedBox(height: 10),
               TextFormField(
@@ -342,11 +402,19 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
                   labelText: 'Confirm Password',
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
-                    icon: Icon(_obscureConfirmPassword ? Icons.visibility : Icons.visibility_off),
-                    onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                    icon: Icon(
+                      _obscureConfirmPassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                    onPressed: () => setState(
+                      () => _obscureConfirmPassword = !_obscureConfirmPassword,
+                    ),
                   ),
                 ),
-                validator: (val) => val != _passwordController.text ? 'Passwords do not match' : null,
+                validator: (val) => val != _passwordController.text
+                    ? 'Passwords do not match'
+                    : null,
               ),
               const SizedBox(height: 10),
             ],
@@ -354,47 +422,70 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
             InkWell(
               onTap: _selectDate,
               child: InputDecorator(
-                decoration: const InputDecoration(labelText: 'Date of Birth', border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                  labelText: 'Date of Birth',
+                  border: OutlineInputBorder(),
+                ),
                 child: Text(
                   _selectedDate == null
                       ? 'Select date of birth'
                       : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
-                  style: TextStyle(color: _selectedDate == null ? Colors.grey : Colors.black),
+                  style: TextStyle(
+                    color: _selectedDate == null ? Colors.grey : Colors.black,
+                  ),
                 ),
               ),
             ),
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
               initialValue: _selectedGender,
-              decoration: const InputDecoration(labelText: 'Gender', border: OutlineInputBorder()),
+              decoration: const InputDecoration(
+                labelText: 'Gender',
+                border: OutlineInputBorder(),
+              ),
               items: ['Male', 'Female', 'Other'].map((gender) {
                 return DropdownMenuItem(value: gender, child: Text(gender));
               }).toList(),
               onChanged: (value) => setState(() => _selectedGender = value),
-              validator: (value) => value == null ? 'Please select gender' : null,
+              validator: (value) =>
+                  value == null ? 'Please select gender' : null,
             ),
             const SizedBox(height: 10),
             TextFormField(
               controller: _addressController,
               maxLines: 2,
-              decoration: const InputDecoration(labelText: 'Address', border: OutlineInputBorder()),
+              decoration: const InputDecoration(
+                labelText: 'Address',
+                border: OutlineInputBorder(),
+              ),
             ),
             const SizedBox(height: 10),
             TextFormField(
               controller: _emergencyContactController,
-              decoration: const InputDecoration(labelText: 'Emergency Contact (optional)', border: OutlineInputBorder()),
+              decoration: const InputDecoration(
+                labelText: 'Emergency Contact (optional)',
+                border: OutlineInputBorder(),
+              ),
               keyboardType: TextInputType.phone,
               validator: (val) {
-                if (val == null || val.trim().isEmpty) return null; // Optional field, no error if blank
+                if (val == null || val.trim().isEmpty) {
+                  return null; // Optional field, no error if blank
+                }
                 final localPattern = RegExp(r'^(0(70|80|81|90|91|71)\d{8})$');
                 final intlPattern = RegExp(r'^\+234(70|80|81|90|91|71)\d{8}$');
-                if (localPattern.hasMatch(val.trim()) || intlPattern.hasMatch(val.trim())) return null;
+                if (localPattern.hasMatch(val.trim()) ||
+                    intlPattern.hasMatch(val.trim())) {
+                  return null;
+                }
                 return 'Enter a valid Nigerian phone number';
               },
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, minimumSize: const Size.fromHeight(45)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.teal,
+                minimumSize: const Size.fromHeight(45),
+              ),
               onPressed: _isLoading
                   ? null
                   : () async {
@@ -403,15 +494,19 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
                           context: context,
                           builder: (context) => AlertDialog(
                             title: const Text('Confirm Patient Registration'),
-                            content: const Text('Are you sure you want to register this patient? They will receive an email to set their password.'),
+                            content: const Text(
+                              'Are you sure you want to register this patient? They will receive an email to set their password.',
+                            ),
                             actions: [
                               TextButton(
                                 child: const Text('Cancel'),
-                                onPressed: () => Navigator.of(context).pop(false),
+                                onPressed: () =>
+                                    Navigator.of(context).pop(false),
                               ),
                               ElevatedButton(
                                 child: const Text('Confirm'),
-                                onPressed: () => Navigator.of(context).pop(true),
+                                onPressed: () =>
+                                    Navigator.of(context).pop(true),
                               ),
                             ],
                           ),
@@ -423,7 +518,9 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
                         await _handlePhoneRegister();
                       }
                     },
-              child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text('Create Account'),
+              child: _isLoading
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Text('Create Account'),
             ),
           ],
         ),
@@ -448,9 +545,7 @@ class PatientRegistrationScreen extends StatelessWidget {
           centerTitle: true,
           elevation: 2,
         ),
-        body: const SafeArea(
-          child: _PatientRegistrationForm(isCHW: false),
-        ),
+        body: const SafeArea(child: _PatientRegistrationForm(isCHW: false)),
       );
     }
     // For CHW, show tab bar for form and phone registration
@@ -480,7 +575,6 @@ class PatientRegistrationScreen extends StatelessWidget {
     );
   }
 }
-
 
 // CHW Patient Phone Registration Widget
 class _CHWPatientPhoneRegistration extends StatelessWidget {
@@ -549,7 +643,9 @@ class _CHWPatientPhoneFormState extends State<_CHWPatientPhoneForm> {
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Invalid Phone Number'),
-          content: const Text('Please enter a valid Nigerian phone number in the format 070..., 080..., 090..., or +23470..., +23480..., +23490...'),
+          content: const Text(
+            'Please enter a valid Nigerian phone number in the format 070..., 080..., 090..., or +23470..., +23480..., +23490...',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -561,16 +657,19 @@ class _CHWPatientPhoneFormState extends State<_CHWPatientPhoneForm> {
       return;
     }
     // Check if phone number already exists in Firestore
-    final existing = await FirebaseFirestore.instance.collection('users')
-      .where('phone', isEqualTo: phone)
-      .limit(1)
-      .get();
+    final existing = await FirebaseFirestore.instance
+        .collection('users')
+        .where('phone', isEqualTo: phone)
+        .limit(1)
+        .get();
     if (existing.docs.isNotEmpty) {
       await showDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Phone Number Exists'),
-          content: const Text('This phone number is already registered. Please use a different number.'),
+          content: const Text(
+            'This phone number is already registered. Please use a different number.',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -587,7 +686,9 @@ class _CHWPatientPhoneFormState extends State<_CHWPatientPhoneForm> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Phone Number Verification'),
-        content: const Text('A verification code will be sent to the provided phone number. Please enter the code below and submit to complete patient registration.'),
+        content: const Text(
+          'A verification code will be sent to the provided phone number. Please enter the code below and submit to complete patient registration.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -601,7 +702,7 @@ class _CHWPatientPhoneFormState extends State<_CHWPatientPhoneForm> {
       ),
     );
     if (info != true) return;
-  setState(() => _isLoading = true);
+    setState(() => _isLoading = true);
     // Use Firebase phone authentication to send OTP and get verificationId
     // For both web and mobile, just call verifyPhoneNumber. On web, Firebase injects reCAPTCHA automatically if container exists in web/index.html.
     bool otpSent = false;
@@ -617,7 +718,9 @@ class _CHWPatientPhoneFormState extends State<_CHWPatientPhoneForm> {
             context: context,
             builder: (context) => AlertDialog(
               title: const Text('OTP Error'),
-              content: Text('Error sending OTP: ${e.message}\nPossible reasons: invalid phone format, quota exceeded, or Firebase Auth not enabled for phone.'),
+              content: Text(
+                'Error sending OTP: ${e.message}\nPossible reasons: invalid phone format, quota exceeded, or Firebase Auth not enabled for phone.',
+              ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
@@ -644,7 +747,9 @@ class _CHWPatientPhoneFormState extends State<_CHWPatientPhoneForm> {
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('OTP Not Sent'),
-            content: const Text('No verification code was sent to this phone number. Please check the number and try again.'),
+            content: const Text(
+              'No verification code was sent to this phone number. Please check the number and try again.',
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -683,47 +788,57 @@ class _CHWPatientPhoneFormState extends State<_CHWPatientPhoneForm> {
       setState(() => _isLoading = false);
       // Proceed with patient registration
       final phone = _phoneController.text.trim();
-      final generatedEmail = '${phone.replaceAll('+', '').replaceAll(' ', '')}_${DateTime.now().millisecondsSinceEpoch}@lifecare.com';
+      final generatedEmail =
+          '${phone.replaceAll('+', '').replaceAll(' ', '')}_${DateTime.now().millisecondsSinceEpoch}@lifecare.com';
       final generatedPassword = UniqueKey().toString();
       try {
-        final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: generatedEmail,
-          password: generatedPassword,
-        );
+        final credential = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(
+              email: generatedEmail,
+              password: generatedPassword,
+            );
         final user = credential.user;
         if (user != null) {
-          await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-            'uid': user.uid,
-            'name': _nameController.text.trim(),
-            'phone': phone,
-            'address': _addressController.text.trim(),
-            'emergencyContact': _emergencyContactController.text.trim(),
-            'dateOfBirth': _selectedDate != null ? Timestamp.fromDate(_selectedDate!) : null,
-            'gender': _selectedGender,
-            'role': 'patient',
-            'isApproved': true,
-            'registeredBy': 'CHW',
-            'createdBy': FirebaseAuth.instance.currentUser?.uid,
-            'createdAt': FieldValue.serverTimestamp(),
-          });
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .set({
+                'uid': user.uid,
+                'name': _nameController.text.trim(),
+                'phone': phone,
+                'address': _addressController.text.trim(),
+                'emergencyContact': _emergencyContactController.text.trim(),
+                'dateOfBirth': _selectedDate != null
+                    ? Timestamp.fromDate(_selectedDate!)
+                    : null,
+                'gender': _selectedGender,
+                'role': 'patient',
+                'isApproved': true,
+                'registeredBy': 'CHW',
+                'createdBy': FirebaseAuth.instance.currentUser?.uid,
+                'createdAt': FieldValue.serverTimestamp(),
+              });
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Patient registered successfully!'), backgroundColor: Colors.green),
+              const SnackBar(
+                content: Text('Patient registered successfully!'),
+                backgroundColor: Colors.green,
+              ),
             );
             Navigator.pop(context);
           }
         }
       } catch (e) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Account creation failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Account creation failed: $e')));
       }
     } catch (e) {
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Verification error: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Verification error: $e')));
     }
   }
 
@@ -735,80 +850,125 @@ class _CHWPatientPhoneFormState extends State<_CHWPatientPhoneForm> {
         key: _formKey,
         child: ListView(
           children: [
-            const Text('Patient Registration by Phone', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              'Patient Registration by Phone',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Full Name', border: OutlineInputBorder()),
-              validator: (val) => val == null || val.isEmpty ? 'Enter patient name' : null,
+              decoration: const InputDecoration(
+                labelText: 'Full Name',
+                border: OutlineInputBorder(),
+              ),
+              validator: (val) =>
+                  val == null || val.isEmpty ? 'Enter patient name' : null,
             ),
             const SizedBox(height: 10),
             TextFormField(
               controller: _phoneController,
-              decoration: const InputDecoration(labelText: 'Phone Number', border: OutlineInputBorder()),
+              decoration: const InputDecoration(
+                labelText: 'Phone Number',
+                border: OutlineInputBorder(),
+              ),
               keyboardType: TextInputType.phone,
-              validator: (val) => val != null && val.length >= 10 ? null : 'Enter a valid phone number',
+              validator: (val) => val != null && val.length >= 10
+                  ? null
+                  : 'Enter a valid phone number',
             ),
             const SizedBox(height: 10),
             InkWell(
               onTap: _selectDate,
               child: InputDecorator(
-                decoration: const InputDecoration(labelText: 'Date of Birth', border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                  labelText: 'Date of Birth',
+                  border: OutlineInputBorder(),
+                ),
                 child: Text(
                   _selectedDate == null
                       ? 'Select date of birth'
                       : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
-                  style: TextStyle(color: _selectedDate == null ? Colors.grey : Colors.black),
+                  style: TextStyle(
+                    color: _selectedDate == null ? Colors.grey : Colors.black,
+                  ),
                 ),
               ),
             ),
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
               initialValue: _selectedGender,
-              decoration: const InputDecoration(labelText: 'Gender', border: OutlineInputBorder()),
+              decoration: const InputDecoration(
+                labelText: 'Gender',
+                border: OutlineInputBorder(),
+              ),
               items: ['Male', 'Female', 'Other'].map((gender) {
                 return DropdownMenuItem(value: gender, child: Text(gender));
               }).toList(),
               onChanged: (value) => setState(() => _selectedGender = value),
-              validator: (value) => value == null ? 'Please select gender' : null,
+              validator: (value) =>
+                  value == null ? 'Please select gender' : null,
             ),
             const SizedBox(height: 10),
             TextFormField(
               controller: _addressController,
               maxLines: 2,
-              decoration: const InputDecoration(labelText: 'Address', border: OutlineInputBorder()),
+              decoration: const InputDecoration(
+                labelText: 'Address',
+                border: OutlineInputBorder(),
+              ),
             ),
             const SizedBox(height: 10),
             TextFormField(
               controller: _emergencyContactController,
-              decoration: const InputDecoration(labelText: 'Emergency Contact (optional)', border: OutlineInputBorder()),
+              decoration: const InputDecoration(
+                labelText: 'Emergency Contact (optional)',
+                border: OutlineInputBorder(),
+              ),
               keyboardType: TextInputType.phone,
               validator: (val) {
-                if (val == null || val.trim().isEmpty) return null; // Optional field, no error if blank
+                if (val == null || val.trim().isEmpty) {
+                  return null; // Optional field, no error if blank
+                }
                 final localPattern = RegExp(r'^(0(70|80|81|90|91|71)\d{8})$');
                 final intlPattern = RegExp(r'^\+234(70|80|81|90|91|71)\d{8}$');
-                if (localPattern.hasMatch(val.trim()) || intlPattern.hasMatch(val.trim())) return null;
+                if (localPattern.hasMatch(val.trim()) ||
+                    intlPattern.hasMatch(val.trim())) {
+                  return null;
+                }
                 return 'Enter a valid Nigerian phone number';
               },
             ),
             const SizedBox(height: 20),
             if (!_codeSent) ...[
               ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, minimumSize: const Size.fromHeight(45)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.teal,
+                  minimumSize: const Size.fromHeight(45),
+                ),
                 onPressed: _isLoading ? null : _verifyPhone,
-                child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text('Create Account'),
+                child: _isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text('Create Account'),
               ),
             ] else ...[
               TextFormField(
                 controller: _codeController,
-                decoration: const InputDecoration(labelText: 'Verification Code', border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                  labelText: 'Verification Code',
+                  border: OutlineInputBorder(),
+                ),
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 10),
               ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, minimumSize: const Size.fromHeight(45)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.teal,
+                  minimumSize: const Size.fromHeight(45),
+                ),
                 onPressed: _isLoading ? null : _submitCode,
-                child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text('Submit Code'),
+                child: _isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text('Submit Code'),
               ),
             ],
           ],

@@ -14,7 +14,6 @@ class CHWSettingsScreen extends StatefulWidget {
 }
 
 class _CHWSettingsScreenState extends State<CHWSettingsScreen> {
-
   Widget _buildSwitchTile({
     required IconData icon,
     required String title,
@@ -59,6 +58,7 @@ class _CHWSettingsScreenState extends State<CHWSettingsScreen> {
       onTap: onTap,
     );
   }
+
   final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
   bool notificationsEnabled = true;
   bool emailNotifications = true;
@@ -78,7 +78,7 @@ class _CHWSettingsScreenState extends State<CHWSettingsScreen> {
           .collection('users')
           .doc(currentUserId)
           .get();
-      
+
       if (doc.exists) {
         final data = doc.data()!;
         setState(() {
@@ -101,9 +101,9 @@ class _CHWSettingsScreenState extends State<CHWSettingsScreen> {
           .doc(currentUserId)
           .update({key: value});
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update setting: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to update setting: $e')));
     }
   }
 
@@ -115,9 +115,9 @@ class _CHWSettingsScreenState extends State<CHWSettingsScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error logging out: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error logging out: $e')));
       }
     }
   }
@@ -126,21 +126,23 @@ class _CHWSettingsScreenState extends State<CHWSettingsScreen> {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null || user.email == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('User not authenticated')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('User not authenticated')));
       return;
     }
 
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: user.email!);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('🔐 Password reset link sent to your email')),
+        const SnackBar(
+          content: Text('🔐 Password reset link sent to your email'),
+        ),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ Error: ${e.toString()}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('❌ Error: ${e.toString()}')));
     }
   }
 
@@ -151,7 +153,10 @@ class _CHWSettingsScreenState extends State<CHWSettingsScreen> {
         title: const Text("Logout"),
         content: const Text("Are you sure you want to logout?"),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
@@ -231,13 +236,15 @@ class _CHWSettingsScreenState extends State<CHWSettingsScreen> {
 
           const SizedBox(height: 24),
 
-
           // Privacy Policy
           _buildSettingsTile(
             icon: Icons.privacy_tip,
             title: 'Privacy Policy',
             subtitle: 'View our privacy policy',
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => PrivacyScreen())),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => PrivacyScreen()),
+            ),
           ),
 
           // Help & Support (harmonized with patient)
@@ -273,7 +280,9 @@ class _CHWSettingsScreenState extends State<CHWSettingsScreen> {
                         SizedBox(height: 8),
                         Text('• Login problems: Check internet connection'),
                         Text('• Booking issues: Ensure all fields are filled'),
-                        Text('• Emergency services: Call 199 for immediate help'),
+                        Text(
+                          '• Emergency services: Call 199 for immediate help',
+                        ),
                       ],
                     ),
                   ),
@@ -328,8 +337,8 @@ class _CHWSettingsScreenState extends State<CHWSettingsScreen> {
   }
 
   void _showDeleteAccountDialog() {
-// Duplicate/invalid code removed. Only one implementation of _showDeleteAccountDialog remains above.
-// Removed orphaned/duplicate widget and function code
+    // Duplicate/invalid code removed. Only one implementation of _showDeleteAccountDialog remains above.
+    // Removed orphaned/duplicate widget and function code
     showDialog(
       context: context,
       builder: (context) {
@@ -337,10 +346,14 @@ class _CHWSettingsScreenState extends State<CHWSettingsScreen> {
         return StatefulBuilder(
           builder: (context, setState) => AlertDialog(
             title: const Text('Delete Account'),
-            content: const Text('Are you sure you want to permanently delete your account? This action cannot be undone.'),
+            content: const Text(
+              'Are you sure you want to permanently delete your account? This action cannot be undone.',
+            ),
             actions: [
               TextButton(
-                onPressed: isDeleting ? null : () => Navigator.of(context).pop(),
+                onPressed: isDeleting
+                    ? null
+                    : () => Navigator.of(context).pop(),
                 child: const Text('Cancel'),
               ),
               ElevatedButton(
@@ -351,11 +364,17 @@ class _CHWSettingsScreenState extends State<CHWSettingsScreen> {
                         setState(() => isDeleting = true);
                         try {
                           final user = FirebaseAuth.instance.currentUser;
-                          await FirebaseFirestore.instance.collection('users').doc(user!.uid).delete();
+                          await FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(user!.uid)
+                              .delete();
                           await user.delete();
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Account deleted successfully'), backgroundColor: Colors.green),
+                              const SnackBar(
+                                content: Text('Account deleted successfully'),
+                                backgroundColor: Colors.green,
+                              ),
                             );
                             Navigator.of(context).pop();
                             context.go('/login');
@@ -363,7 +382,12 @@ class _CHWSettingsScreenState extends State<CHWSettingsScreen> {
                         } catch (e) {
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Failed to delete account: \\${e.toString()}'), backgroundColor: Colors.red),
+                              SnackBar(
+                                content: Text(
+                                  'Failed to delete account: \\${e.toString()}',
+                                ),
+                                backgroundColor: Colors.red,
+                              ),
                             );
                           }
                         } finally {
@@ -371,13 +395,16 @@ class _CHWSettingsScreenState extends State<CHWSettingsScreen> {
                         }
                       },
                 child: isDeleting
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
                     : const Text('Delete'),
               ),
             ],
           ),
         );
-
       },
     );
   }
@@ -416,5 +443,5 @@ class _CHWSettingsScreenState extends State<CHWSettingsScreen> {
     );
   }
 
-// ...existing code...
+  // ...existing code...
 }

@@ -12,22 +12,18 @@ class _AdminFacilitiesScreenState extends State<AdminFacilitiesScreen> {
     {
       "name": "Tula Yiri Primary Health Center",
       "location": "Gombe State",
-      "type": "Hospital"
+      "type": "Hospital",
     },
     {
       "name": "Kabri Village Pharmacy",
       "location": "Taraba State",
-      "type": "Pharmacy"
+      "type": "Pharmacy",
     },
-    {
-      "name": "Federal Lab Gombe",
-      "location": "Gombe",
-      "type": "Laboratory"
-    },
+    {"name": "Federal Lab Gombe", "location": "Gombe", "type": "Laboratory"},
     {
       "name": "Jalingo Diagnostic Scan Center",
       "location": "Taraba",
-      "type": "Scan Center"
+      "type": "Scan Center",
     },
   ];
 
@@ -35,11 +31,16 @@ class _AdminFacilitiesScreenState extends State<AdminFacilitiesScreen> {
     {"label": "Hospitals", "icon": Icons.local_hospital, "type": "Hospital"},
     {"label": "Pharmacies", "icon": Icons.local_pharmacy, "type": "Pharmacy"},
     {"label": "Laboratories", "icon": Icons.science, "type": "Laboratory"},
-    {"label": "Scan Centers", "icon": Icons.monitor_heart, "type": "Scan Center"},
+    {
+      "label": "Scan Centers",
+      "icon": Icons.monitor_heart,
+      "type": "Scan Center",
+    },
   ];
 
   String searchQuery = '';
-  String selectedCategory = ''; // Holds selected category filter (Hospital, Pharmacy, etc)
+  String selectedCategory =
+      ''; // Holds selected category filter (Hospital, Pharmacy, etc)
 
   void _showAddFacilityModal() {
     showModalBottomSheet(
@@ -82,7 +83,9 @@ class _AdminFacilitiesScreenState extends State<AdminFacilitiesScreen> {
                         onPressed: () {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text("${cat["label"]} selected (UI only)"),
+                              content: Text(
+                                "${cat["label"]} selected (UI only)",
+                              ),
                             ),
                           );
                         },
@@ -103,7 +106,10 @@ class _AdminFacilitiesScreenState extends State<AdminFacilitiesScreen> {
                   const SizedBox(height: 8),
                   ...facilities.map((f) {
                     return ListTile(
-                      leading: const Icon(Icons.location_city, color: Colors.green),
+                      leading: const Icon(
+                        Icons.location_city,
+                        color: Colors.green,
+                      ),
                       title: Text(f['name']!),
                       subtitle: Text("${f['location']} • ${f['type']}"),
                     );
@@ -121,12 +127,11 @@ class _AdminFacilitiesScreenState extends State<AdminFacilitiesScreen> {
   Widget build(BuildContext context) {
     // Apply search + filter
     final filteredFacilities = facilities.where((facility) {
-      final matchesSearch = facility["name"]!
-              .toLowerCase()
-              .contains(searchQuery.toLowerCase()) ||
-          facility["location"]!
-              .toLowerCase()
-              .contains(searchQuery.toLowerCase());
+      final matchesSearch =
+          facility["name"]!.toLowerCase().contains(searchQuery.toLowerCase()) ||
+          facility["location"]!.toLowerCase().contains(
+            searchQuery.toLowerCase(),
+          );
 
       final matchesCategory = selectedCategory.isEmpty
           ? true
@@ -224,18 +229,18 @@ class _AdminFacilitiesScreenState extends State<AdminFacilitiesScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(cat["icon"],
-                              size: 32,
-                              color: isSelected
-                                  ? Colors.teal.shade800
-                                  : Colors.green),
+                          Icon(
+                            cat["icon"],
+                            size: 32,
+                            color: isSelected
+                                ? Colors.teal.shade800
+                                : Colors.green,
+                          ),
                           const SizedBox(height: 10),
                           Text(
                             cat["label"],
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),
@@ -259,11 +264,15 @@ class _AdminFacilitiesScreenState extends State<AdminFacilitiesScreen> {
               itemBuilder: (context, index) {
                 final f = filteredFacilities[index];
                 return Card(
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   child: ListTile(
-                    leading:
-                        const Icon(Icons.local_hospital, color: Colors.green),
+                    leading: const Icon(
+                      Icons.local_hospital,
+                      color: Colors.green,
+                    ),
                     title: Text(f["name"]!),
                     subtitle: Text("${f["location"]} • ${f["type"]}"),
                     trailing: IconButton(

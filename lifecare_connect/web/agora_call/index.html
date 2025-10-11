@@ -64,17 +64,25 @@
     </div>
   </div>
   <script>
-    // Credentials (hidden from UI)
+
+    // Agora App ID (keep this public)
     const APP_ID = 'a105462abb1746fc9075e6c2f81f5ac5';
-    const TOKEN = '007eJxTYGju0nctnuo4Qd12ZXTmqdvFkyI3WORkhJz3fsxVKVjR56TAkGhoYGpiZpSYlGRobmKWlmxpYG6aapZslGZhmGaamGyqmfM8oyGQkeG7PwMzIwMEgvi8DCWpxSXxOZlpqcmJRakMDADpGSFP';
-    const CHANNEL = 'test_lifecare';
+    let TOKEN = null;
+    let CHANNEL = null;
+    let UID = null;
     let client, localTracks = [], joined = false;
     let remoteUsers = {};
 
-    function proceedToCall() {
+    // Helper to get URL query params
+    function getQueryParam(name) {
+      const url = new URL(window.location.href);
+      return url.searchParams.get(name);
+    }
+
+    async function proceedToCall() {
       document.getElementById('entry-dialog').style.display = 'none';
       document.getElementById('controls').style.display = 'block';
-      joinCall();
+      await joinCall();
     }
 
     function cancelCall() {
@@ -91,10 +99,28 @@
     }
 
     async function joinCall() {
+      // Get channelName and uid from URL, fallback to defaults if missing
+      CHANNEL = getQueryParam('channelName') || 'test_lifecare';
+      UID = getQueryParam('uid') || null;
+
+      // Fetch token from token server
+      try {
+        const tokenUrl = `/agora-token?channelName=${encodeURIComponent(CHANNEL)}${UID ? `&uid=${encodeURIComponent(UID)}` : ''}`;
+        const resp = await fetch(tokenUrl);
+        if (!resp.ok) throw new Error('Failed to fetch token');
+        const data = await resp.json();
+        TOKEN = data.token;
+        if (!TOKEN) throw new Error('No token received');
+      } catch (err) {
+        alert('Failed to get Agora token. Please try again later.');
+        window.location.href = '/';
+        return;
+      }
+
       client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
       client.on('user-published', handleUserPublished);
       client.on('user-unpublished', handleUserUnpublished);
-      await client.join(APP_ID, CHANNEL, TOKEN, null);
+      await client.join(APP_ID, CHANNEL, TOKEN, UID);
       localTracks = await AgoraRTC.createMicrophoneAndCameraTracks();
       addVideoBox('local', 'You');
       localTracks[1].play('video-local');

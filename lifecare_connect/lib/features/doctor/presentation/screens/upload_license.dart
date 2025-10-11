@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 
@@ -37,7 +35,6 @@ class _UploadLicenseScreenState extends State<UploadLicenseScreen> {
       );
       return;
     }
-
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('License "$selectedFile" submitted (UI only)')),
@@ -81,4 +78,3 @@ class _UploadLicenseScreenState extends State<UploadLicenseScreen> {
     );
   }
 }
-

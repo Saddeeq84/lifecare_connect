@@ -41,7 +41,11 @@ class BookingHistoryScreen extends StatelessWidget {
               final timestamp = (data['timestamp'] as Timestamp?)?.toDate();
               return ListTile(
                 title: Text(_displayLabel(serviceType)),
-                subtitle: Text(timestamp != null ? DateFormat.yMd().add_jm().format(timestamp) : ''),
+                subtitle: Text(
+                  timestamp != null
+                      ? DateFormat.yMd().add_jm().format(timestamp)
+                      : '',
+                ),
                 trailing: Text(status.toString().capitalize()),
               );
             }).toList(),

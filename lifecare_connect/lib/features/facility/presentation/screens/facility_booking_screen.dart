@@ -85,7 +85,11 @@ class _PendingBookingsTab extends StatelessWidget {
     }
   }
 
-  Widget _buildFallbackView(BuildContext context, String facilityId, String status) {
+  Widget _buildFallbackView(
+    BuildContext context,
+    String facilityId,
+    String status,
+  ) {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('service_requests')
@@ -117,7 +121,7 @@ class _PendingBookingsTab extends StatelessWidget {
         }
 
         final bookings = snapshot.data?.docs ?? [];
-        
+
         // Sort manually if needed (since we can't use orderBy yet)
         bookings.sort((a, b) {
           final aData = a.data() as Map<String, dynamic>;
@@ -135,7 +139,10 @@ class _PendingBookingsTab extends StatelessWidget {
               children: [
                 Icon(Icons.inbox, size: 64, color: Colors.grey),
                 SizedBox(height: 16),
-                Text('No pending bookings', style: TextStyle(fontSize: 18, color: Colors.grey)),
+                Text(
+                  'No pending bookings',
+                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                ),
               ],
             ),
           );
@@ -147,7 +154,7 @@ class _PendingBookingsTab extends StatelessWidget {
           itemBuilder: (context, index) {
             final booking = bookings[index];
             final data = booking.data() as Map<String, dynamic>;
-            
+
             return _BookingCard(
               booking: data,
               bookingId: booking.id,
@@ -184,7 +191,10 @@ class _PendingBookingsTab extends StatelessWidget {
               children: [
                 Icon(Icons.inbox, size: 64, color: Colors.grey),
                 SizedBox(height: 16),
-                Text('No pending bookings', style: TextStyle(fontSize: 18, color: Colors.grey)),
+                Text(
+                  'No pending bookings',
+                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                ),
               ],
             ),
           );
@@ -196,7 +206,7 @@ class _PendingBookingsTab extends StatelessWidget {
           itemBuilder: (context, index) {
             final booking = bookings[index];
             final data = booking.data() as Map<String, dynamic>;
-            
+
             return _BookingCard(
               booking: data,
               bookingId: booking.id,
@@ -210,7 +220,11 @@ class _PendingBookingsTab extends StatelessWidget {
     );
   }
 
-  Future<void> _approveBooking(BuildContext context, String bookingId, Map<String, dynamic> data) async {
+  Future<void> _approveBooking(
+    BuildContext context,
+    String bookingId,
+    Map<String, dynamic> data,
+  ) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -237,10 +251,10 @@ class _PendingBookingsTab extends StatelessWidget {
           .collection('service_requests')
           .doc(bookingId)
           .update({
-        'status': 'approved',
-        'approvedAt': FieldValue.serverTimestamp(),
-        'approvedBy': FirebaseAuth.instance.currentUser?.uid,
-      });
+            'status': 'approved',
+            'approvedAt': FieldValue.serverTimestamp(),
+            'approvedBy': FirebaseAuth.instance.currentUser?.uid,
+          });
 
       // Send automatic message to patient's normal messaging system
       try {
@@ -268,15 +282,18 @@ class _PendingBookingsTab extends StatelessWidget {
             receiverId: patientId,
             receiverName: patientName,
             receiverRole: 'patient',
-            content: 'Your booking has been approved by the facility. Please check your app for details.',
+            content:
+                'Your booking has been approved by the facility. Please check your app for details.',
             type: 'facility_booking_approved',
             priority: 'high',
           );
         }
       } catch (e) {
-        debugPrint('Error sending booking approval message: '
-            'Error: '
-            'Error sending booking approval message: $e');
+        debugPrint(
+          'Error sending booking approval message: '
+          'Error: '
+          'Error sending booking approval message: $e',
+        );
       }
 
       if (context.mounted) {
@@ -289,9 +306,9 @@ class _PendingBookingsTab extends StatelessWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error approving booking: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error approving booking: $e')));
       }
     }
   }
@@ -302,10 +319,10 @@ class _PendingBookingsTab extends StatelessWidget {
           .collection('service_requests')
           .doc(bookingId)
           .update({
-        'status': 'rejected',
-        'rejectedAt': FieldValue.serverTimestamp(),
-        'rejectedBy': FirebaseAuth.instance.currentUser?.uid,
-      });
+            'status': 'rejected',
+            'rejectedAt': FieldValue.serverTimestamp(),
+            'rejectedBy': FirebaseAuth.instance.currentUser?.uid,
+          });
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -317,9 +334,9 @@ class _PendingBookingsTab extends StatelessWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error rejecting booking: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error rejecting booking: $e')));
       }
     }
   }
@@ -350,7 +367,12 @@ class _ApprovedBookingsTab extends StatelessWidget {
     }
   }
 
-  Widget _buildFallbackView(BuildContext context, String facilityId, String status, String orderField) {
+  Widget _buildFallbackView(
+    BuildContext context,
+    String facilityId,
+    String status,
+    String orderField,
+  ) {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('service_requests')
@@ -382,7 +404,7 @@ class _ApprovedBookingsTab extends StatelessWidget {
         }
 
         final bookings = snapshot.data?.docs ?? [];
-        
+
         // Sort manually if needed (since we can't use orderBy yet)
         bookings.sort((a, b) {
           final aData = a.data() as Map<String, dynamic>;
@@ -400,7 +422,10 @@ class _ApprovedBookingsTab extends StatelessWidget {
               children: [
                 Icon(Icons.check_circle_outline, size: 64, color: Colors.grey),
                 SizedBox(height: 16),
-                Text('No approved bookings', style: TextStyle(fontSize: 18, color: Colors.grey)),
+                Text(
+                  'No approved bookings',
+                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                ),
               ],
             ),
           );
@@ -412,7 +437,7 @@ class _ApprovedBookingsTab extends StatelessWidget {
           itemBuilder: (context, index) {
             final booking = bookings[index];
             final data = booking.data() as Map<String, dynamic>;
-            
+
             return _BookingCard(
               booking: data,
               bookingId: booking.id,
@@ -436,7 +461,12 @@ class _ApprovedBookingsTab extends StatelessWidget {
 
         if (snapshot.hasError) {
           // If the ordered query fails (index not ready), show a fallback
-          return _buildFallbackView(context, facilityId, 'approved', 'approvedAt');
+          return _buildFallbackView(
+            context,
+            facilityId,
+            'approved',
+            'approvedAt',
+          );
         }
 
         final bookings = snapshot.data?.docs ?? [];
@@ -448,7 +478,10 @@ class _ApprovedBookingsTab extends StatelessWidget {
               children: [
                 Icon(Icons.check_circle_outline, size: 64, color: Colors.grey),
                 SizedBox(height: 16),
-                Text('No approved bookings', style: TextStyle(fontSize: 18, color: Colors.grey)),
+                Text(
+                  'No approved bookings',
+                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                ),
               ],
             ),
           );
@@ -460,7 +493,7 @@ class _ApprovedBookingsTab extends StatelessWidget {
           itemBuilder: (context, index) {
             final booking = bookings[index];
             final data = booking.data() as Map<String, dynamic>;
-            
+
             return _BookingCard(
               booking: data,
               bookingId: booking.id,
@@ -500,10 +533,10 @@ class _ApprovedBookingsTab extends StatelessWidget {
           .collection('service_requests')
           .doc(bookingId)
           .update({
-        'status': 'completed',
-        'completedAt': FieldValue.serverTimestamp(),
-        'completedBy': FirebaseAuth.instance.currentUser?.uid,
-      });
+            'status': 'completed',
+            'completedAt': FieldValue.serverTimestamp(),
+            'completedBy': FirebaseAuth.instance.currentUser?.uid,
+          });
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -515,9 +548,9 @@ class _ApprovedBookingsTab extends StatelessWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error completing service: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error completing service: $e')));
       }
     }
   }
@@ -548,7 +581,12 @@ class _CompletedBookingsTab extends StatelessWidget {
     }
   }
 
-  Widget _buildFallbackView(BuildContext context, String facilityId, String status, String orderField) {
+  Widget _buildFallbackView(
+    BuildContext context,
+    String facilityId,
+    String status,
+    String orderField,
+  ) {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('service_requests')
@@ -580,7 +618,7 @@ class _CompletedBookingsTab extends StatelessWidget {
         }
 
         final bookings = snapshot.data?.docs ?? [];
-        
+
         // Sort manually if needed (since we can't use orderBy yet)
         bookings.sort((a, b) {
           final aData = a.data() as Map<String, dynamic>;
@@ -598,7 +636,10 @@ class _CompletedBookingsTab extends StatelessWidget {
               children: [
                 Icon(Icons.done_all, size: 64, color: Colors.grey),
                 SizedBox(height: 16),
-                Text('No completed bookings', style: TextStyle(fontSize: 18, color: Colors.grey)),
+                Text(
+                  'No completed bookings',
+                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                ),
               ],
             ),
           );
@@ -610,7 +651,7 @@ class _CompletedBookingsTab extends StatelessWidget {
           itemBuilder: (context, index) {
             final booking = bookings[index];
             final data = booking.data() as Map<String, dynamic>;
-            
+
             return _BookingCard(
               booking: data,
               bookingId: booking.id,
@@ -633,7 +674,12 @@ class _CompletedBookingsTab extends StatelessWidget {
 
         if (snapshot.hasError) {
           // If the ordered query fails (index not ready), show a fallback
-          return _buildFallbackView(context, facilityId, 'completed', 'completedAt');
+          return _buildFallbackView(
+            context,
+            facilityId,
+            'completed',
+            'completedAt',
+          );
         }
 
         final bookings = snapshot.data?.docs ?? [];
@@ -645,7 +691,10 @@ class _CompletedBookingsTab extends StatelessWidget {
               children: [
                 Icon(Icons.done_all, size: 64, color: Colors.grey),
                 SizedBox(height: 16),
-                Text('No completed bookings', style: TextStyle(fontSize: 18, color: Colors.grey)),
+                Text(
+                  'No completed bookings',
+                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                ),
               ],
             ),
           );
@@ -657,7 +706,7 @@ class _CompletedBookingsTab extends StatelessWidget {
           itemBuilder: (context, index) {
             final booking = bookings[index];
             final data = booking.data() as Map<String, dynamic>;
-            
+
             return _BookingCard(
               booking: data,
               bookingId: booking.id,
@@ -694,7 +743,7 @@ class _BookingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final requestDate = booking['requestDate'] as Timestamp?;
     final preferredDate = booking['preferredDate'] as Timestamp?;
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 3,
@@ -719,43 +768,43 @@ class _BookingCard extends StatelessWidget {
                 _StatusChip(status: booking['status'] ?? 'pending'),
               ],
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             // Service details
             _InfoRow(
               icon: Icons.medical_services,
               label: 'Service',
               value: booking['serviceType'] ?? 'Not specified',
             ),
-            
+
             if (booking['description']?.toString().isNotEmpty == true)
               _InfoRow(
                 icon: Icons.description,
                 label: 'Description',
                 value: booking['description'],
               ),
-            
+
             if (preferredDate != null)
               _InfoRow(
                 icon: Icons.calendar_today,
                 label: 'Preferred Date',
                 value: _formatDate(preferredDate),
               ),
-            
+
             _InfoRow(
               icon: Icons.access_time,
               label: 'Requested',
               value: requestDate != null ? _formatDate(requestDate) : 'Unknown',
             ),
-            
+
             if (booking['patientPhone']?.toString().isNotEmpty == true)
               _InfoRow(
                 icon: Icons.phone,
                 label: 'Contact',
                 value: booking['patientPhone'],
               ),
-            
+
             // Action buttons
             if (showActions) ...[
               const SizedBox(height: 16),
@@ -787,7 +836,7 @@ class _BookingCard extends StatelessWidget {
                 ],
               ),
             ],
-            
+
             if (showCompleteAction) ...[
               const SizedBox(height: 16),
               SizedBox(
@@ -836,13 +885,8 @@ class _InfoRow extends StatelessWidget {
         children: [
           Icon(icon, size: 16, color: Colors.teal),
           const SizedBox(width: 8),
-          Text(
-            '$label: ',
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
-          Expanded(
-            child: Text(value),
-          ),
+          Text('$label: ', style: const TextStyle(fontWeight: FontWeight.w600)),
+          Expanded(child: Text(value)),
         ],
       ),
     );

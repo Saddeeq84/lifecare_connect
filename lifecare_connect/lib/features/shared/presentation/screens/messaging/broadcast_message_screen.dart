@@ -17,14 +17,18 @@ class _BroadcastMessageScreenState extends State<BroadcastMessageScreen> {
   // Helper stream for facility admin user list
   Stream<QuerySnapshot> _facilityAdminUserStream() {
     // Directly query users with role 'facility' (facility admins)
-    return FirebaseFirestore.instance.collection('users').where('role', isEqualTo: 'facility').snapshots();
+    return FirebaseFirestore.instance
+        .collection('users')
+        .where('role', isEqualTo: 'facility')
+        .snapshots();
   }
+
   final _messageController = TextEditingController();
   final _subjectController = TextEditingController();
   String _selectedCategory = 'all';
   bool _isSending = false;
   final List<String> _selectedFacilities = [];
-  
+
   final Map<String, String> _categories = {
     'all': 'All Users',
     'patient': 'All Patients',
@@ -55,10 +59,7 @@ class _BroadcastMessageScreenState extends State<BroadcastMessageScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              const Color(0xFFE53935).withOpacity(0.1),
-              Colors.white,
-            ],
+            colors: [const Color(0xFFE53935).withOpacity(0.1), Colors.white],
           ),
         ),
         child: SingleChildScrollView(
@@ -72,11 +73,17 @@ class _BroadcastMessageScreenState extends State<BroadcastMessageScreen> {
                 decoration: BoxDecoration(
                   color: const Color(0xFFE53935).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFE53935).withOpacity(0.3)),
+                  border: Border.all(
+                    color: const Color(0xFFE53935).withOpacity(0.3),
+                  ),
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.admin_panel_settings, color: Color(0xFFE53935), size: 24),
+                    Icon(
+                      Icons.admin_panel_settings,
+                      color: Color(0xFFE53935),
+                      size: 24,
+                    ),
                     SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -109,7 +116,9 @@ class _BroadcastMessageScreenState extends State<BroadcastMessageScreen> {
               // Target Audience Selection
               Card(
                 elevation: 4,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: Column(
@@ -123,7 +132,10 @@ class _BroadcastMessageScreenState extends State<BroadcastMessageScreen> {
                               color: const Color(0xFFE53935).withOpacity(0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Icon(Icons.group, color: Color(0xFFE53935)),
+                            child: const Icon(
+                              Icons.group,
+                              color: Color(0xFFE53935),
+                            ),
                           ),
                           const SizedBox(width: 12),
                           const Text(
@@ -172,7 +184,9 @@ class _BroadcastMessageScreenState extends State<BroadcastMessageScreen> {
               // Message Composition
               Card(
                 elevation: 4,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: Column(
@@ -186,7 +200,10 @@ class _BroadcastMessageScreenState extends State<BroadcastMessageScreen> {
                               color: const Color(0xFFE53935).withOpacity(0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Icon(Icons.message, color: Color(0xFFE53935)),
+                            child: const Icon(
+                              Icons.message,
+                              color: Color(0xFFE53935),
+                            ),
                           ),
                           const SizedBox(width: 12),
                           const Text(
@@ -253,7 +270,9 @@ class _BroadcastMessageScreenState extends State<BroadcastMessageScreen> {
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
                                 strokeWidth: 2,
                               ),
                             ),
@@ -266,7 +285,10 @@ class _BroadcastMessageScreenState extends State<BroadcastMessageScreen> {
                           children: [
                             Icon(Icons.campaign, size: 24),
                             SizedBox(width: 8),
-                            Text('Send Broadcast Message', style: TextStyle(fontSize: 16)),
+                            Text(
+                              'Send Broadcast Message',
+                              style: TextStyle(fontSize: 16),
+                            ),
                           ],
                         ),
                 ),
@@ -314,7 +336,8 @@ class _BroadcastMessageScreenState extends State<BroadcastMessageScreen> {
                 itemBuilder: (context, index) {
                   final facility = facilities[index];
                   final facilityData = facility.data() as Map<String, dynamic>;
-                  final facilityName = facilityData['name'] ?? 'Unnamed Facility';
+                  final facilityName =
+                      facilityData['name'] ?? 'Unnamed Facility';
                   final facilityId = facility.id;
 
                   return CheckboxListTile(
@@ -346,7 +369,11 @@ class _BroadcastMessageScreenState extends State<BroadcastMessageScreen> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Row(
             children: [
-              SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+              SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
               SizedBox(width: 8),
               Text('Calculating audience...'),
             ],
@@ -405,9 +432,12 @@ class _BroadcastMessageScreenState extends State<BroadcastMessageScreen> {
     } else if (_selectedCategory == 'facility_admin') {
       // Use updated facility admin stream
       return _facilityAdminUserStream();
-    } else if (_selectedCategory == 'specific_facility' && _selectedFacilities.isNotEmpty) {
+    } else if (_selectedCategory == 'specific_facility' &&
+        _selectedFacilities.isNotEmpty) {
       // Target facility user documents by their document ID
-      query = query.where('role', isEqualTo: 'facility').where(FieldPath.documentId, whereIn: _selectedFacilities);
+      query = query
+          .where('role', isEqualTo: 'facility')
+          .where(FieldPath.documentId, whereIn: _selectedFacilities);
       return query.snapshots();
     }
     // 'all' returns all users except current
@@ -415,7 +445,9 @@ class _BroadcastMessageScreenState extends State<BroadcastMessageScreen> {
   }
 
   bool _canSendMessage() {
-    final hasValidCategory = _selectedCategory != 'specific_facility' || _selectedFacilities.isNotEmpty;
+    final hasValidCategory =
+        _selectedCategory != 'specific_facility' ||
+        _selectedFacilities.isNotEmpty;
     return _subjectController.text.trim().isNotEmpty &&
         _messageController.text.trim().isNotEmpty &&
         hasValidCategory &&
@@ -440,8 +472,13 @@ class _BroadcastMessageScreenState extends State<BroadcastMessageScreen> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE53935)),
-            child: const Text('Send Broadcast', style: TextStyle(color: Colors.white)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE53935),
+            ),
+            child: const Text(
+              'Send Broadcast',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -454,37 +491,38 @@ class _BroadcastMessageScreenState extends State<BroadcastMessageScreen> {
     });
 
     // ...existing code...
-      // Get current user (admin) details
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser == null) {
-        throw Exception('User not authenticated');
-      }
+    // Get current user (admin) details
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      throw Exception('User not authenticated');
+    }
 
-      final adminDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(currentUser.uid)
-          .get();
+    final adminDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUser.uid)
+        .get();
 
-      if (!adminDoc.exists) {
-        throw Exception('Admin user data not found');
-      }
+    if (!adminDoc.exists) {
+      throw Exception('Admin user data not found');
+    }
 
-      final adminData = adminDoc.data() as Map<String, dynamic>;
-      final adminFirstName = adminData['firstName'] ?? '';
-      final adminLastName = adminData['lastName'] ?? '';
-      final adminName = '$adminFirstName $adminLastName'.trim();
-      final adminRole = adminData['role'] ?? 'admin';
+    final adminData = adminDoc.data() as Map<String, dynamic>;
+    final adminFirstName = adminData['firstName'] ?? '';
+    final adminLastName = adminData['lastName'] ?? '';
+    final adminName = '$adminFirstName $adminLastName'.trim();
+    final adminRole = adminData['role'] ?? 'admin';
 
-      // Get target users
-      final usersSnapshot = await _getTargetUsersStream().first;
-      final targetUsers = usersSnapshot.docs;
+    // Get target users
+    final usersSnapshot = await _getTargetUsersStream().first;
+    final targetUsers = usersSnapshot.docs;
 
-      if (targetUsers.isEmpty) {
-        throw Exception('No users found for the selected category');
-      }
+    if (targetUsers.isEmpty) {
+      throw Exception('No users found for the selected category');
+    }
 
-      // Format the broadcast message
-      final messageContent = '''
+    // Format the broadcast message
+    final messageContent =
+        '''
 📢 BROADCAST MESSAGE
 
 Subject: ${_subjectController.text.trim()}
@@ -497,78 +535,86 @@ Sent by: $adminName
 Date: ${DateTime.now().toString().split('.')[0]}
 ''';
 
-      int successCount = 0;
-      int failureCount = 0;
+    int successCount = 0;
+    int failureCount = 0;
 
-      // Send message to each user, including facilities
-      for (final userDoc in targetUsers) {
-        final userData = userDoc.data() as Map<String, dynamic>?;
-        if (userData == null) continue;
-        final userFirstName = userData['firstName'] ?? '';
-        final userLastName = userData['lastName'] ?? '';
-        final userName = '$userFirstName $userLastName'.trim();
-        final userRole = userData['role'] ?? 'user';
-        final isFacilityUser = userRole == 'facility' || userRole == 'facility_admin';
-        final facilityId = isFacilityUser ? userDoc.id : null;
-        try {
-          // Create conversation with participants array including facility user if applicable
-          final participants = [currentUser.uid, userDoc.id];
-          final conversationId = await MessageService.createOrGetConversation(
-            user1Id: currentUser.uid,
-            user1Name: adminName.isNotEmpty ? adminName : 'Admin',
-            user1Role: adminRole,
-            user2Id: userDoc.id,
-            user2Name: userName.isNotEmpty ? userName : (userData['email'] ?? 'User'),
-            user2Role: userRole,
-            type: 'broadcast_message',
-            title: 'Broadcast: ${_subjectController.text.trim()}',
-            relatedId: facilityId,
-          );
-
-          // Send message with participants array
-          await MessageService.sendMessage(
-            conversationId: conversationId,
-            senderId: currentUser.uid,
-            senderName: adminName.isNotEmpty ? adminName : 'Admin',
-            senderRole: adminRole,
-            receiverId: facilityId ?? userDoc.id,
-            receiverName: userName.isNotEmpty ? userName : (userData['email'] ?? 'User'),
-            receiverRole: userRole,
-            content: messageContent,
-            type: 'broadcast_message',
-            priority: 'high',
-            attachmentType: isFacilityUser ? 'facility_broadcast' : null,
-            participants: participants,
-          );
-          successCount++;
-        } catch (e) {
-          failureCount++;
-          print('Failed to send broadcast to user: $e');
-        }
-      }
-
-      // Clear form if all successful
-      if (failureCount == 0) {
-        _messageController.clear();
-        _subjectController.clear();
-        setState(() {
-          _selectedCategory = 'all';
-          _selectedFacilities.clear();
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Broadcast sent to $successCount users successfully!'),
-            backgroundColor: Colors.green,
-          ),
+    // Send message to each user, including facilities
+    for (final userDoc in targetUsers) {
+      final userData = userDoc.data() as Map<String, dynamic>?;
+      if (userData == null) continue;
+      final userFirstName = userData['firstName'] ?? '';
+      final userLastName = userData['lastName'] ?? '';
+      final userName = '$userFirstName $userLastName'.trim();
+      final userRole = userData['role'] ?? 'user';
+      final isFacilityUser =
+          userRole == 'facility' || userRole == 'facility_admin';
+      final facilityId = isFacilityUser ? userDoc.id : null;
+      try {
+        // Create conversation with participants array including facility user if applicable
+        final participants = [currentUser.uid, userDoc.id];
+        final conversationId = await MessageService.createOrGetConversation(
+          user1Id: currentUser.uid,
+          user1Name: adminName.isNotEmpty ? adminName : 'Admin',
+          user1Role: adminRole,
+          user2Id: userDoc.id,
+          user2Name: userName.isNotEmpty
+              ? userName
+              : (userData['email'] ?? 'User'),
+          user2Role: userRole,
+          type: 'broadcast_message',
+          title: 'Broadcast: ${_subjectController.text.trim()}',
+          relatedId: facilityId,
         );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Broadcast sent to $successCount users, but $failureCount failed.'),
-            backgroundColor: Colors.orange,
-          ),
+
+        // Send message with participants array
+        await MessageService.sendMessage(
+          conversationId: conversationId,
+          senderId: currentUser.uid,
+          senderName: adminName.isNotEmpty ? adminName : 'Admin',
+          senderRole: adminRole,
+          receiverId: facilityId ?? userDoc.id,
+          receiverName: userName.isNotEmpty
+              ? userName
+              : (userData['email'] ?? 'User'),
+          receiverRole: userRole,
+          content: messageContent,
+          type: 'broadcast_message',
+          priority: 'high',
+          attachmentType: isFacilityUser ? 'facility_broadcast' : null,
+          participants: participants,
         );
+        successCount++;
+      } catch (e) {
+        failureCount++;
+        print('Failed to send broadcast to user: $e');
       }
     }
-      // Catch and finally blocks are already correctly placed below
+
+    // Clear form if all successful
+    if (failureCount == 0) {
+      _messageController.clear();
+      _subjectController.clear();
+      setState(() {
+        _selectedCategory = 'all';
+        _selectedFacilities.clear();
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Broadcast sent to $successCount users successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Broadcast sent to $successCount users, but $failureCount failed.',
+          ),
+          backgroundColor: Colors.orange,
+        ),
+      );
     }
+  }
+
+  // Catch and finally blocks are already correctly placed below
+}

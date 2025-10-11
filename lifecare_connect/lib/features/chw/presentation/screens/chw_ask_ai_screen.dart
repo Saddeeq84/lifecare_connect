@@ -6,10 +6,7 @@ class CHWAskAIScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ask AI'),
-        backgroundColor: Colors.teal,
-      ),
+      appBar: AppBar(title: const Text('Ask AI'), backgroundColor: Colors.teal),
       body: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -18,7 +15,11 @@ class CHWAskAIScreen extends StatelessWidget {
             SizedBox(height: 24),
             Text(
               'Ask AI - Coming Soon!',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.teal),
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.teal,
+              ),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 12),

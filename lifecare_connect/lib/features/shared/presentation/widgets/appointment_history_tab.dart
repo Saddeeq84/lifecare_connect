@@ -8,11 +8,7 @@ class AppointmentHistoryTab extends StatelessWidget {
   final String role;
   final String? userId;
 
-  const AppointmentHistoryTab({
-    super.key,
-    required this.role,
-    this.userId,
-  });
+  const AppointmentHistoryTab({super.key, required this.role, this.userId});
 
   @override
   Widget build(BuildContext context) {
@@ -54,33 +50,47 @@ class AppointmentHistoryTab extends StatelessWidget {
         return ListView.builder(
           itemCount: appointments.length,
           itemBuilder: (context, index) {
-            final appointment = appointments[index].data() as Map<String, dynamic>;
-            final appointmentDate = appointment['appointment_date'] as Timestamp?;
+            final appointment =
+                appointments[index].data() as Map<String, dynamic>;
+            final appointmentDate =
+                appointment['appointment_date'] as Timestamp?;
             final status = appointment['status'] ?? 'unknown';
-            
+
             return Card(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: ListTile(
                 leading: CircleAvatar(
                   backgroundColor: _getStatusColor(status).withOpacity(0.1),
-                  child: Icon(Icons.calendar_today, color: _getStatusColor(status)),
+                  child: Icon(
+                    Icons.calendar_today,
+                    color: _getStatusColor(status),
+                  ),
                 ),
                 title: Text(appointment['patient_name'] ?? 'Unknown Patient'),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Doctor: ${appointment['doctor_name'] ?? 'Unknown Doctor'}'),
+                    Text(
+                      'Doctor: ${appointment['doctor_name'] ?? 'Unknown Doctor'}',
+                    ),
                     Text('Type: ${appointment['type'] ?? 'General'}'),
                     if (appointmentDate != null)
-                      Text('Date: ${DateFormat('MMM dd, yyyy - HH:mm').format(appointmentDate.toDate())}'),
+                      Text(
+                        'Date: ${DateFormat('MMM dd, yyyy - HH:mm').format(appointmentDate.toDate())}',
+                      ),
                   ],
                 ),
                 trailing: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: _getStatusColor(status).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: _getStatusColor(status).withOpacity(0.3)),
+                    border: Border.all(
+                      color: _getStatusColor(status).withOpacity(0.3),
+                    ),
                   ),
                   child: Text(
                     status.toUpperCase(),

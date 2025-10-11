@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,7 +10,8 @@ class CHWMessagesScreen extends StatefulWidget {
   State<CHWMessagesScreen> createState() => _CHWMessagesScreenState();
 }
 
-class _CHWMessagesScreenState extends State<CHWMessagesScreen> with TickerProviderStateMixin {
+class _CHWMessagesScreenState extends State<CHWMessagesScreen>
+    with TickerProviderStateMixin {
   late TabController _tabController;
   final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
@@ -91,7 +90,7 @@ class _CHWMessagesScreenState extends State<CHWMessagesScreen> with TickerProvid
               ],
             ),
           ),
-          
+
           // Tab Bar
           Container(
             color: Colors.teal.shade700,
@@ -109,7 +108,7 @@ class _CHWMessagesScreenState extends State<CHWMessagesScreen> with TickerProvid
               ],
             ),
           ),
-          
+
           // Tab Views
           Expanded(
             child: TabBarView(
@@ -127,7 +126,12 @@ class _CHWMessagesScreenState extends State<CHWMessagesScreen> with TickerProvid
     );
   }
 
-  Widget _buildQuickActionCard(String title, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildQuickActionCard(
+    String title,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return Card(
       elevation: 2,
       child: InkWell(
@@ -161,7 +165,9 @@ class _CHWMessagesScreenState extends State<CHWMessagesScreen> with TickerProvid
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('New Message'),
-        content: const Text('Select a tab to compose a new message to the specific group.'),
+        content: const Text(
+          'Select a tab to compose a new message to the specific group.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -176,7 +182,7 @@ class _CHWMessagesScreenState extends State<CHWMessagesScreen> with TickerProvid
 // Broadcast Messages Tab
 class BroadcastMessagesTab extends StatelessWidget {
   final String currentUserId;
-  
+
   const BroadcastMessagesTab({super.key, required this.currentUserId});
 
   @override
@@ -220,7 +226,7 @@ class BroadcastMessagesTab extends StatelessWidget {
           itemBuilder: (context, index) {
             final doc = snapshot.data!.docs[index];
             final data = doc.data() as Map<String, dynamic>;
-            
+
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
               elevation: 2,
@@ -279,7 +285,11 @@ class BroadcastMessagesTab extends StatelessWidget {
     }
   }
 
-  void _openMessage(BuildContext context, String messageId, Map<String, dynamic> data) {
+  void _openMessage(
+    BuildContext context,
+    String messageId,
+    Map<String, dynamic> data,
+  ) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -296,7 +306,7 @@ class BroadcastMessagesTab extends StatelessWidget {
 // Doctor Messages Tab
 class DoctorMessagesTab extends StatelessWidget {
   final String currentUserId;
-  
+
   const DoctorMessagesTab({super.key, required this.currentUserId});
 
   @override
@@ -334,7 +344,8 @@ class DoctorMessagesTab extends StatelessWidget {
                 ElevatedButton.icon(
                   icon: const Icon(Icons.add),
                   label: const Text('Refer to Doctor'),
-                  onPressed: () => GoRouter.of(context).pushNamed('chw-create-referral'),
+                  onPressed: () =>
+                      GoRouter.of(context).pushNamed('chw-create-referral'),
                 ),
               ],
             ),
@@ -347,7 +358,7 @@ class DoctorMessagesTab extends StatelessWidget {
           itemBuilder: (context, index) {
             final doc = snapshot.data!.docs[index];
             final data = doc.data() as Map<String, dynamic>;
-            
+
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
               elevation: 2,
@@ -385,7 +396,10 @@ class DoctorMessagesTab extends StatelessWidget {
                         backgroundColor: Colors.red,
                         child: Text(
                           '${data['unreadCount']}',
-                          style: const TextStyle(color: Colors.white, fontSize: 12),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
                         ),
                       )
                     : null,
@@ -416,8 +430,11 @@ class DoctorMessagesTab extends StatelessWidget {
     }
   }
 
-
-  void _openConversation(BuildContext context, String conversationId, Map<String, dynamic> data) {
+  void _openConversation(
+    BuildContext context,
+    String conversationId,
+    Map<String, dynamic> data,
+  ) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -434,7 +451,7 @@ class DoctorMessagesTab extends StatelessWidget {
 // Patient Messages Tab
 class PatientMessagesTab extends StatelessWidget {
   final String currentUserId;
-  
+
   const PatientMessagesTab({super.key, required this.currentUserId});
 
   @override
@@ -485,7 +502,7 @@ class PatientMessagesTab extends StatelessWidget {
           itemBuilder: (context, index) {
             final doc = snapshot.data!.docs[index];
             final data = doc.data() as Map<String, dynamic>;
-            
+
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
               elevation: 2,
@@ -523,7 +540,10 @@ class PatientMessagesTab extends StatelessWidget {
                         backgroundColor: Colors.red,
                         child: Text(
                           '${data['unreadCount']}',
-                          style: const TextStyle(color: Colors.white, fontSize: 12),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
                         ),
                       )
                     : null,
@@ -559,7 +579,9 @@ class PatientMessagesTab extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Coming Soon'),
-        content: const Text('Patient selection and messaging will be available in a future update.'),
+        content: const Text(
+          'Patient selection and messaging will be available in a future update.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -570,7 +592,11 @@ class PatientMessagesTab extends StatelessWidget {
     );
   }
 
-  void _openConversation(BuildContext context, String conversationId, Map<String, dynamic> data) {
+  void _openConversation(
+    BuildContext context,
+    String conversationId,
+    Map<String, dynamic> data,
+  ) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -587,7 +613,7 @@ class PatientMessagesTab extends StatelessWidget {
 // Facility Messages Tab
 class FacilityMessagesTab extends StatelessWidget {
   final String currentUserId;
-  
+
   const FacilityMessagesTab({super.key, required this.currentUserId});
 
   @override
@@ -638,7 +664,7 @@ class FacilityMessagesTab extends StatelessWidget {
           itemBuilder: (context, index) {
             final doc = snapshot.data!.docs[index];
             final data = doc.data() as Map<String, dynamic>;
-            
+
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
               elevation: 2,
@@ -676,7 +702,10 @@ class FacilityMessagesTab extends StatelessWidget {
                         backgroundColor: Colors.red,
                         child: Text(
                           '${data['unreadCount']}',
-                          style: const TextStyle(color: Colors.white, fontSize: 12),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
                         ),
                       )
                     : null,
@@ -712,7 +741,9 @@ class FacilityMessagesTab extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Coming Soon'),
-        content: const Text('Facility selection and messaging will be available in a future update.'),
+        content: const Text(
+          'Facility selection and messaging will be available in a future update.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -723,7 +754,11 @@ class FacilityMessagesTab extends StatelessWidget {
     );
   }
 
-  void _openConversation(BuildContext context, String conversationId, Map<String, dynamic> data) {
+  void _openConversation(
+    BuildContext context,
+    String conversationId,
+    Map<String, dynamic> data,
+  ) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -793,7 +828,10 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
                             children: [
                               CircleAvatar(
                                 backgroundColor: Colors.orange.shade100,
-                                child: const Icon(Icons.admin_panel_settings, color: Colors.orange),
+                                child: const Icon(
+                                  Icons.admin_panel_settings,
+                                  color: Colors.orange,
+                                ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
@@ -802,10 +840,14 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
                                   children: [
                                     const Text(
                                       'Admin',
-                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                     Text(
-                                      _formatTimestamp(widget.messageData['timestamp']),
+                                      _formatTimestamp(
+                                        widget.messageData['timestamp'],
+                                      ),
                                       style: TextStyle(
                                         color: Colors.grey.shade600,
                                         fontSize: 12,
@@ -826,7 +868,8 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            widget.messageData['message'] ?? 'No message content',
+                            widget.messageData['message'] ??
+                                'No message content',
                             style: const TextStyle(fontSize: 16),
                           ),
                         ],
@@ -834,7 +877,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Replies Section
                   StreamBuilder<QuerySnapshot>(
                     stream: FirebaseFirestore.instance
@@ -860,7 +903,8 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
                           ),
                           const SizedBox(height: 8),
                           ...snapshot.data!.docs.map((doc) {
-                            final replyData = doc.data() as Map<String, dynamic>;
+                            final replyData =
+                                doc.data() as Map<String, dynamic>;
                             return Card(
                               margin: const EdgeInsets.only(bottom: 8),
                               child: Padding(
@@ -873,16 +917,24 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
                                         CircleAvatar(
                                           radius: 12,
                                           backgroundColor: Colors.teal.shade100,
-                                          child: const Icon(Icons.person, size: 16, color: Colors.teal),
+                                          child: const Icon(
+                                            Icons.person,
+                                            size: 16,
+                                            color: Colors.teal,
+                                          ),
                                         ),
                                         const SizedBox(width: 8),
                                         Text(
                                           replyData['senderName'] ?? 'User',
-                                          style: const TextStyle(fontWeight: FontWeight.w500),
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                          ),
                                         ),
                                         const Spacer(),
                                         Text(
-                                          _formatTimestamp(replyData['timestamp']),
+                                          _formatTimestamp(
+                                            replyData['timestamp'],
+                                          ),
                                           style: TextStyle(
                                             color: Colors.grey.shade600,
                                             fontSize: 12,
@@ -905,7 +957,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
               ),
             ),
           ),
-          
+
           // Reply Input
           Container(
             padding: const EdgeInsets.all(16),
@@ -960,14 +1012,14 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
         .doc(widget.messageId)
         .collection('replies')
         .add({
-      'message': _replyController.text.trim(),
-      'senderId': widget.currentUserId,
-      'senderName': 'CHW User',
-      'timestamp': FieldValue.serverTimestamp(),
-    });
+          'message': _replyController.text.trim(),
+          'senderId': widget.currentUserId,
+          'senderName': 'CHW User',
+          'timestamp': FieldValue.serverTimestamp(),
+        });
 
     _replyController.clear();
-    
+
     // Scroll to bottom to show new reply
     Future.delayed(const Duration(milliseconds: 100), () {
       _scrollController.animateTo(
@@ -1048,18 +1100,26 @@ class _ConversationScreenState extends State<ConversationScreen> {
                   itemBuilder: (context, index) {
                     final doc = snapshot.data!.docs[index];
                     final data = doc.data() as Map<String, dynamic>;
-                    final isCurrentUser = data['senderId'] == widget.currentUserId;
-                    
+                    final isCurrentUser =
+                        data['senderId'] == widget.currentUserId;
+
                     return Align(
-                      alignment: isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
+                      alignment: isCurrentUser
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
                       child: Container(
                         margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         constraints: BoxConstraints(
                           maxWidth: MediaQuery.of(context).size.width * 0.7,
                         ),
                         decoration: BoxDecoration(
-                          color: isCurrentUser ? Colors.teal : Colors.grey.shade200,
+                          color: isCurrentUser
+                              ? Colors.teal
+                              : Colors.grey.shade200,
                           borderRadius: BorderRadius.circular(18),
                         ),
                         child: Column(
@@ -1069,7 +1129,9 @@ class _ConversationScreenState extends State<ConversationScreen> {
                             Text(
                               data['message'] ?? '',
                               style: TextStyle(
-                                color: isCurrentUser ? Colors.white : Colors.black87,
+                                color: isCurrentUser
+                                    ? Colors.white
+                                    : Colors.black87,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -1077,7 +1139,9 @@ class _ConversationScreenState extends State<ConversationScreen> {
                               _formatTimestamp(data['timestamp']),
                               style: TextStyle(
                                 fontSize: 10,
-                                color: isCurrentUser ? Colors.white70 : Colors.grey.shade600,
+                                color: isCurrentUser
+                                    ? Colors.white70
+                                    : Colors.grey.shade600,
                               ),
                             ),
                           ],
@@ -1089,7 +1153,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
               },
             ),
           ),
-          
+
           // Message Input
           Container(
             padding: const EdgeInsets.all(16),
@@ -1154,7 +1218,10 @@ class _ConversationScreenState extends State<ConversationScreen> {
                       children: [
                         Icon(Icons.info_outline, color: Colors.teal.shade600),
                         const SizedBox(width: 8),
-                        const Text('Consultation Guide', style: TextStyle(fontWeight: FontWeight.bold)),
+                        const Text(
+                          'Consultation Guide',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -1216,7 +1283,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
     if (timestamp == null) return '';
     final date = timestamp.toDate();
     final now = DateTime.now();
-    
+
     if (now.difference(date).inDays == 0) {
       return '${date.hour}:${date.minute.toString().padLeft(2, '0')}';
     } else {
@@ -1236,19 +1303,19 @@ class _ConversationScreenState extends State<ConversationScreen> {
         .doc(widget.conversationId)
         .collection('messages')
         .add({
-      'message': message,
-      'senderId': widget.currentUserId,
-      'timestamp': FieldValue.serverTimestamp(),
-    });
+          'message': message,
+          'senderId': widget.currentUserId,
+          'timestamp': FieldValue.serverTimestamp(),
+        });
 
     // Update conversation metadata
     FirebaseFirestore.instance
         .collection('messages')
         .doc(widget.conversationId)
         .update({
-      'lastMessage': message,
-      'lastMessageTime': FieldValue.serverTimestamp(),
-    });
+          'lastMessage': message,
+          'lastMessageTime': FieldValue.serverTimestamp(),
+        });
 
     // Auto-scroll to bottom
     Future.delayed(const Duration(milliseconds: 100), () {

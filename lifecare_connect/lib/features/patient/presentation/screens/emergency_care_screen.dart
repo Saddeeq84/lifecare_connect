@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -16,19 +14,20 @@ class _EmergencyCareScreenState extends State<EmergencyCareScreen> {
   final _descriptionController = TextEditingController();
   final _phoneController = TextEditingController();
   final _locationController = TextEditingController();
-  
+
   String? _selectedEmergencyType;
   String? _selectedSeverity;
   String? _selectedFacilityId;
   Map<String, dynamic>? _selectedFacility;
   final bool _isSubmitting = false;
   List<QueryDocumentSnapshot> _emergencyFacilities = [];
-  
+
   final List<Map<String, dynamic>> _emergencyTypes = [
     {
       'value': 'surgical_emergency',
       'label': 'Surgical Emergency',
-      'description': 'Acute conditions requiring immediate surgical intervention',
+      'description':
+          'Acute conditions requiring immediate surgical intervention',
       'icon': Icons.local_hospital,
       'color': Colors.red.shade700,
     },
@@ -123,9 +122,7 @@ class _EmergencyCareScreenState extends State<EmergencyCareScreen> {
       setState(() {
         _emergencyFacilities = facilitiesSnapshot.docs;
       });
-    } catch (e) {
-
-    }
+    } catch (e) {}
   }
 
   @override
@@ -233,7 +230,6 @@ class _EmergencyCareScreenState extends State<EmergencyCareScreen> {
     );
     return;
 
-
     /*
     if (!_formKey.currentState!.validate()) return;
     if (_selectedEmergencyType == null || _selectedSeverity == null) {
@@ -327,7 +323,10 @@ class _EmergencyCareScreenState extends State<EmergencyCareScreen> {
                     const SizedBox(height: 12),
                     const Text(
                       'Emergency Medical Care',
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     const Text(
@@ -343,22 +342,28 @@ class _EmergencyCareScreenState extends State<EmergencyCareScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red.shade700,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                        textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 12,
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               const Text(
                 'Emergency Type *',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              
+
               // Emergency Type Selection
               Container(
                 decoration: BoxDecoration(
@@ -371,11 +376,14 @@ class _EmergencyCareScreenState extends State<EmergencyCareScreen> {
                   itemCount: _emergencyTypes.length,
                   itemBuilder: (context, index) {
                     final emergencyType = _emergencyTypes[index];
-                    final isSelected = _selectedEmergencyType == emergencyType['value'];
-                    
+                    final isSelected =
+                        _selectedEmergencyType == emergencyType['value'];
+
                     return Container(
                       decoration: BoxDecoration(
-                        color: isSelected ? emergencyType['color'].withOpacity(0.1) : null,
+                        color: isSelected
+                            ? emergencyType['color'].withOpacity(0.1)
+                            : null,
                         border: Border(
                           bottom: index < _emergencyTypes.length - 1
                               ? BorderSide(color: Colors.grey.shade200)
@@ -398,7 +406,9 @@ class _EmergencyCareScreenState extends State<EmergencyCareScreen> {
                         title: Text(
                           emergencyType['label'],
                           style: TextStyle(
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
                             color: isSelected ? emergencyType['color'] : null,
                           ),
                         ),
@@ -410,7 +420,10 @@ class _EmergencyCareScreenState extends State<EmergencyCareScreen> {
                           ),
                         ),
                         trailing: isSelected
-                            ? Icon(Icons.check_circle, color: emergencyType['color'])
+                            ? Icon(
+                                Icons.check_circle,
+                                color: emergencyType['color'],
+                              )
                             : null,
                         onTap: () {
                           setState(() {
@@ -422,15 +435,15 @@ class _EmergencyCareScreenState extends State<EmergencyCareScreen> {
                   },
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               const Text(
                 'Severity Level *',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              
+
               // Severity Level Selection
               Container(
                 decoration: BoxDecoration(
@@ -440,10 +453,12 @@ class _EmergencyCareScreenState extends State<EmergencyCareScreen> {
                 child: Column(
                   children: _severityLevels.map((severity) {
                     final isSelected = _selectedSeverity == severity['value'];
-                    
+
                     return Container(
                       decoration: BoxDecoration(
-                        color: isSelected ? severity['color'].withOpacity(0.1) : null,
+                        color: isSelected
+                            ? severity['color'].withOpacity(0.1)
+                            : null,
                         border: Border(
                           bottom: severity != _severityLevels.last
                               ? BorderSide(color: Colors.grey.shade200)
@@ -458,7 +473,9 @@ class _EmergencyCareScreenState extends State<EmergencyCareScreen> {
                         title: Text(
                           severity['label'],
                           style: TextStyle(
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
                             color: isSelected ? severity['color'] : null,
                           ),
                         ),
@@ -475,9 +492,9 @@ class _EmergencyCareScreenState extends State<EmergencyCareScreen> {
                   }).toList(),
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Emergency Facility Selection
               const Text(
                 'Preferred Emergency Facility (Optional)',
@@ -509,12 +526,21 @@ class _EmergencyCareScreenState extends State<EmergencyCareScreen> {
                           ListTile(
                             leading: Icon(
                               Icons.near_me,
-                              color: _selectedFacilityId == null ? Colors.teal : Colors.grey,
+                              color: _selectedFacilityId == null
+                                  ? Colors.teal
+                                  : Colors.grey,
                             ),
-                            title: const Text('Let system find nearest facility'),
-                            subtitle: const Text('Automatically locate closest emergency facility'),
+                            title: const Text(
+                              'Let system find nearest facility',
+                            ),
+                            subtitle: const Text(
+                              'Automatically locate closest emergency facility',
+                            ),
                             trailing: _selectedFacilityId == null
-                                ? const Icon(Icons.check_circle, color: Colors.teal)
+                                ? const Icon(
+                                    Icons.check_circle,
+                                    color: Colors.teal,
+                                  )
                                 : null,
                             onTap: () {
                               setState(() {
@@ -525,9 +551,11 @@ class _EmergencyCareScreenState extends State<EmergencyCareScreen> {
                           ),
                           const Divider(height: 1),
                           ..._emergencyFacilities.map((facility) {
-                            final facilityData = facility.data() as Map<String, dynamic>;
-                            final isSelected = _selectedFacilityId == facility.id;
-                            
+                            final facilityData =
+                                facility.data() as Map<String, dynamic>;
+                            final isSelected =
+                                _selectedFacilityId == facility.id;
+
                             return ListTile(
                               leading: Container(
                                 padding: const EdgeInsets.all(8),
@@ -536,24 +564,31 @@ class _EmergencyCareScreenState extends State<EmergencyCareScreen> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Icon(
-                                  facilityData['facilityType'] == 'hospital' 
-                                      ? Icons.local_hospital 
+                                  facilityData['facilityType'] == 'hospital'
+                                      ? Icons.local_hospital
                                       : Icons.medical_services,
                                   color: Colors.red.shade700,
                                   size: 20,
                                 ),
                               ),
                               title: Text(
-                                facilityData['facilityName'] ?? 'Unknown Facility',
+                                facilityData['facilityName'] ??
+                                    'Unknown Facility',
                                 style: TextStyle(
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
                                 ),
                               ),
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    facilityData['facilityType']?.toString().replaceAll('_', ' ').toUpperCase() ?? 'FACILITY',
+                                    facilityData['facilityType']
+                                            ?.toString()
+                                            .replaceAll('_', ' ')
+                                            .toUpperCase() ??
+                                        'FACILITY',
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: Colors.red.shade600,
@@ -568,24 +603,34 @@ class _EmergencyCareScreenState extends State<EmergencyCareScreen> {
                                 ],
                               ),
                               trailing: isSelected
-                                  ? Icon(Icons.check_circle, color: Colors.red.shade700)
+                                  ? Icon(
+                                      Icons.check_circle,
+                                      color: Colors.red.shade700,
+                                    )
                                   : null,
                               onTap: () {
                                 setState(() {
                                   _selectedFacilityId = facility.id;
-                                  _selectedFacility = facility.data() as Map<String, dynamic>;
+                                  _selectedFacility =
+                                      facility.data() as Map<String, dynamic>;
                                 });
                               },
                             );
                           }),
                           if (_selectedFacility != null)
                             Padding(
-                              padding: const EdgeInsets.only(top: 12.0, left: 8.0, right: 8.0),
+                              padding: const EdgeInsets.only(
+                                top: 12.0,
+                                left: 8.0,
+                                right: 8.0,
+                              ),
                               child: Container(
                                 decoration: BoxDecoration(
                                   color: Colors.red.shade50,
                                   borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.red.shade200),
+                                  border: Border.all(
+                                    color: Colors.red.shade200,
+                                  ),
                                 ),
                                 padding: const EdgeInsets.all(12),
                                 child: Column(
@@ -606,7 +651,10 @@ class _EmergencyCareScreenState extends State<EmergencyCareScreen> {
                                     if (_selectedFacility?['address'] != null)
                                       Text(
                                         _selectedFacility?['address'],
-                                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey,
+                                        ),
                                       ),
                                   ],
                                 ),
@@ -615,9 +663,9 @@ class _EmergencyCareScreenState extends State<EmergencyCareScreen> {
                         ],
                       ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Service Status Notice
               Container(
                 padding: const EdgeInsets.all(16),
@@ -656,9 +704,9 @@ class _EmergencyCareScreenState extends State<EmergencyCareScreen> {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Description
               const Text(
                 'Description of Emergency *',
@@ -679,9 +727,9 @@ class _EmergencyCareScreenState extends State<EmergencyCareScreen> {
                   return null;
                 },
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Contact Phone
               const Text(
                 'Contact Phone Number *',
@@ -703,9 +751,9 @@ class _EmergencyCareScreenState extends State<EmergencyCareScreen> {
                   return null;
                 },
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Location
               const Text(
                 'Current Location *',
@@ -726,9 +774,9 @@ class _EmergencyCareScreenState extends State<EmergencyCareScreen> {
                   return null;
                 },
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // Submit Button
               SizedBox(
                 width: double.infinity,
@@ -746,13 +794,16 @@ class _EmergencyCareScreenState extends State<EmergencyCareScreen> {
                       ? const CircularProgressIndicator(color: Colors.white)
                       : const Text(
                           'Submit Emergency Request',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                 ),
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Disclaimer
               Container(
                 padding: const EdgeInsets.all(16),

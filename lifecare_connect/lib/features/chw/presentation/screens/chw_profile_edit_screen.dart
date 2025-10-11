@@ -30,7 +30,8 @@ class _CHWProfileEditScreenState extends State<CHWProfileEditScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _experienceController = TextEditingController();
-  final TextEditingController _specializationController = TextEditingController();
+  final TextEditingController _specializationController =
+      TextEditingController();
   final TextEditingController _bioController = TextEditingController();
 
   // State variables
@@ -46,7 +47,7 @@ class _CHWProfileEditScreenState extends State<CHWProfileEditScreen> {
     'Not specified',
     'Male',
     'Female',
-    'Other'
+    'Other',
   ];
 
   final List<String> _specializationOptions = [
@@ -57,7 +58,7 @@ class _CHWProfileEditScreenState extends State<CHWProfileEditScreen> {
     'Mental Health',
     'Infectious Diseases',
     'Community Education',
-    'Other'
+    'Other',
   ];
 
   @override
@@ -121,7 +122,7 @@ class _CHWProfileEditScreenState extends State<CHWProfileEditScreen> {
     _bioController.text = data['bio'] ?? '';
     _profileImageUrl = data['photoUrl'] ?? data['profileImageUrl'];
     _selectedGender = data['gender'] ?? 'Not specified';
-    
+
     // Handle specialization
     String specialization = data['specialization'] ?? 'General CHW';
     if (_specializationOptions.contains(specialization)) {
@@ -220,14 +221,14 @@ class _CHWProfileEditScreenState extends State<CHWProfileEditScreen> {
 
       // Save to both collections for compatibility
       await Future.wait([
-        _firestore.collection('chw_profiles').doc(user.uid).set(
-              profileData,
-              SetOptions(merge: true),
-            ),
-        _firestore.collection('users').doc(user.uid).set(
-              profileData,
-              SetOptions(merge: true),
-            ),
+        _firestore
+            .collection('chw_profiles')
+            .doc(user.uid)
+            .set(profileData, SetOptions(merge: true)),
+        _firestore
+            .collection('users')
+            .doc(user.uid)
+            .set(profileData, SetOptions(merge: true)),
       ]);
 
       _showSuccessSnackBar('Profile updated successfully');
@@ -246,7 +247,9 @@ class _CHWProfileEditScreenState extends State<CHWProfileEditScreen> {
       context: context,
       initialDate: _selectedBirthDate ?? DateTime(1990),
       firstDate: DateTime(1950),
-      lastDate: DateTime.now().subtract(const Duration(days: 365 * 16)), // Minimum 16 years old
+      lastDate: DateTime.now().subtract(
+        const Duration(days: 365 * 16),
+      ), // Minimum 16 years old
     );
 
     if (picked != null) {
@@ -295,9 +298,7 @@ class _CHWProfileEditScreenState extends State<CHWProfileEditScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
@@ -374,12 +375,8 @@ class _CHWProfileEditScreenState extends State<CHWProfileEditScreen> {
             child: _selectedImage != null
                 ? Image.file(_selectedImage!, fit: BoxFit.cover)
                 : _profileImageUrl != null
-                    ? Image.network(_profileImageUrl!, fit: BoxFit.cover)
-                    : const Icon(
-                        Icons.camera_alt,
-                        size: 40,
-                        color: Colors.teal,
-                      ),
+                ? Image.network(_profileImageUrl!, fit: BoxFit.cover)
+                : const Icon(Icons.camera_alt, size: 40, color: Colors.teal),
           ),
         ),
       ),
@@ -452,10 +449,10 @@ class _CHWProfileEditScreenState extends State<CHWProfileEditScreen> {
                 border: OutlineInputBorder(),
               ),
               items: _genderOptions
-                  .map((gender) => DropdownMenuItem(
-                        value: gender,
-                        child: Text(gender),
-                      ))
+                  .map(
+                    (gender) =>
+                        DropdownMenuItem(value: gender, child: Text(gender)),
+                  )
                   .toList(),
               onChanged: (value) {
                 if (value != null) {
@@ -523,10 +520,9 @@ class _CHWProfileEditScreenState extends State<CHWProfileEditScreen> {
                 border: OutlineInputBorder(),
               ),
               items: _specializationOptions
-                  .map((spec) => DropdownMenuItem(
-                        value: spec,
-                        child: Text(spec),
-                      ))
+                  .map(
+                    (spec) => DropdownMenuItem(value: spec, child: Text(spec)),
+                  )
                   .toList(),
               onChanged: (value) {
                 if (value != null) {
@@ -568,7 +564,8 @@ class _CHWProfileEditScreenState extends State<CHWProfileEditScreen> {
               controller: _bioController,
               decoration: const InputDecoration(
                 labelText: 'Bio/Description',
-                hintText: 'Tell us about yourself, your experience, and your passion for community health...',
+                hintText:
+                    'Tell us about yourself, your experience, and your passion for community health...',
                 border: OutlineInputBorder(),
               ),
               maxLines: 4,
@@ -596,9 +593,7 @@ class _CHWProfileEditScreenState extends State<CHWProfileEditScreen> {
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
         minimumSize: const Size.fromHeight(50),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }

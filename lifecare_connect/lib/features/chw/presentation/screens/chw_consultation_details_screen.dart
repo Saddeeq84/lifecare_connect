@@ -24,42 +24,45 @@ class CHWConsultationDetailsScreen extends StatefulWidget {
   });
 
   @override
-  State<CHWConsultationDetailsScreen> createState() => _CHWConsultationDetailsScreenState();
+  State<CHWConsultationDetailsScreen> createState() =>
+      _CHWConsultationDetailsScreenState();
 }
 
-class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScreen> with TickerProviderStateMixin {
+class _CHWConsultationDetailsScreenState
+    extends State<CHWConsultationDetailsScreen>
+    with TickerProviderStateMixin {
   String _selectedRequestCategory = 'Lab';
   late TabController _tabController;
   final _consultationFormKey = GlobalKey<FormState>();
   final _prescriptionFormKey = GlobalKey<FormState>();
   final _labRequestFormKey = GlobalKey<FormState>();
-  
+
   // Consultation fields
   final _symptomsController = TextEditingController();
   final _diagnosisController = TextEditingController();
   final _treatmentController = TextEditingController();
   final _notesController = TextEditingController();
   final _vitalsController = TextEditingController();
-  
+
   // Prescription fields
   final _medicationNameController = TextEditingController();
   final _dosageController = TextEditingController();
   final _frequencyController = TextEditingController();
   final _durationController = TextEditingController();
   final _instructionsController = TextEditingController();
-  
+
   // Lab/Radiology request fields
   final _requestTypeController = TextEditingController();
   final _requestReasonController = TextEditingController();
   final _urgencyController = TextEditingController();
   final _facilityController = TextEditingController();
-  
+
   List<Map<String, dynamic>> _prescriptions = [];
   List<Map<String, dynamic>> _labRequests = [];
   List<Map<String, dynamic>> _facilities = [];
-  
+
   bool _isLoading = false;
-  
+
   final List<String> _commonMedications = [
     'Paracetamol',
     'Ibuprofen',
@@ -81,7 +84,7 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
     'Multivitamins',
     'Other',
   ];
-  
+
   final List<String> _commonLabTests = [
     'Full Blood Count',
     'Malaria Test',
@@ -98,7 +101,7 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
     'Typhoid Test',
     'Other',
   ];
-  
+
   final List<String> _commonRadiologyTests = [
     'Chest X-ray',
     'Abdominal X-ray',
@@ -146,7 +149,7 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
           .collection('facilities')
           .where('isActive', isEqualTo: true)
           .get();
-      
+
       setState(() {
         _facilities = facilitiesSnapshot.docs.map((doc) {
           final data = doc.data();
@@ -177,14 +180,14 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
           'prescribedBy': FirebaseAuth.instance.currentUser?.uid,
         });
       });
-      
+
       // Clear form
       _medicationNameController.clear();
       _dosageController.clear();
       _frequencyController.clear();
       _durationController.clear();
       _instructionsController.clear();
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Prescription added successfully')),
       );
@@ -205,15 +208,17 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
           'status': 'pending',
         });
       });
-      
+
       // Clear form
       _requestTypeController.clear();
       _requestReasonController.clear();
       _urgencyController.clear();
       _facilityController.clear();
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lab/Radiology request added successfully')),
+        const SnackBar(
+          content: Text('Lab/Radiology request added successfully'),
+        ),
       );
     }
   }
@@ -231,7 +236,9 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirm Completion'),
-        content: const Text('Are you sure you want to complete this consultation?'),
+        content: const Text(
+          'Are you sure you want to complete this consultation?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -285,21 +292,33 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
           .collection('appointments')
           .doc(widget.appointmentId)
           .update({
-        'status': 'completed',
-        'consultationCompleted': true,
-        'completedAt': FieldValue.serverTimestamp(),
-      });
+            'status': 'completed',
+            'consultationCompleted': true,
+            'completedAt': FieldValue.serverTimestamp(),
+          });
 
       // Notify patient about new vitals, prescriptions, and lab requests
       try {
         if (_vitalsController.text.trim().isNotEmpty) {
-          await CHWMessageHelper.sendHealthRecordUpdateToPatient(widget.patientId, 'vitals', _vitalsController.text.trim());
+          await CHWMessageHelper.sendHealthRecordUpdateToPatient(
+            widget.patientId,
+            'vitals',
+            _vitalsController.text.trim(),
+          );
         }
         if (_prescriptions.isNotEmpty) {
-          await CHWMessageHelper.sendHealthRecordUpdateToPatient(widget.patientId, 'prescription', 'New prescription(s) added.');
+          await CHWMessageHelper.sendHealthRecordUpdateToPatient(
+            widget.patientId,
+            'prescription',
+            'New prescription(s) added.',
+          );
         }
         if (_labRequests.isNotEmpty) {
-          await CHWMessageHelper.sendHealthRecordUpdateToPatient(widget.patientId, 'lab', 'New lab/radiology request(s) added.');
+          await CHWMessageHelper.sendHealthRecordUpdateToPatient(
+            widget.patientId,
+            'lab',
+            'New lab/radiology request(s) added.',
+          );
         }
       } catch (e) {
         debugPrint('Error sending health record update to patient: $e');
@@ -314,7 +333,6 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
 
       // Navigate back
       context.pop();
-
     } catch (e) {
       debugPrint('Error saving consultation: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -369,36 +387,40 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
         ],
       ),
       // Hide the save button and bottom bar if read-only
-      bottomNavigationBar: widget.isReadOnly ? null : Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              offset: const Offset(0, -2),
-              blurRadius: 4,
+      bottomNavigationBar: widget.isReadOnly
+          ? null
+          : Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.3),
+                    offset: const Offset(0, -2),
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+              child: ElevatedButton.icon(
+                onPressed: widget.isReadOnly || _isLoading
+                    ? null
+                    : _saveConsultation,
+                icon: _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(color: Colors.white),
+                      )
+                    : const Icon(Icons.save),
+                label: const Text('Complete Consultation'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.teal.shade700,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  minimumSize: const Size(double.infinity, 50),
+                ),
+              ),
             ),
-          ],
-        ),
-        child: ElevatedButton.icon(
-          onPressed: widget.isReadOnly || _isLoading ? null : _saveConsultation,
-          icon: _isLoading 
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(color: Colors.white),
-                )
-              : const Icon(Icons.save),
-          label: const Text('Complete Consultation'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.teal.shade700,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            minimumSize: const Size(double.infinity, 50),
-          ),
-        ),
-      ),
     );
   }
 
@@ -429,7 +451,10 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
                     const SizedBox(height: 8),
                     Text(
                       'Appointment ID: ${widget.appointmentId}',
-                      style: const TextStyle(fontSize: 14, color: Colors.black54),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black54,
+                      ),
                     ),
                   ],
                 ),
@@ -450,14 +475,21 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
                           const SizedBox(width: 8),
                           // Counter icon for prescriptions
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.blue.shade100,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.format_list_numbered, color: Colors.blue.shade700, size: 18),
+                                Icon(
+                                  Icons.format_list_numbered,
+                                  color: Colors.blue.shade700,
+                                  size: 18,
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
                                   '${_prescriptions.length}',
@@ -473,25 +505,39 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
                           const SizedBox(width: 8),
                           Expanded(
                             child: _prescriptions.isNotEmpty
-                              ? Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      _prescriptions[0]['medication'] ?? '',
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                    Text(
-                                      '${_prescriptions[0]['dosage'] ?? ''} - ${_prescriptions[0]['frequency'] ?? ''}',
-                                      style: TextStyle(fontSize: 13),
-                                    ),
-                                    if ((_prescriptions[0]['instructions'] ?? '').isNotEmpty)
+                                ? Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
                                       Text(
-                                        'Note: ${_prescriptions[0]['instructions']}',
-                                        style: TextStyle(fontSize: 12, color: Colors.black54),
+                                        _prescriptions[0]['medication'] ?? '',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                  ],
-                                )
-                              : Text('No prescriptions added', style: TextStyle(fontSize: 13, color: Colors.black54)),
+                                      Text(
+                                        '${_prescriptions[0]['dosage'] ?? ''} - ${_prescriptions[0]['frequency'] ?? ''}',
+                                        style: TextStyle(fontSize: 13),
+                                      ),
+                                      if ((_prescriptions[0]['instructions'] ??
+                                              '')
+                                          .isNotEmpty)
+                                        Text(
+                                          'Note: ${_prescriptions[0]['instructions']}',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.black54,
+                                          ),
+                                        ),
+                                    ],
+                                  )
+                                : Text(
+                                    'No prescriptions added',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.black54,
+                                    ),
+                                  ),
                           ),
                         ],
                       ),
@@ -510,14 +556,21 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
                           const SizedBox(width: 8),
                           // Counter icon for lab/radiology
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.orange.shade100,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.format_list_numbered, color: Colors.orange.shade700, size: 18),
+                                Icon(
+                                  Icons.format_list_numbered,
+                                  color: Colors.orange.shade700,
+                                  size: 18,
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
                                   '${_labRequests.length}',
@@ -533,25 +586,38 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
                           const SizedBox(width: 8),
                           Expanded(
                             child: _labRequests.isNotEmpty
-                              ? Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      _labRequests[0]['requestType'] ?? '',
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                    Text(
-                                      'Indication: ${_labRequests[0]['reason'] ?? ''}',
-                                      style: TextStyle(fontSize: 13),
-                                    ),
-                                    if ((_labRequests[0]['facility'] ?? '').isNotEmpty)
+                                ? Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
                                       Text(
-                                        'Facility: ${_labRequests[0]['facility']}',
-                                        style: TextStyle(fontSize: 12, color: Colors.black54),
+                                        _labRequests[0]['requestType'] ?? '',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                  ],
-                                )
-                              : Text('No lab/radiology requests', style: TextStyle(fontSize: 13, color: Colors.black54)),
+                                      Text(
+                                        'Indication: ${_labRequests[0]['reason'] ?? ''}',
+                                        style: TextStyle(fontSize: 13),
+                                      ),
+                                      if ((_labRequests[0]['facility'] ?? '')
+                                          .isNotEmpty)
+                                        Text(
+                                          'Facility: ${_labRequests[0]['facility']}',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.black54,
+                                          ),
+                                        ),
+                                    ],
+                                  )
+                                : Text(
+                                    'No lab/radiology requests',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.black54,
+                                    ),
+                                  ),
                           ),
                         ],
                       ),
@@ -669,55 +735,62 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
                       ),
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Medication Name with suggestions
                     Autocomplete<String>(
                       optionsBuilder: (textEditingValue) {
                         if (textEditingValue.text.isEmpty) {
                           return _commonMedications;
                         }
-                        return _commonMedications.where((medication) =>
-                            medication.toLowerCase().contains(textEditingValue.text.toLowerCase()));
+                        return _commonMedications.where(
+                          (medication) => medication.toLowerCase().contains(
+                            textEditingValue.text.toLowerCase(),
+                          ),
+                        );
                       },
                       onSelected: (selection) {
                         _medicationNameController.text = selection;
                       },
-                      fieldViewBuilder: (context, controller, focusNode, onEditingComplete) {
-                        // Add listener to sync controller text (safe to add repeatedly in this context)
-                        _medicationNameController.addListener(() {
-                          if (controller.text != _medicationNameController.text) {
-                            controller.text = _medicationNameController.text;
-                            controller.selection = TextSelection.fromPosition(
-                              TextPosition(offset: controller.text.length),
+                      fieldViewBuilder:
+                          (context, controller, focusNode, onEditingComplete) {
+                            // Add listener to sync controller text (safe to add repeatedly in this context)
+                            _medicationNameController.addListener(() {
+                              if (controller.text !=
+                                  _medicationNameController.text) {
+                                controller.text =
+                                    _medicationNameController.text;
+                                controller
+                                    .selection = TextSelection.fromPosition(
+                                  TextPosition(offset: controller.text.length),
+                                );
+                              }
+                            });
+                            return TextFormField(
+                              controller: controller,
+                              focusNode: focusNode,
+                              onEditingComplete: onEditingComplete,
+                              decoration: const InputDecoration(
+                                labelText: 'Medication Name *',
+                                prefixIcon: Icon(Icons.medication),
+                                border: OutlineInputBorder(),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Please enter medication name';
+                                }
+                                return null;
+                              },
+                              onChanged: (value) {
+                                if (_medicationNameController.text != value) {
+                                  _medicationNameController.text = value;
+                                }
+                              },
+                              readOnly: widget.isReadOnly,
                             );
-                          }
-                        });
-                        return TextFormField(
-                          controller: controller,
-                          focusNode: focusNode,
-                          onEditingComplete: onEditingComplete,
-                          decoration: const InputDecoration(
-                            labelText: 'Medication Name *',
-                            prefixIcon: Icon(Icons.medication),
-                            border: OutlineInputBorder(),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Please enter medication name';
-                            }
-                            return null;
                           },
-                          onChanged: (value) {
-                            if (_medicationNameController.text != value) {
-                              _medicationNameController.text = value;
-                            }
-                          },
-                          readOnly: widget.isReadOnly,
-                        );
-                      },
                     ),
                     const SizedBox(height: 16),
-                    
+
                     Row(
                       children: [
                         Expanded(
@@ -758,7 +831,7 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
                       ],
                     ),
                     const SizedBox(height: 16),
-                    
+
                     Row(
                       children: [
                         Expanded(
@@ -781,7 +854,9 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
                         const SizedBox(width: 16),
                         Expanded(
                           child: ElevatedButton.icon(
-                            onPressed: widget.isReadOnly ? null : _addPrescription,
+                            onPressed: widget.isReadOnly
+                                ? null
+                                : _addPrescription,
                             icon: const Icon(Icons.add),
                             label: const Text('Add'),
                             style: ElevatedButton.styleFrom(
@@ -794,7 +869,7 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
                       ],
                     ),
                     const SizedBox(height: 16),
-                    
+
                     TextFormField(
                       controller: _instructionsController,
                       decoration: const InputDecoration(
@@ -811,17 +886,14 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
             ),
           ),
           const SizedBox(height: 24),
-          
+
           // Prescriptions List
           Text(
             'Prescriptions (${_prescriptions.length})',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          
+
           if (_prescriptions.isEmpty)
             const Card(
               child: Padding(
@@ -829,7 +901,11 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
                 child: Center(
                   child: Column(
                     children: [
-                      Icon(Icons.medication_outlined, size: 48, color: Colors.grey),
+                      Icon(
+                        Icons.medication_outlined,
+                        size: 48,
+                        color: Colors.grey,
+                      ),
                       SizedBox(height: 16),
                       Text(
                         'No prescriptions added yet',
@@ -856,7 +932,10 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
                         color: Colors.blue.shade100,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Icon(Icons.medication, color: Colors.blue.shade700),
+                      child: Icon(
+                        Icons.medication,
+                        color: Colors.blue.shade700,
+                      ),
                     ),
                     title: Text(
                       prescription['medication'],
@@ -866,14 +945,16 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
                       '${prescription['dosage']} - ${prescription['frequency']} for ${prescription['duration']}\n'
                       '${prescription['instructions'].isNotEmpty ? prescription['instructions'] : 'No special instructions'}',
                     ),
-                    trailing: widget.isReadOnly ? null : IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () {
-                        setState(() {
-                          _prescriptions.removeAt(index);
-                        });
-                      },
-                    ),
+                    trailing: widget.isReadOnly
+                        ? null
+                        : IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              setState(() {
+                                _prescriptions.removeAt(index);
+                              });
+                            },
+                          ),
                   ),
                 );
               },
@@ -916,7 +997,10 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
                       ),
                       items: const [
                         DropdownMenuItem(value: 'Lab', child: Text('Lab')),
-                        DropdownMenuItem(value: 'Radiology', child: Text('Radiology')),
+                        DropdownMenuItem(
+                          value: 'Radiology',
+                          child: Text('Radiology'),
+                        ),
                       ],
                       onChanged: widget.isReadOnly
                           ? null
@@ -931,7 +1015,8 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
                     // Request Type with suggestions, filtered by category, with 'Others' option
                     Autocomplete<String>(
                       optionsBuilder: (textEditingValue) {
-                        final List<String> baseList = _selectedRequestCategory == 'Lab'
+                        final List<String> baseList =
+                            _selectedRequestCategory == 'Lab'
                             ? List<String>.from(_commonLabTests)
                             : List<String>.from(_commonRadiologyTests);
                         // Ensure 'Other' is always present at the end
@@ -939,68 +1024,77 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
                         if (textEditingValue.text.isEmpty) {
                           return baseList;
                         }
-                        return baseList.where((test) =>
-                            test.toLowerCase().contains(textEditingValue.text.toLowerCase()));
+                        return baseList.where(
+                          (test) => test.toLowerCase().contains(
+                            textEditingValue.text.toLowerCase(),
+                          ),
+                        );
                       },
                       onSelected: (selection) {
                         _requestTypeController.text = selection;
                       },
-                      fieldViewBuilder: (context, controller, focusNode, onEditingComplete) {
-                        _requestTypeController.addListener(() {
-                          if (controller.text != _requestTypeController.text) {
-                            controller.text = _requestTypeController.text;
-                            controller.selection = TextSelection.fromPosition(
-                              TextPosition(offset: controller.text.length),
-                            );
-                          }
-                        });
-                        return Column(
-                          children: [
-                            TextFormField(
-                              controller: controller,
-                              focusNode: focusNode,
-                              onEditingComplete: onEditingComplete,
-                              decoration: const InputDecoration(
-                                labelText: 'Test/Scan Type *',
-                                prefixIcon: Icon(Icons.science),
-                                border: OutlineInputBorder(),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Please enter test/scan type';
-                                }
-                                return null;
-                              },
-                              onChanged: (value) {
-                                if (_requestTypeController.text != value) {
-                                  _requestTypeController.text = value;
-                                }
-                              },
-                              readOnly: widget.isReadOnly,
-                            ),
-                            if (controller.text == 'Other')
-                              Padding(
-                                padding: const EdgeInsets.only(top: 12.0),
-                                child: TextFormField(
-                                  enabled: !widget.isReadOnly,
+                      fieldViewBuilder:
+                          (context, controller, focusNode, onEditingComplete) {
+                            _requestTypeController.addListener(() {
+                              if (controller.text !=
+                                  _requestTypeController.text) {
+                                controller.text = _requestTypeController.text;
+                                controller
+                                    .selection = TextSelection.fromPosition(
+                                  TextPosition(offset: controller.text.length),
+                                );
+                              }
+                            });
+                            return Column(
+                              children: [
+                                TextFormField(
+                                  controller: controller,
+                                  focusNode: focusNode,
+                                  onEditingComplete: onEditingComplete,
                                   decoration: const InputDecoration(
-                                    labelText: 'Specify Other Test/Investigation',
+                                    labelText: 'Test/Scan Type *',
+                                    prefixIcon: Icon(Icons.science),
                                     border: OutlineInputBorder(),
                                   ),
-                                  onChanged: (val) {
-                                    _requestTypeController.text = val;
-                                  },
-                                  validator: (val) {
-                                    if (controller.text == 'Other' && (val == null || val.trim().isEmpty)) {
-                                      return 'Please specify the test/investigation';
+                                  validator: (value) {
+                                    if (value == null || value.trim().isEmpty) {
+                                      return 'Please enter test/scan type';
                                     }
                                     return null;
                                   },
+                                  onChanged: (value) {
+                                    if (_requestTypeController.text != value) {
+                                      _requestTypeController.text = value;
+                                    }
+                                  },
+                                  readOnly: widget.isReadOnly,
                                 ),
-                              ),
-                          ],
-                        );
-                      },
+                                if (controller.text == 'Other')
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 12.0),
+                                    child: TextFormField(
+                                      enabled: !widget.isReadOnly,
+                                      decoration: const InputDecoration(
+                                        labelText:
+                                            'Specify Other Test/Investigation',
+                                        border: OutlineInputBorder(),
+                                      ),
+                                      onChanged: (val) {
+                                        _requestTypeController.text = val;
+                                      },
+                                      validator: (val) {
+                                        if (controller.text == 'Other' &&
+                                            (val == null ||
+                                                val.trim().isEmpty)) {
+                                          return 'Please specify the test/investigation';
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                  ),
+                              ],
+                            );
+                          },
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -1026,15 +1120,26 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
                           child: AbsorbPointer(
                             absorbing: widget.isReadOnly,
                             child: DropdownButtonFormField<String>(
-                              value: _urgencyController.text.isEmpty ? null : _urgencyController.text,
+                              value: _urgencyController.text.isEmpty
+                                  ? null
+                                  : _urgencyController.text,
                               decoration: const InputDecoration(
                                 labelText: 'Urgency *',
                                 border: OutlineInputBorder(),
                               ),
                               items: const [
-                                DropdownMenuItem(value: 'Routine', child: Text('Routine')),
-                                DropdownMenuItem(value: 'Urgent', child: Text('Urgent')),
-                                DropdownMenuItem(value: 'STAT', child: Text('STAT (Immediate)')),
+                                DropdownMenuItem(
+                                  value: 'Routine',
+                                  child: Text('Routine'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'Urgent',
+                                  child: Text('Urgent'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'STAT',
+                                  child: Text('STAT (Immediate)'),
+                                ),
                               ],
                               onChanged: widget.isReadOnly
                                   ? null
@@ -1055,7 +1160,9 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
                           child: AbsorbPointer(
                             absorbing: widget.isReadOnly,
                             child: DropdownButtonFormField<String>(
-                              value: _facilityController.text.isEmpty ? null : _facilityController.text,
+                              value: _facilityController.text.isEmpty
+                                  ? null
+                                  : _facilityController.text,
                               decoration: const InputDecoration(
                                 labelText: 'Preferred Facility',
                                 border: OutlineInputBorder(),
@@ -1093,17 +1200,14 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
             ),
           ),
           const SizedBox(height: 24),
-          
+
           // Lab/Radiology Requests List
           Text(
             'Lab/Radiology Requests (${_labRequests.length})',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          
+
           if (_labRequests.isEmpty)
             const Card(
               child: Padding(
@@ -1111,7 +1215,11 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
                 child: Center(
                   child: Column(
                     children: [
-                      Icon(Icons.science_outlined, size: 48, color: Colors.grey),
+                      Icon(
+                        Icons.science_outlined,
+                        size: 48,
+                        color: Colors.grey,
+                      ),
                       SizedBox(height: 16),
                       Text(
                         'No lab/radiology requests added yet',
@@ -1142,7 +1250,11 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
                     ),
                     title: Row(
                       children: [
-                        Icon(Icons.biotech, color: Colors.orange.shade700, size: 20),
+                        Icon(
+                          Icons.biotech,
+                          color: Colors.orange.shade700,
+                          size: 20,
+                        ),
                         const SizedBox(width: 4),
                         Flexible(
                           child: Text(
@@ -1159,12 +1271,18 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.info_outline, size: 16, color: Colors.grey),
+                            Icon(
+                              Icons.info_outline,
+                              size: 16,
+                              color: Colors.grey,
+                            ),
                             const SizedBox(width: 4),
                             SizedBox(
                               width: 80,
                               child: Text(
-                                request['reason'].length > 6 ? request['reason'].substring(0, 6) + '...' : request['reason'],
+                                request['reason'].length > 6
+                                    ? request['reason'].substring(0, 6) + '...'
+                                    : request['reason'],
                                 style: const TextStyle(fontSize: 11),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -1179,7 +1297,9 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
                             SizedBox(
                               width: 80,
                               child: Text(
-                                request['urgency'].length > 6 ? request['urgency'].substring(0, 6) + '...' : request['urgency'],
+                                request['urgency'].length > 6
+                                    ? request['urgency'].substring(0, 6) + '...'
+                                    : request['urgency'],
                                 style: const TextStyle(fontSize: 11),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -1189,12 +1309,24 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
                         ),
                         Row(
                           children: [
-                            Icon(Icons.local_hospital, size: 16, color: Colors.grey),
+                            Icon(
+                              Icons.local_hospital,
+                              size: 16,
+                              color: Colors.grey,
+                            ),
                             const SizedBox(width: 4),
                             SizedBox(
                               width: 80,
                               child: Text(
-                                request['facility'].isNotEmpty ? (request['facility'].length > 6 ? request['facility'].substring(0, 6) + '...' : request['facility']) : 'No facility',
+                                request['facility'].isNotEmpty
+                                    ? (request['facility'].length > 6
+                                          ? request['facility'].substring(
+                                                  0,
+                                                  6,
+                                                ) +
+                                                '...'
+                                          : request['facility'])
+                                    : 'No facility',
                                 style: const TextStyle(fontSize: 11),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -1204,14 +1336,16 @@ class _CHWConsultationDetailsScreenState extends State<CHWConsultationDetailsScr
                         ),
                       ],
                     ),
-                    trailing: widget.isReadOnly ? null : IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () {
-                        setState(() {
-                          _labRequests.removeAt(index);
-                        });
-                      },
-                    ),
+                    trailing: widget.isReadOnly
+                        ? null
+                        : IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              setState(() {
+                                _labRequests.removeAt(index);
+                              });
+                            },
+                          ),
                   ),
                 );
               },

@@ -10,7 +10,8 @@ class Appointment {
   final DateTime appointmentDate;
   final String reason;
   final String? notes;
-  final String status; // 'pending', 'approved', 'denied', 'completed', 'cancelled'
+  final String
+  status; // 'pending', 'approved', 'denied', 'completed', 'cancelled'
   final String? facilityId;
   final String? facilityName;
   final String appointmentType; // Type of appointment (General, ANC, etc.)
@@ -45,7 +46,7 @@ class Appointment {
 
   factory Appointment.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    
+
     return Appointment(
       id: doc.id,
       patientId: data['patientId'] ?? '',
@@ -62,8 +63,8 @@ class Appointment {
       appointmentType: data['appointmentType'] ?? 'General Consultation',
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       updatedAt: (data['updatedAt'] as Timestamp).toDate(),
-      completedAt: data['completedAt'] != null 
-          ? (data['completedAt'] as Timestamp).toDate() 
+      completedAt: data['completedAt'] != null
+          ? (data['completedAt'] as Timestamp).toDate()
           : null,
       statusNotes: data['statusNotes'],
       rescheduleNotes: data['rescheduleNotes'],
@@ -87,11 +88,13 @@ class Appointment {
       'appointmentType': appointmentType,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
-      'completedAt': completedAt != null ? Timestamp.fromDate(completedAt!) : null,
+      'completedAt': completedAt != null
+          ? Timestamp.fromDate(completedAt!)
+          : null,
       'statusNotes': statusNotes,
       'rescheduleNotes': rescheduleNotes,
       'cancellationReason': cancellationReason,
-      
+
       // Add role-specific fields for Firestore rules compatibility
       if (providerType == 'CHW') 'chwId': providerId,
       if (providerType == 'DOCTOR') 'doctorId': providerId,
@@ -121,8 +124,8 @@ class Appointment {
   bool get isToday {
     final now = DateTime.now();
     return appointmentDate.year == now.year &&
-           appointmentDate.month == now.month &&
-           appointmentDate.day == now.day;
+        appointmentDate.month == now.month &&
+        appointmentDate.day == now.day;
   }
 
   Appointment copyWith({

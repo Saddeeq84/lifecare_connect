@@ -24,13 +24,14 @@ class SearchablePatientSelector extends StatefulWidget {
   });
 
   @override
-  State<SearchablePatientSelector> createState() => _SearchablePatientSelectorState();
+  State<SearchablePatientSelector> createState() =>
+      _SearchablePatientSelectorState();
 }
 
 class _SearchablePatientSelectorState extends State<SearchablePatientSelector> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
-  
+
   List<Map<String, dynamic>> _allPatients = [];
   List<Map<String, dynamic>> _filteredPatients = [];
   Timer? _searchDebouncer;
@@ -44,11 +45,11 @@ class _SearchablePatientSelectorState extends State<SearchablePatientSelector> {
     super.initState();
     _selectedPatientId = widget.selectedPatientId;
     _selectedPatientName = widget.selectedPatientName;
-    
+
     if (_selectedPatientName != null) {
       _searchController.text = _selectedPatientName!;
     }
-    
+
     _loadPatients();
     _searchController.addListener(_onSearchChanged);
     _searchFocusNode.addListener(_onFocusChanged);
@@ -90,10 +91,10 @@ class _SearchablePatientSelectorState extends State<SearchablePatientSelector> {
           final email = (patient['email'] as String? ?? '').toLowerCase();
           final phone = (patient['phone'] as String? ?? '').toLowerCase();
           final searchQuery = query.toLowerCase();
-          
+
           return name.contains(searchQuery) ||
-                 email.contains(searchQuery) ||
-                 phone.contains(searchQuery);
+              email.contains(searchQuery) ||
+              phone.contains(searchQuery);
         }).toList();
       }
       _showDropdown = _filteredPatients.isNotEmpty && _searchFocusNode.hasFocus;
@@ -220,7 +221,9 @@ class _SearchablePatientSelectorState extends State<SearchablePatientSelector> {
         for (int i = 0; i < patientIdsList.length; i += batchSize) {
           final batch = patientIdsList.sublist(
             i,
-            i + batchSize > patientIdsList.length ? patientIdsList.length : i + batchSize,
+            i + batchSize > patientIdsList.length
+                ? patientIdsList.length
+                : i + batchSize,
           );
           final batchQuery = await FirebaseFirestore.instance
               .collection('users')
@@ -242,7 +245,9 @@ class _SearchablePatientSelectorState extends State<SearchablePatientSelector> {
       }
 
       // Sort patients alphabetically by name
-      patients.sort((a, b) => (a['name'] as String).compareTo(b['name'] as String));
+      patients.sort(
+        (a, b) => (a['name'] as String).compareTo(b['name'] as String),
+      );
       return patients;
     } catch (e) {
       debugPrint('Error fetching patients: $e');
@@ -257,7 +262,7 @@ class _SearchablePatientSelectorState extends State<SearchablePatientSelector> {
       _searchController.text = _selectedPatientName!;
       _showDropdown = false;
     });
-    
+
     _searchFocusNode.unfocus();
     widget.onPatientSelected(_selectedPatientId, _selectedPatientName);
   }
@@ -269,7 +274,7 @@ class _SearchablePatientSelectorState extends State<SearchablePatientSelector> {
       _searchController.clear();
       _showDropdown = false;
     });
-    
+
     widget.onPatientSelected(null, null);
   }
 
@@ -292,12 +297,12 @@ class _SearchablePatientSelectorState extends State<SearchablePatientSelector> {
                     onPressed: _clearSelection,
                   )
                 : _isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : null,
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : null,
             border: const OutlineInputBorder(),
           ),
           validator: widget.isRequired
@@ -317,7 +322,7 @@ class _SearchablePatientSelectorState extends State<SearchablePatientSelector> {
             });
           },
         ),
-        
+
         // Selected Patient Info Card
         if (_selectedPatientId != null) ...[
           const SizedBox(height: 8),
@@ -340,7 +345,8 @@ class _SearchablePatientSelectorState extends State<SearchablePatientSelector> {
                             color: Colors.green.shade700,
                           ),
                         ),
-                        if (_selectedPatientId != null && _allPatients.isNotEmpty)
+                        if (_selectedPatientId != null &&
+                            _allPatients.isNotEmpty)
                           Builder(
                             builder: (context) {
                               final selectedPatient = _allPatients.firstWhere(
@@ -359,7 +365,10 @@ class _SearchablePatientSelectorState extends State<SearchablePatientSelector> {
                                         color: Colors.green.shade600,
                                       ),
                                     ),
-                                    if (selectedPatient['phone'] != null && selectedPatient['phone'].toString().isNotEmpty)
+                                    if (selectedPatient['phone'] != null &&
+                                        selectedPatient['phone']
+                                            .toString()
+                                            .isNotEmpty)
                                       Text(
                                         'Phone: ${selectedPatient['phone']}',
                                         style: TextStyle(
@@ -381,7 +390,7 @@ class _SearchablePatientSelectorState extends State<SearchablePatientSelector> {
             ),
           ),
         ],
-        
+
         // Dropdown Results
         if (_showDropdown && _filteredPatients.isNotEmpty) ...[
           const SizedBox(height: 4),
@@ -398,12 +407,14 @@ class _SearchablePatientSelectorState extends State<SearchablePatientSelector> {
               itemBuilder: (context, index) {
                 final patient = _filteredPatients[index];
                 final isSelected = patient['id'] == _selectedPatientId;
-                
+
                 return ListTile(
                   dense: true,
                   leading: CircleAvatar(
                     radius: 20,
-                    backgroundColor: isSelected ? Colors.green : Colors.blue.shade100,
+                    backgroundColor: isSelected
+                        ? Colors.green
+                        : Colors.blue.shade100,
                     child: Text(
                       (patient['name'] as String? ?? 'U')[0].toUpperCase(),
                       style: TextStyle(
@@ -415,19 +426,23 @@ class _SearchablePatientSelectorState extends State<SearchablePatientSelector> {
                   title: Text(
                     patient['name'] as String? ?? 'Unnamed Patient',
                     style: TextStyle(
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                       color: isSelected ? Colors.green.shade700 : null,
                     ),
                   ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (patient['email'] != null && (patient['email'] as String).isNotEmpty)
+                      if (patient['email'] != null &&
+                          (patient['email'] as String).isNotEmpty)
                         Text(
                           patient['email'] as String,
                           style: const TextStyle(fontSize: 12),
                         ),
-                      if (patient['phone'] != null && (patient['phone'] as String).isNotEmpty)
+                      if (patient['phone'] != null &&
+                          (patient['phone'] as String).isNotEmpty)
                         Text(
                           patient['phone'] as String,
                           style: const TextStyle(fontSize: 12),
@@ -443,7 +458,7 @@ class _SearchablePatientSelectorState extends State<SearchablePatientSelector> {
             ),
           ),
         ],
-        
+
         // No Results Message
         if (_showDropdown && _filteredPatients.isEmpty && !_isLoading) ...[
           const SizedBox(height: 4),

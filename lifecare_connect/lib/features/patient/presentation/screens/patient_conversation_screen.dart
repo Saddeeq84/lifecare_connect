@@ -17,7 +17,8 @@ class PatientConversationScreen extends StatefulWidget {
   });
 
   @override
-  State<PatientConversationScreen> createState() => _PatientConversationScreenState();
+  State<PatientConversationScreen> createState() =>
+      _PatientConversationScreenState();
 }
 
 class _PatientConversationScreenState extends State<PatientConversationScreen> {
@@ -106,8 +107,9 @@ class _PatientConversationScreenState extends State<PatientConversationScreen> {
                   itemBuilder: (context, index) {
                     final doc = snapshot.data!.docs[index];
                     final data = doc.data() as Map<String, dynamic>;
-                    final isMyMessage = data['senderId'] == widget.currentUserId;
-                    
+                    final isMyMessage =
+                        data['senderId'] == widget.currentUserId;
+
                     return _buildMessageBubble(data, isMyMessage, themeColor);
                   },
                 );
@@ -120,9 +122,7 @@ class _PatientConversationScreenState extends State<PatientConversationScreen> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
-              border: Border(
-                top: BorderSide(color: Colors.grey.shade300),
-              ),
+              border: Border(top: BorderSide(color: Colors.grey.shade300)),
             ),
             child: Row(
               children: [
@@ -176,12 +176,16 @@ class _PatientConversationScreenState extends State<PatientConversationScreen> {
     );
   }
 
-  Widget _buildMessageBubble(Map<String, dynamic> data, bool isMyMessage, Color themeColor) {
+  Widget _buildMessageBubble(
+    Map<String, dynamic> data,
+    bool isMyMessage,
+    Color themeColor,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Row(
-        mainAxisAlignment: isMyMessage 
-            ? MainAxisAlignment.end 
+        mainAxisAlignment: isMyMessage
+            ? MainAxisAlignment.end
             : MainAxisAlignment.start,
         children: [
           if (!isMyMessage) ...[
@@ -201,9 +205,7 @@ class _PatientConversationScreenState extends State<PatientConversationScreen> {
               maxWidth: MediaQuery.of(context).size.width * 0.75,
             ),
             decoration: BoxDecoration(
-              color: isMyMessage 
-                  ? themeColor
-                  : Colors.grey.shade200,
+              color: isMyMessage ? themeColor : Colors.grey.shade200,
               borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(16),
                 topRight: const Radius.circular(16),
@@ -239,7 +241,7 @@ class _PatientConversationScreenState extends State<PatientConversationScreen> {
                   _formatTimestamp(data['timestamp']),
                   style: TextStyle(
                     fontSize: 10,
-                    color: isMyMessage 
+                    color: isMyMessage
                         ? Colors.white.withOpacity(0.8)
                         : Colors.grey.shade600,
                   ),
@@ -252,11 +254,7 @@ class _PatientConversationScreenState extends State<PatientConversationScreen> {
             CircleAvatar(
               radius: 16,
               backgroundColor: Colors.green.withOpacity(0.2),
-              child: const Icon(
-                Icons.person,
-                size: 16,
-                color: Colors.green,
-              ),
+              child: const Icon(Icons.person, size: 16, color: Colors.green),
             ),
           ],
         ],
@@ -273,16 +271,17 @@ class _PatientConversationScreenState extends State<PatientConversationScreen> {
       // Get patient name from user profile
       final currentUser = FirebaseAuth.instance.currentUser;
       String patientName = 'Patient User'; // Default fallback
-      
+
       if (currentUser != null) {
         final userDoc = await FirebaseFirestore.instance
             .collection('users')
             .doc(currentUser.uid)
             .get();
-        
+
         if (userDoc.exists) {
           final userData = userDoc.data() as Map<String, dynamic>;
-          patientName = userData['name'] ?? userData['displayName'] ?? 'Patient User';
+          patientName =
+              userData['name'] ?? userData['displayName'] ?? 'Patient User';
         }
       }
 
@@ -295,26 +294,25 @@ class _PatientConversationScreenState extends State<PatientConversationScreen> {
           .doc(widget.conversationId)
           .collection('messages')
           .add({
-        'message': message,
-        'senderId': widget.currentUserId,
-        'senderName': patientName, // Get from user profile
-        'timestamp': FieldValue.serverTimestamp(),
-      });
+            'message': message,
+            'senderId': widget.currentUserId,
+            'senderName': patientName, // Get from user profile
+            'timestamp': FieldValue.serverTimestamp(),
+          });
 
       // Update conversation metadata
       await FirebaseFirestore.instance
           .collection('messages')
           .doc(widget.conversationId)
           .update({
-        'lastMessage': message,
-        'lastMessageTime': FieldValue.serverTimestamp(),
-        'lastMessageSender': widget.currentUserId,
-      });
-
+            'lastMessage': message,
+            'lastMessageTime': FieldValue.serverTimestamp(),
+            'lastMessageSender': widget.currentUserId,
+          });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to send message: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to send message: $e')));
     } finally {
       setState(() => _isSending = false);
     }

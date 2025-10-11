@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,7 +10,8 @@ class DoctorMessagesScreen extends StatefulWidget {
   State<DoctorMessagesScreen> createState() => _DoctorMessagesScreenState();
 }
 
-class _DoctorMessagesScreenState extends State<DoctorMessagesScreen> with TickerProviderStateMixin {
+class _DoctorMessagesScreenState extends State<DoctorMessagesScreen>
+    with TickerProviderStateMixin {
   late TabController _tabController;
   final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
@@ -48,7 +47,6 @@ class _DoctorMessagesScreenState extends State<DoctorMessagesScreen> with Ticker
       ),
       body: Column(
         children: [
-
           Container(
             padding: const EdgeInsets.all(16),
             child: SingleChildScrollView(
@@ -86,7 +84,6 @@ class _DoctorMessagesScreenState extends State<DoctorMessagesScreen> with Ticker
               ),
             ),
           ),
-          
 
           Container(
             color: Colors.indigo.shade700,
@@ -104,7 +101,6 @@ class _DoctorMessagesScreenState extends State<DoctorMessagesScreen> with Ticker
               ],
             ),
           ),
-          
 
           Expanded(
             child: TabBarView(
@@ -138,7 +134,12 @@ class _DoctorMessagesScreenState extends State<DoctorMessagesScreen> with Ticker
     );
   }
 
-  Widget _buildQuickActionCard(String title, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildQuickActionCard(
+    String title,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return Card(
       elevation: 2,
       child: InkWell(
@@ -187,8 +188,14 @@ class _DoctorMessagesScreenState extends State<DoctorMessagesScreen> with Ticker
                   initialValue: selectedType,
                   decoration: const InputDecoration(labelText: 'Message Type'),
                   items: const [
-                    DropdownMenuItem(value: 'broadcast', child: Text('Broadcast')),
-                    DropdownMenuItem(value: 'direct', child: Text('Direct Message')),
+                    DropdownMenuItem(
+                      value: 'broadcast',
+                      child: Text('Broadcast'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'direct',
+                      child: Text('Direct Message'),
+                    ),
                   ],
                   onChanged: (value) {
                     setState(() {
@@ -206,8 +213,14 @@ class _DoctorMessagesScreenState extends State<DoctorMessagesScreen> with Ticker
                     decoration: const InputDecoration(labelText: 'Send To'),
                     items: const [
                       DropdownMenuItem(value: 'chw', child: Text('CHWs')),
-                      DropdownMenuItem(value: 'patient', child: Text('Patients')),
-                      DropdownMenuItem(value: 'facility', child: Text('Facilities')),
+                      DropdownMenuItem(
+                        value: 'patient',
+                        child: Text('Patients'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'facility',
+                        child: Text('Facilities'),
+                      ),
                     ],
                     onChanged: (value) {
                       setState(() {
@@ -288,9 +301,9 @@ class _DoctorMessagesScreenState extends State<DoctorMessagesScreen> with Ticker
         const SnackBar(content: Text('Message sent successfully')),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to send message: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to send message: $e')));
     }
   }
 }
@@ -342,10 +355,7 @@ class DoctorMessagesTab extends StatelessWidget {
       query = query.where('targetRole', isEqualTo: targetRole);
     }
 
-
-    return query
-        .orderBy('timestamp', descending: true)
-        .snapshots();
+    return query.orderBy('timestamp', descending: true).snapshots();
   }
 
   Widget _buildEmptyState() {
@@ -403,7 +413,6 @@ class DoctorMessagesTab extends StatelessWidget {
     final senderId = data['senderId'] ?? '';
     final priority = data['priority'] ?? 'normal';
 
-
     final isOutgoing = senderId == currentUserId;
 
     return Card(
@@ -412,11 +421,7 @@ class DoctorMessagesTab extends StatelessWidget {
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: _getRoleColor(senderRole),
-          child: Icon(
-            _getRoleIcon(senderRole),
-            color: Colors.white,
-            size: 20,
-          ),
+          child: Icon(_getRoleIcon(senderRole), color: Colors.white, size: 20),
         ),
         title: Row(
           children: [
@@ -441,28 +446,20 @@ class DoctorMessagesTab extends StatelessWidget {
               message,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(color: Colors.grey[600]),
             ),
             const SizedBox(height: 4),
             Row(
               children: [
                 Text(
                   '${isOutgoing ? 'To' : 'From'}: ${_formatSenderRole(senderRole)}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[500],
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                 ),
                 const Spacer(),
                 if (timestamp != null)
                   Text(
                     _formatTimestamp(timestamp.toDate()),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[500],
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                   ),
               ],
             ),
@@ -540,8 +537,5 @@ class DoctorMessagesTab extends StatelessWidget {
     }
   }
 
-  void _showMessageDetails(Map<String, dynamic> data, String messageId) {
-
-
-  }
+  void _showMessageDetails(Map<String, dynamic> data, String messageId) {}
 }

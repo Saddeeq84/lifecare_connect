@@ -10,7 +10,7 @@ import 'patient_staff_selection_screen.dart';
 import '../../../../../features/consultation/presentation/screens/consultation_screen.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../../../utils/web_open_call_page_stub.dart'
-  if (dart.library.html) '../../../../utils/web_open_call_page_web.dart';
+    if (dart.library.html) '../../../../utils/web_open_call_page_web.dart';
 // import 'patient_referrals_screen.dart';
 // import 'patient_consultations_screen.dart';
 import 'package:go_router/go_router.dart';
@@ -19,13 +19,16 @@ class PatientAppointmentsScreen extends StatefulWidget {
   const PatientAppointmentsScreen({super.key});
 
   @override
-  State<PatientAppointmentsScreen> createState() => _PatientAppointmentsScreenState();
+  State<PatientAppointmentsScreen> createState() =>
+      _PatientAppointmentsScreenState();
 }
 
-class _PatientAppointmentsScreenState extends State<PatientAppointmentsScreen> with TickerProviderStateMixin {
+class _PatientAppointmentsScreenState extends State<PatientAppointmentsScreen>
+    with TickerProviderStateMixin {
   // Agora test credentials (shared with doctor)
   final String agoraAppId = 'a105462abb1746fc9075e6c2f81f5ac5';
-  final String agoraToken = '007eJxTYEiPO/3VpV5yutbEA61To/LDPxRoWObxabmfqCs5wRXbOkGBIdHQwNTEzCgxKcnQ3MQsLdnSwNw01SzZKM3CMM00Mdk0y+95RkMgI0POjkYGRigE8TkYSlKLS5ITc3IYGABuPCAN';
+  final String agoraToken =
+      '007eJxTYEiPO/3VpV5yutbEA61To/LDPxRoWObxabmfqCs5wRXbOkGBIdHQwNTEzCgxKcnQ3MQsLdnSwNw01SzZKM3CMM00Mdk0y+95RkMgI0POjkYGRigE8TkYSlKLS5ITc3IYGABuPCAN';
   final String agoraChannel = 'test_lifecare';
   late TabController _tabController;
   late String _userId;
@@ -33,7 +36,10 @@ class _PatientAppointmentsScreenState extends State<PatientAppointmentsScreen> w
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this); // Now 2 tabs: Pending Appointment, Pending Consultation
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+    ); // Now 2 tabs: Pending Appointment, Pending Consultation
     _userId = FirebaseAuth.instance.currentUser?.uid ?? '';
     print("📅 PatientAppointmentsScreen loaded for UID: $_userId");
   }
@@ -50,9 +56,7 @@ class _PatientAppointmentsScreenState extends State<PatientAppointmentsScreen> w
   @override
   Widget build(BuildContext context) {
     if (_userId.isEmpty) {
-      return const Scaffold(
-        body: Center(child: Text('User not logged in')),
-      );
+      return const Scaffold(body: Center(child: Text('User not logged in')));
     }
 
     return Scaffold(
@@ -93,7 +97,9 @@ class _AppointmentsList extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Join Consultation'),
-        content: Text('Do you want to continue to the \\${isVideo ? 'video' : 'audio'} call?'),
+        content: Text(
+          'Do you want to continue to the \\${isVideo ? 'video' : 'audio'} call?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -118,21 +124,19 @@ class _AppointmentsList extends StatelessWidget {
       ),
     );
   }
+
   // Agora test credentials (shared with doctor)
   final String agoraChannel = 'test_lifecare'; // updated channel name
   final String statusFilter;
   final String userId;
 
-  const _AppointmentsList({
-    required this.statusFilter,
-    required this.userId,
-  });
+  const _AppointmentsList({required this.statusFilter, required this.userId});
 
   @override
   Widget build(BuildContext context) {
     // Use appointment service for patient appointments
     Stream<QuerySnapshot> appointmentStream;
-    
+
     if (statusFilter == 'pending') {
       appointmentStream = AppointmentService.getPatientAppointments(
         patientId: userId,
@@ -197,7 +201,8 @@ class _AppointmentsList extends StatelessWidget {
         }
 
         final appointments = snapshot.data?.docs ?? [];
-        final isFromCache = appointments.isNotEmpty && appointments.first.metadata.isFromCache;
+        final isFromCache =
+            appointments.isNotEmpty && appointments.first.metadata.isFromCache;
 
         if (appointments.isEmpty) {
           return _buildEmptyState(statusFilter);
@@ -213,7 +218,11 @@ class _AppointmentsList extends StatelessWidget {
                 color: Colors.orange.shade100,
                 child: Row(
                   children: [
-                    Icon(Icons.cloud_off, size: 16, color: Colors.orange.shade700),
+                    Icon(
+                      Icons.cloud_off,
+                      size: 16,
+                      color: Colors.orange.shade700,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       'Showing offline data',
@@ -225,7 +234,7 @@ class _AppointmentsList extends StatelessWidget {
                   ],
                 ),
               ),
-            
+
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.all(16),
@@ -233,7 +242,7 @@ class _AppointmentsList extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final doc = appointments[index];
                   final data = doc.data() as Map<String, dynamic>;
-                  
+
                   return _buildAppointmentCard(context, doc.id, data);
                 },
               ),
@@ -248,7 +257,7 @@ class _AppointmentsList extends StatelessWidget {
     String title;
     String subtitle;
     IconData icon;
-    
+
     switch (status) {
       case 'pending':
         title = 'No Pending Appointments';
@@ -270,7 +279,7 @@ class _AppointmentsList extends StatelessWidget {
         subtitle = 'Your appointments will appear here';
         icon = Icons.event_busy;
     }
-    
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -288,19 +297,13 @@ class _AppointmentsList extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             subtitle,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade500,
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
             textAlign: TextAlign.center,
           ),
         ],
       ),
     );
   }
-
-
-
 }
 
 // ------------------------ 🩺 Patient Consultations Screen ------------------------
@@ -347,7 +350,9 @@ class PatientConsultationsScreen extends StatelessWidget {
                 margin: const EdgeInsets.all(12),
                 child: ListTile(
                   title: Text(data['appointmentType'] ?? 'Consultation'),
-                  subtitle: Text('Provider: ${data['providerName'] ?? 'N/A'}\nDate: $dateStr'),
+                  subtitle: Text(
+                    'Provider: ${data['providerName'] ?? 'N/A'}\nDate: $dateStr',
+                  ),
                   trailing: const Icon(Icons.check_circle, color: Colors.green),
                   onTap: () => showDialog(
                     context: context,
@@ -362,9 +367,13 @@ class PatientConsultationsScreen extends StatelessWidget {
     );
   }
 }
-  
-  extension on _AppointmentsList {
-  Widget _buildAppointmentCard(BuildContext context, String docId, Map<String, dynamic> data) {
+
+extension on _AppointmentsList {
+  Widget _buildAppointmentCard(
+    BuildContext context,
+    String docId,
+    Map<String, dynamic> data,
+  ) {
     final appointmentDate = data['appointmentDate'] != null
         ? (data['appointmentDate'] as Timestamp).toDate()
         : null;
@@ -373,7 +382,8 @@ class PatientConsultationsScreen extends StatelessWidget {
         ? DateFormat('MMM dd, yyyy • hh:mm a').format(appointmentDate)
         : 'Date not set';
 
-    final providerName = data['providerName'] ?? data['doctor'] ?? 'Unknown Provider';
+    final providerName =
+        data['providerName'] ?? data['doctor'] ?? 'Unknown Provider';
     final providerType = data['providerType'] ?? 'Healthcare Provider';
     final appointmentType = data['appointmentType'] ?? 'General Consultation';
     final urgency = data['urgency'] ?? 'Normal';
@@ -400,6 +410,22 @@ class PatientConsultationsScreen extends StatelessWidget {
               style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
             ),
             const SizedBox(height: 4),
+            // Payment info
+            if (data['amount'] != null && (data['amount'] as num) > 0)
+              Text(
+                'Fee: ₦${(data['amount'] as num).toStringAsFixed(0)}',
+                style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.w600, fontSize: 13),
+              ),
+            if (data['paymentStatus'] != null)
+              Text(
+                'Payment: ${data['paymentStatus']}',
+                style: TextStyle(
+                  color: data['paymentStatus'] == 'paid' ? Colors.green : Colors.red,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 13,
+                ),
+              ),
+            const SizedBox(height: 2),
             Text(
               'Date: $dateStr',
               style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
@@ -414,10 +440,7 @@ class PatientConsultationsScreen extends StatelessWidget {
                 data['preConsultationData']['mainComplaint'] != null)
               Text(
                 'Complaint: ${data['preConsultationData']['mainComplaint']}',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey.shade600,
-                ),
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -464,8 +487,7 @@ class PatientConsultationsScreen extends StatelessWidget {
                     tooltip: 'Mark Complete',
                     onPressed: () => _markComplete(context, docId, data),
                   ),
-                ]
-                else if (status == 'pending') ...[
+                ] else if (status == 'pending') ...[
                   TextButton.icon(
                     onPressed: () => _viewAppointmentDetails(context, data),
                     icon: const Icon(Icons.info_outline, size: 16),
@@ -481,15 +503,13 @@ class PatientConsultationsScreen extends StatelessWidget {
                       side: const BorderSide(color: Colors.red),
                     ),
                   ),
-                ]
-                else if (status == 'completed') ...[
+                ] else if (status == 'completed') ...[
                   TextButton.icon(
                     onPressed: () => _viewCompletedAppointment(context, data),
                     icon: const Icon(Icons.receipt_long, size: 16),
                     label: const Text('View Summary'),
                   ),
-                ]
-                else ...[
+                ] else ...[
                   TextButton.icon(
                     onPressed: () => _viewAppointmentDetails(context, data),
                     icon: const Icon(Icons.info_outline, size: 16),
@@ -529,47 +549,58 @@ class PatientConsultationsScreen extends StatelessWidget {
     FirebaseFirestore.instance
         .collection('messages')
         .where('participants', arrayContains: currentUserId)
-        .where('recipientType', isEqualTo: appointmentData['providerRole'] ?? 'chw')
+        .where(
+          'recipientType',
+          isEqualTo: appointmentData['providerRole'] ?? 'chw',
+        )
         .get()
         .then((snapshot) async {
-      String? conversationId;
-      for (var doc in snapshot.docs) {
-        final participants = List<String>.from(doc.data()['participants']);
-        if (participants.contains(providerId)) {
-          conversationId = doc.id;
-          break;
-        }
-      }
-      if (conversationId == null) {
-        final docRef = await FirebaseFirestore.instance.collection('messages').add({
-          'participants': [currentUserId, providerId],
-          'recipientType': appointmentData['providerRole'] ?? 'chw',
-          'createdAt': FieldValue.serverTimestamp(),
-          'lastMessage': 'Conversation started',
-          'lastMessageTime': FieldValue.serverTimestamp(),
-          'unreadCount_$currentUserId': 0,
-          'unreadCount_$providerId': 0,
+          String? conversationId;
+          for (var doc in snapshot.docs) {
+            final participants = List<String>.from(doc.data()['participants']);
+            if (participants.contains(providerId)) {
+              conversationId = doc.id;
+              break;
+            }
+          }
+          if (conversationId == null) {
+            final docRef = await FirebaseFirestore.instance
+                .collection('messages')
+                .add({
+                  'participants': [currentUserId, providerId],
+                  'recipientType': appointmentData['providerRole'] ?? 'chw',
+                  'createdAt': FieldValue.serverTimestamp(),
+                  'lastMessage': 'Conversation started',
+                  'lastMessageTime': FieldValue.serverTimestamp(),
+                  'unreadCount_$currentUserId': 0,
+                  'unreadCount_$providerId': 0,
+                });
+            conversationId = docRef.id;
+          }
+          GoRouter.of(context).push(
+            '/patientMessaging',
+            extra: {
+              'openConversationId': conversationId,
+              'recipientId': providerId,
+              'recipientName': providerName,
+              'recipientType': appointmentData['providerRole'] ?? 'chw',
+            },
+          );
         });
-        conversationId = docRef.id;
-      }
-      GoRouter.of(context).push(
-        '/patientMessaging',
-        extra: {
-          'openConversationId': conversationId,
-          'recipientId': providerId,
-          'recipientName': providerName,
-          'recipientType': appointmentData['providerRole'] ?? 'chw',
-        },
-      );
-    });
   }
 
-  Future<void> _markComplete(BuildContext context, String docId, Map<String, dynamic> appointmentData) async {
+  Future<void> _markComplete(
+    BuildContext context,
+    String docId,
+    Map<String, dynamic> appointmentData,
+  ) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Mark Appointment Complete'),
-        content: const Text('Are you sure you want to mark this appointment as complete?'),
+        content: const Text(
+          'Are you sure you want to mark this appointment as complete?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -589,14 +620,22 @@ class PatientConsultationsScreen extends StatelessWidget {
         await FirebaseFirestore.instance
             .collection('appointments')
             .doc(docId)
-            .update({'status': 'completed', 'completedAt': FieldValue.serverTimestamp()});
+            .update({
+              'status': 'completed',
+              'completedAt': FieldValue.serverTimestamp(),
+            });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Appointment marked as complete'), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text('Appointment marked as complete'),
+            backgroundColor: Colors.green,
+          ),
         );
         // Optionally navigate to consultations screen
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const PatientConsultationsScreen()),
+          MaterialPageRoute(
+            builder: (context) => const PatientConsultationsScreen(),
+          ),
         );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -605,69 +644,72 @@ class PatientConsultationsScreen extends StatelessWidget {
       }
     }
   }
+}
+
+Future<void> _cancelAppointment(BuildContext context, String docId) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Cancel Appointment'),
+      content: const Text('Are you sure you want to cancel this appointment?'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('No'),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context, true),
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+          child: const Text('Yes, Cancel'),
+        ),
+      ],
+    ),
+  );
+
+  if (confirmed == true) {
+    try {
+      await FirebaseFirestore.instance
+          .collection('appointments')
+          .doc(docId)
+          .update({
+            'status': 'cancelled',
+            'cancelledAt': FieldValue.serverTimestamp(),
+            'cancelledBy': 'patient',
+          });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ Appointment cancelled successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Error cancelling appointment: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
-  Future<void> _cancelAppointment(BuildContext context, String docId) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cancel Appointment'),
-        content: const Text('Are you sure you want to cancel this appointment?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('No'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Yes, Cancel'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      try {
-        await FirebaseFirestore.instance
-            .collection('appointments')
-            .doc(docId)
-            .update({
-          'status': 'cancelled',
-          'cancelledAt': FieldValue.serverTimestamp(),
-          'cancelledBy': 'patient',
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ Appointment cancelled successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('❌ Error cancelling appointment: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
   }
+}
 
+void _viewAppointmentDetails(BuildContext context, Map<String, dynamic> data) {
+  showDialog(
+    context: context,
+    builder: (context) => AppointmentDetailsDialog(data: data),
+  );
+}
 
-  void _viewAppointmentDetails(BuildContext context, Map<String, dynamic> data) {
-    showDialog(
-      context: context,
-      builder: (context) => AppointmentDetailsDialog(data: data),
-    );
-  }
-
-  void _viewCompletedAppointment(BuildContext context, Map<String, dynamic> data) {
-    showDialog(
-      context: context,
-      builder: (context) => CompletedAppointmentDialog(data: data),
-    );
-  }
+void _viewCompletedAppointment(
+  BuildContext context,
+  Map<String, dynamic> data,
+) {
+  showDialog(
+    context: context,
+    builder: (context) => CompletedAppointmentDialog(data: data),
+  );
+}
 
 // ------------------------ 📅 Appointments Calendar Tab ------------------------
 
@@ -736,10 +778,17 @@ class _AppointmentsCalendarState extends State<_AppointmentsCalendar> {
           lastDay: DateTime.utc(2030),
           selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
           onDaySelected: _onDaySelected,
-          eventLoader: (day) => _events[DateTime(day.year, day.month, day.day)] ?? [],
+          eventLoader: (day) =>
+              _events[DateTime(day.year, day.month, day.day)] ?? [],
           calendarStyle: const CalendarStyle(
-            todayDecoration: BoxDecoration(color: Colors.green, shape: BoxShape.circle),
-            selectedDecoration: BoxDecoration(color: Colors.orange, shape: BoxShape.circle),
+            todayDecoration: BoxDecoration(
+              color: Colors.green,
+              shape: BoxShape.circle,
+            ),
+            selectedDecoration: BoxDecoration(
+              color: Colors.orange,
+              shape: BoxShape.circle,
+            ),
           ),
         ),
         Expanded(
@@ -749,16 +798,23 @@ class _AppointmentsCalendarState extends State<_AppointmentsCalendar> {
                   itemCount: _selectedAppointments.length,
                   itemBuilder: (context, index) {
                     final data = _selectedAppointments[index];
-                    final date = DateTime.tryParse(data['date'] ?? '')?.toLocal();
+                    final date = DateTime.tryParse(
+                      data['date'] ?? '',
+                    )?.toLocal();
                     final dateStr = date != null
                         ? DateFormat.yMMMd().add_jm().format(date)
                         : 'Invalid date';
 
                     return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 6,
+                      ),
                       child: ListTile(
                         title: Text(data['reason'] ?? 'No reason'),
-                        subtitle: Text('Time: $dateStr\nDoctor: ${data['doctor'] ?? 'N/A'}'),
+                        subtitle: Text(
+                          'Time: $dateStr\nDoctor: ${data['doctor'] ?? 'N/A'}',
+                        ),
                       ),
                     );
                   },
@@ -777,7 +833,8 @@ class AppointmentDetailsDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final preConsultationData = data['preConsultationData'] as Map<String, dynamic>?;
+    final preConsultationData =
+        data['preConsultationData'] as Map<String, dynamic>?;
     final appointmentDate = data['appointmentDate'] != null
         ? (data['appointmentDate'] as Timestamp).toDate()
         : null;
@@ -789,13 +846,26 @@ class AppointmentDetailsDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildDetailRow('Provider', '${data['providerName']} (${data['providerType']})'),
-            _buildDetailRow('Date', appointmentDate != null 
-                ? DateFormat('MMM dd, yyyy • hh:mm a').format(appointmentDate) 
-                : 'Not set'),
+            _buildDetailRow(
+              'Provider',
+              '${data['providerName']} (${data['providerType']})',
+            ),
+            _buildDetailRow(
+              'Date',
+              appointmentDate != null
+                  ? DateFormat('MMM dd, yyyy • hh:mm a').format(appointmentDate)
+                  : 'Not set',
+            ),
             _buildDetailRow('Status', data['status'] ?? 'Unknown'),
             _buildDetailRow('Urgency', data['urgency'] ?? 'Normal'),
-            
+            // Payment details
+            if (data['amount'] != null && (data['amount'] as num) > 0)
+              _buildDetailRow('Fee', '₦${(data['amount'] as num).toStringAsFixed(0)}'),
+            if (data['paymentStatus'] != null)
+              _buildDetailRow('Payment', data['paymentStatus']),
+            if (data['paymentMethod'] != null)
+              _buildDetailRow('Method', data['paymentMethod']),
+
             if (preConsultationData != null) ...[
               const SizedBox(height: 16),
               const Text(
@@ -803,9 +873,12 @@ class AppointmentDetailsDialog extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              
+
               if (preConsultationData['mainComplaint'] != null)
-                _buildDetailRow('Main Complaint', preConsultationData['mainComplaint']),
+                _buildDetailRow(
+                  'Main Complaint',
+                  preConsultationData['mainComplaint'],
+                ),
               if (preConsultationData['symptoms'] != null)
                 _buildDetailRow('Symptoms', preConsultationData['symptoms']),
               if (preConsultationData['duration'] != null)
@@ -813,7 +886,10 @@ class AppointmentDetailsDialog extends StatelessWidget {
               if (preConsultationData['severity'] != null)
                 _buildDetailRow('Severity', preConsultationData['severity']),
               if (preConsultationData['medicationsTaken'] != null)
-                _buildDetailRow('Medications', preConsultationData['medicationsTaken']),
+                _buildDetailRow(
+                  'Medications',
+                  preConsultationData['medicationsTaken'],
+                ),
               if (preConsultationData['allergies'] != null)
                 _buildDetailRow('Allergies', preConsultationData['allergies']),
             ],
@@ -845,9 +921,7 @@ class AppointmentDetailsDialog extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(
-            child: Text(value),
-          ),
+          Expanded(child: Text(value)),
         ],
       ),
     );
@@ -873,12 +947,28 @@ class CompletedAppointmentDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildDetailRow('Provider', '${data['providerName']} (${data['providerType']})'),
-            _buildDetailRow('Type', data['appointmentType'] ?? 'General Consultation'),
-            _buildDetailRow('Completed', completedAt != null 
-                ? DateFormat('MMM dd, yyyy • hh:mm a').format(completedAt) 
-                : 'Date not available'),
-            
+            _buildDetailRow(
+              'Provider',
+              '${data['providerName']} (${data['providerType']})',
+            ),
+            _buildDetailRow(
+              'Type',
+              data['appointmentType'] ?? 'General Consultation',
+            ),
+            _buildDetailRow(
+              'Completed',
+              completedAt != null
+                  ? DateFormat('MMM dd, yyyy • hh:mm a').format(completedAt)
+                  : 'Date not available',
+            ),
+            // Payment details
+            if (data['amount'] != null && (data['amount'] as num) > 0)
+              _buildDetailRow('Fee', '₦${(data['amount'] as num).toStringAsFixed(0)}'),
+            if (data['paymentStatus'] != null)
+              _buildDetailRow('Payment', data['paymentStatus']),
+            if (data['paymentMethod'] != null)
+              _buildDetailRow('Method', data['paymentMethod']),
+
             const SizedBox(height: 16),
             const Text(
               'Consultation completed successfully.',
@@ -927,9 +1017,7 @@ class CompletedAppointmentDialog extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(
-            child: Text(value),
-          ),
+          Expanded(child: Text(value)),
         ],
       ),
     );

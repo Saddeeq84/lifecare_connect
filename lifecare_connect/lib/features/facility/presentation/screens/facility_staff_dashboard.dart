@@ -17,10 +17,26 @@ class FacilityStaffDashboardScreen extends StatelessWidget {
       ),
       body: ListView(
         children: [
-          ListTile(leading: const Icon(Icons.calendar_today), title: const Text('Appointments'), onTap: () {}),
-          ListTile(leading: const Icon(Icons.people), title: const Text('My Patients'), onTap: () {}),
-          ListTile(leading: const Icon(Icons.medical_services), title: const Text('Consultations'), onTap: () {}),
-          ListTile(leading: const Icon(Icons.bar_chart), title: const Text('Reports & Analytics'), onTap: () {}),
+          ListTile(
+            leading: const Icon(Icons.calendar_today),
+            title: const Text('Appointments'),
+            onTap: () {},
+          ),
+          ListTile(
+            leading: const Icon(Icons.people),
+            title: const Text('My Patients'),
+            onTap: () {},
+          ),
+          ListTile(
+            leading: const Icon(Icons.medical_services),
+            title: const Text('Consultations'),
+            onTap: () {},
+          ),
+          ListTile(
+            leading: const Icon(Icons.bar_chart),
+            title: const Text('Reports & Analytics'),
+            onTap: () {},
+          ),
         ],
       ),
     );

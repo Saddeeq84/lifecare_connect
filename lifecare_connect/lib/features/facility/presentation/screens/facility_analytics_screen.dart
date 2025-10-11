@@ -11,13 +11,15 @@ class FacilityAnalyticsScreen extends StatefulWidget {
   const FacilityAnalyticsScreen({super.key});
 
   @override
-  State<FacilityAnalyticsScreen> createState() => _FacilityAnalyticsScreenState();
+  State<FacilityAnalyticsScreen> createState() =>
+      _FacilityAnalyticsScreenState();
 }
 
-class _FacilityAnalyticsScreenState extends State<FacilityAnalyticsScreen> with TickerProviderStateMixin {
+class _FacilityAnalyticsScreenState extends State<FacilityAnalyticsScreen>
+    with TickerProviderStateMixin {
   late TabController _tabController;
   final String currentFacilityId = FirebaseAuth.instance.currentUser?.uid ?? '';
-  
+
   @override
   void initState() {
     super.initState();
@@ -47,18 +49,9 @@ class _FacilityAnalyticsScreenState extends State<FacilityAnalyticsScreen> with 
           unselectedLabelColor: Colors.white70,
           indicatorColor: Colors.white,
           tabs: const [
-            Tab(
-              icon: Icon(Icons.dashboard),
-              text: 'Overview',
-            ),
-            Tab(
-              icon: Icon(Icons.bar_chart),
-              text: 'Services',
-            ),
-            Tab(
-              icon: Icon(Icons.trending_up),
-              text: 'Performance',
-            ),
+            Tab(icon: Icon(Icons.dashboard), text: 'Overview'),
+            Tab(icon: Icon(Icons.bar_chart), text: 'Services'),
+            Tab(icon: Icon(Icons.trending_up), text: 'Performance'),
           ],
         ),
       ),
@@ -100,12 +93,27 @@ class _FacilityAnalyticsScreenState extends State<FacilityAnalyticsScreen> with 
 
               final requests = snapshot.data?.docs ?? [];
               final totalRequests = requests.length;
-              final pendingRequests = requests.where((doc) => 
-                (doc.data() as Map<String, dynamic>)['status'] == 'pending').length;
-              final completedRequests = requests.where((doc) => 
-                (doc.data() as Map<String, dynamic>)['status'] == 'completed').length;
-              final cancelledRequests = requests.where((doc) => 
-                (doc.data() as Map<String, dynamic>)['status'] == 'cancelled').length;
+              final pendingRequests = requests
+                  .where(
+                    (doc) =>
+                        (doc.data() as Map<String, dynamic>)['status'] ==
+                        'pending',
+                  )
+                  .length;
+              final completedRequests = requests
+                  .where(
+                    (doc) =>
+                        (doc.data() as Map<String, dynamic>)['status'] ==
+                        'completed',
+                  )
+                  .length;
+              final cancelledRequests = requests
+                  .where(
+                    (doc) =>
+                        (doc.data() as Map<String, dynamic>)['status'] ==
+                        'cancelled',
+                  )
+                  .length;
 
               return GridView.count(
                 shrinkWrap: true,
@@ -180,7 +188,8 @@ class _FacilityAnalyticsScreenState extends State<FacilityAnalyticsScreen> with 
               for (final doc in requests) {
                 final data = doc.data() as Map<String, dynamic>;
                 final serviceName = data['serviceName'] ?? 'Unknown Service';
-                serviceStats[serviceName] = (serviceStats[serviceName] ?? 0) + 1;
+                serviceStats[serviceName] =
+                    (serviceStats[serviceName] ?? 0) + 1;
               }
 
               if (serviceStats.isEmpty) {
@@ -191,10 +200,7 @@ class _FacilityAnalyticsScreenState extends State<FacilityAnalyticsScreen> with 
                       const SizedBox(height: 16),
                       Text(
                         'No service data available',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                       ),
                     ],
                   ),
@@ -217,8 +223,10 @@ class _FacilityAnalyticsScreenState extends State<FacilityAnalyticsScreen> with 
                             ),
                           ),
                           const SizedBox(height: 16),
-                          ...serviceStats.entries.map((entry) => 
-                            _buildServiceStatRow(entry.key, entry.value)),
+                          ...serviceStats.entries.map(
+                            (entry) =>
+                                _buildServiceStatRow(entry.key, entry.value),
+                          ),
                         ],
                       ),
                     ),
@@ -259,11 +267,17 @@ class _FacilityAnalyticsScreenState extends State<FacilityAnalyticsScreen> with 
 
               final requests = snapshot.data?.docs ?? [];
               final totalRequests = requests.length;
-              final completedRequests = requests.where((doc) => 
-                (doc.data() as Map<String, dynamic>)['status'] == 'completed').length;
-              
-              final completionRate = totalRequests > 0 ? 
-                (completedRequests / totalRequests * 100).toStringAsFixed(1) : '0.0';
+              final completedRequests = requests
+                  .where(
+                    (doc) =>
+                        (doc.data() as Map<String, dynamic>)['status'] ==
+                        'completed',
+                  )
+                  .length;
+
+              final completionRate = totalRequests > 0
+                  ? (completedRequests / totalRequests * 100).toStringAsFixed(1)
+                  : '0.0';
 
               return Column(
                 children: [
@@ -307,12 +321,15 @@ class _FacilityAnalyticsScreenState extends State<FacilityAnalyticsScreen> with 
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -339,10 +356,7 @@ class _FacilityAnalyticsScreenState extends State<FacilityAnalyticsScreen> with 
             const SizedBox(height: 4),
             Text(
               title,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
           ],
@@ -360,10 +374,7 @@ class _FacilityAnalyticsScreenState extends State<FacilityAnalyticsScreen> with 
           children: [
             const Text(
               'Recent Activity',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             StreamBuilder<QuerySnapshot>(
@@ -379,7 +390,7 @@ class _FacilityAnalyticsScreenState extends State<FacilityAnalyticsScreen> with 
                 }
 
                 final requests = snapshot.data?.docs ?? [];
-                
+
                 if (requests.isEmpty) {
                   return Center(
                     child: Text(
@@ -405,10 +416,7 @@ class _FacilityAnalyticsScreenState extends State<FacilityAnalyticsScreen> with 
                       subtitle: Text('Status: ${data['status']}'),
                       trailing: Text(
                         _formatDate(data['createdAt']),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       ),
                     );
                   }).toList(),
@@ -427,10 +435,7 @@ class _FacilityAnalyticsScreenState extends State<FacilityAnalyticsScreen> with 
       child: Row(
         children: [
           Expanded(
-            child: Text(
-              serviceName,
-              style: const TextStyle(fontSize: 16),
-            ),
+            child: Text(serviceName, style: const TextStyle(fontSize: 16)),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -451,7 +456,12 @@ class _FacilityAnalyticsScreenState extends State<FacilityAnalyticsScreen> with 
     );
   }
 
-  Widget _buildPerformanceMetric(String title, String value, IconData icon, Color color) {
+  Widget _buildPerformanceMetric(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: color.withOpacity(0.1),
@@ -478,10 +488,7 @@ class _FacilityAnalyticsScreenState extends State<FacilityAnalyticsScreen> with 
           children: [
             const Text(
               'Revenue Overview',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             ListTile(
@@ -548,7 +555,7 @@ class _FacilityAnalyticsScreenState extends State<FacilityAnalyticsScreen> with 
 
   String _formatDate(dynamic timestamp) {
     if (timestamp == null) return 'Unknown';
-    
+
     try {
       DateTime date;
       if (timestamp is Timestamp) {
@@ -556,10 +563,10 @@ class _FacilityAnalyticsScreenState extends State<FacilityAnalyticsScreen> with 
       } else {
         return 'Unknown';
       }
-      
+
       final now = DateTime.now();
       final diff = now.difference(date);
-      
+
       if (diff.inDays > 0) {
         return '${diff.inDays}d ago';
       } else if (diff.inHours > 0) {

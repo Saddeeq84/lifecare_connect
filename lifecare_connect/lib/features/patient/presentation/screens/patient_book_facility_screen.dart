@@ -87,7 +87,9 @@ class PatientBookFacilityScreen extends StatelessWidget {
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Booking appointment with $facilityName')),
+                      SnackBar(
+                        content: Text('Booking appointment with $facilityName'),
+                      ),
                     );
                   },
                 ),

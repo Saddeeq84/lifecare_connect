@@ -17,10 +17,12 @@ class ComprehensiveHealthRecordsScreen extends StatefulWidget {
   });
 
   @override
-  State<ComprehensiveHealthRecordsScreen> createState() => _ComprehensiveHealthRecordsScreenState();
+  State<ComprehensiveHealthRecordsScreen> createState() =>
+      _ComprehensiveHealthRecordsScreenState();
 }
 
-class _ComprehensiveHealthRecordsScreenState extends State<ComprehensiveHealthRecordsScreen> {
+class _ComprehensiveHealthRecordsScreenState
+    extends State<ComprehensiveHealthRecordsScreen> {
   // --- Helper variables and methods (must be declared before usage) ---
   final List<String> _filterOptions = [
     'ALL',
@@ -30,7 +32,7 @@ class _ComprehensiveHealthRecordsScreenState extends State<ComprehensiveHealthRe
     'SELF_REPORTED_VITALS',
     'LAB_RESULTS',
     'PRE_CONSULTATION_CHECKLIST',
-    'FACILITY_RESULTS'
+    'FACILITY_RESULTS',
   ];
 
   String _selectedFilter = 'ALL';
@@ -98,16 +100,10 @@ class _ComprehensiveHealthRecordsScreenState extends State<ComprehensiveHealthRe
         children: [
           Text(
             title,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 4),
-          Text(
-            content,
-            style: const TextStyle(fontSize: 14),
-          ),
+          Text(content, style: const TextStyle(fontSize: 14)),
         ],
       ),
     );
@@ -115,8 +111,32 @@ class _ComprehensiveHealthRecordsScreenState extends State<ComprehensiveHealthRe
 
   bool _isSystemField(String key) {
     const systemFields = [
-      'type', 'patientUid', 'providerId', 'chwUid', 'doctorUid', 'providerName', 'providerType',
-      'date', 'createdAt', 'updatedAt', 'accessibleBy', 'isEditable', 'isDeletable', 'recordId', 'id', 'source', 'status', 'appointmentId', 'userId', 'patientId', 'data', 'fileUrls', 'fileNames', 'uploadDate', 'submissionTimestamp', 'requiresReview'
+      'type',
+      'patientUid',
+      'providerId',
+      'chwUid',
+      'doctorUid',
+      'providerName',
+      'providerType',
+      'date',
+      'createdAt',
+      'updatedAt',
+      'accessibleBy',
+      'isEditable',
+      'isDeletable',
+      'recordId',
+      'id',
+      'source',
+      'status',
+      'appointmentId',
+      'userId',
+      'patientId',
+      'data',
+      'fileUrls',
+      'fileNames',
+      'uploadDate',
+      'submissionTimestamp',
+      'requiresReview',
     ];
     return systemFields.contains(key);
   }
@@ -126,7 +146,10 @@ class _ComprehensiveHealthRecordsScreenState extends State<ComprehensiveHealthRe
     String formatted = fieldName
         .replaceAllMapped(RegExp(r'([A-Z])'), (match) => ' ${match.group(1)}')
         .split('_')
-        .map((word) => word.isEmpty ? '' : word[0].toUpperCase() + word.substring(1))
+        .map(
+          (word) =>
+              word.isEmpty ? '' : word[0].toUpperCase() + word.substring(1),
+        )
         .join(' ')
         .trim();
     return formatted;
@@ -160,7 +183,8 @@ class _ComprehensiveHealthRecordsScreenState extends State<ComprehensiveHealthRe
     final providerName = data['providerName'] as String? ?? 'Unknown Provider';
     final providerType = data['providerType'] as String? ?? 'Unknown';
     final createdAt = data['createdAt'] as Timestamp?;
-    final formattedDate = createdAt?.toDate().toString().split(' ')[0] ?? 'Unknown Date';
+    final formattedDate =
+        createdAt?.toDate().toString().split(' ')[0] ?? 'Unknown Date';
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -200,10 +224,7 @@ class _ComprehensiveHealthRecordsScreenState extends State<ComprehensiveHealthRe
                     const SizedBox(height: 4),
                     Text(
                       'By: $providerName ($providerType)',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                     const SizedBox(height: 4),
                     Row(
@@ -366,7 +387,7 @@ class _ComprehensiveHealthRecordsScreenState extends State<ComprehensiveHealthRe
                 }
 
                 final records = snapshot.data?.docs ?? [];
-                
+
                 if (records.isEmpty) {
                   return Center(
                     child: Column(
@@ -387,7 +408,7 @@ class _ComprehensiveHealthRecordsScreenState extends State<ComprehensiveHealthRe
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          _selectedFilter == 'ALL' 
+                          _selectedFilter == 'ALL'
                               ? 'No records have been created yet'
                               : 'No records of this type found',
                           style: TextStyle(color: Colors.grey.shade500),
@@ -420,9 +441,9 @@ class _ComprehensiveHealthRecordsScreenState extends State<ComprehensiveHealthRe
     return FloatingActionButton(
       onPressed: () {
         // Add your desired action here, e.g., navigate to add record screen
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('FAB pressed!')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('FAB pressed!')));
       },
       child: const Icon(Icons.add),
       backgroundColor: _getAppBarColor(),
@@ -430,13 +451,17 @@ class _ComprehensiveHealthRecordsScreenState extends State<ComprehensiveHealthRe
     );
   }
 
-// ...existing code for details, FAB, etc...
+  // ...existing code for details, FAB, etc...
 
   void _showRecordDetails(String recordId, Map<String, dynamic> data) {
     showDialog(
       context: context,
       builder: (context) {
-        final providerName = data['providerName'] as String? ?? data['chwName'] as String? ?? data['doctorName'] as String? ?? 'Unknown';
+        final providerName =
+            data['providerName'] as String? ??
+            data['chwName'] as String? ??
+            data['doctorName'] as String? ??
+            'Unknown';
         return AlertDialog(
           title: Text('Record Details'),
           content: SingleChildScrollView(
@@ -446,34 +471,84 @@ class _ComprehensiveHealthRecordsScreenState extends State<ComprehensiveHealthRe
                 if (providerName.isNotEmpty)
                   _buildDetailSection('Provider', providerName),
                 if (data['diagnosis'] != null)
-                  _buildDetailSection('Diagnosis', data['diagnosis'].toString()),
+                  _buildDetailSection(
+                    'Diagnosis',
+                    data['diagnosis'].toString(),
+                  ),
                 if (data['prescription'] != null)
-                  _buildDetailSection('Prescription', data['prescription'].toString()),
+                  _buildDetailSection(
+                    'Prescription',
+                    data['prescription'].toString(),
+                  ),
                 if (data['labRequest'] != null)
-                  _buildDetailSection('Lab Request', data['labRequest'].toString()),
+                  _buildDetailSection(
+                    'Lab Request',
+                    data['labRequest'].toString(),
+                  ),
                 if (data['radiologyRequest'] != null)
-                  _buildDetailSection('Radiology Request', data['radiologyRequest'].toString()),
+                  _buildDetailSection(
+                    'Radiology Request',
+                    data['radiologyRequest'].toString(),
+                  ),
                 if (data['followUpNote'] != null)
-                  _buildDetailSection('Follow-up Note', data['followUpNote'].toString()),
+                  _buildDetailSection(
+                    'Follow-up Note',
+                    data['followUpNote'].toString(),
+                  ),
                 if (data['additionalNotes'] != null)
-                  _buildDetailSection('Additional Notes', data['additionalNotes'].toString()),
+                  _buildDetailSection(
+                    'Additional Notes',
+                    data['additionalNotes'].toString(),
+                  ),
                 // Pre-consultation Checklist Section
-                if (data['reason'] != null || data['allergies'] != null || data['medicalHistory'] != null)
-                  ...[
-                    _buildDetailSection('Reason for Visit', data['reason']?.toString() ?? ''),
-                    _buildDetailSection('Known Allergies', data['allergies']?.toString() ?? ''),
-                    _buildDetailSection('Medical History', data['medicalHistory']?.toString() ?? ''),
-                    if (data['currentMedications'] != null)
-                      _buildDetailSection('Current Medications', data['currentMedications'].toString()),
-                  ],
+                if (data['reason'] != null ||
+                    data['allergies'] != null ||
+                    data['medicalHistory'] != null) ...[
+                  _buildDetailSection(
+                    'Reason for Visit',
+                    data['reason']?.toString() ?? '',
+                  ),
+                  _buildDetailSection(
+                    'Known Allergies',
+                    data['allergies']?.toString() ?? '',
+                  ),
+                  _buildDetailSection(
+                    'Medical History',
+                    data['medicalHistory']?.toString() ?? '',
+                  ),
+                  if (data['currentMedications'] != null)
+                    _buildDetailSection(
+                      'Current Medications',
+                      data['currentMedications'].toString(),
+                    ),
+                ],
                 // Fallback: show all other fields not handled above
                 ...data.entries
-                  .where((entry) => !_isSystemField(entry.key) && !['providerName','chwName','doctorName','diagnosis','prescription','labRequest','radiologyRequest','followUpNote','additionalNotes','reason','allergies','medicalHistory','currentMedications'].contains(entry.key))
-                  .map((entry) => _buildDetailSection(
+                    .where(
+                      (entry) =>
+                          !_isSystemField(entry.key) &&
+                          ![
+                            'providerName',
+                            'chwName',
+                            'doctorName',
+                            'diagnosis',
+                            'prescription',
+                            'labRequest',
+                            'radiologyRequest',
+                            'followUpNote',
+                            'additionalNotes',
+                            'reason',
+                            'allergies',
+                            'medicalHistory',
+                            'currentMedications',
+                          ].contains(entry.key),
+                    )
+                    .map(
+                      (entry) => _buildDetailSection(
                         _formatFieldName(entry.key),
                         entry.value?.toString() ?? '',
-                      ))
-                  ,
+                      ),
+                    ),
               ],
             ),
           ),
@@ -488,4 +563,5 @@ class _ComprehensiveHealthRecordsScreenState extends State<ComprehensiveHealthRe
     );
   }
 }
+
 // REMOVE EVERYTHING BELOW THIS LINE (duplicate imports, ignore comments, duplicate class definitions)

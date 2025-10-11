@@ -7,13 +7,19 @@ import '../../../shared/presentation/screens/chat_screen.dart';
 class AdminIndividualMessagesTab extends StatefulWidget {
   final String role;
   final String adminUserId;
-  const AdminIndividualMessagesTab({required this.role, required this.adminUserId, super.key});
+  const AdminIndividualMessagesTab({
+    required this.role,
+    required this.adminUserId,
+    super.key,
+  });
 
   @override
-  State<AdminIndividualMessagesTab> createState() => _AdminIndividualMessagesTabState();
+  State<AdminIndividualMessagesTab> createState() =>
+      _AdminIndividualMessagesTabState();
 }
 
-class _AdminIndividualMessagesTabState extends State<AdminIndividualMessagesTab> {
+class _AdminIndividualMessagesTabState
+    extends State<AdminIndividualMessagesTab> {
   final TextEditingController _searchController = TextEditingController();
   List<Map<String, dynamic>> _users = [];
   bool _isLoading = false;
@@ -25,7 +31,9 @@ class _AdminIndividualMessagesTabState extends State<AdminIndividualMessagesTab>
   }
 
   Future<void> _searchUsers() async {
-    setState(() { _isLoading = true; });
+    setState(() {
+      _isLoading = true;
+    });
     try {
       final users = await MessageService.searchUsers(
         searchTerm: _searchController.text.trim(),
@@ -37,11 +45,13 @@ class _AdminIndividualMessagesTabState extends State<AdminIndividualMessagesTab>
         _isLoading = false;
       });
     } catch (e) {
-      setState(() { _isLoading = false; });
+      setState(() {
+        _isLoading = false;
+      });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error searching users: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error searching users: $e')));
       }
     }
   }
@@ -86,9 +96,12 @@ class _AdminIndividualMessagesTabState extends State<AdminIndividualMessagesTab>
           child: TextField(
             controller: _searchController,
             decoration: InputDecoration(
-              hintText: 'Search {widget.role[0].toUpperCase()}${widget.role.substring(1)}s...',
+              hintText:
+                  'Search {widget.role[0].toUpperCase()}${widget.role.substring(1)}s...',
               prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             onChanged: (_) => _searchUsers(),
           ),
@@ -97,21 +110,27 @@ class _AdminIndividualMessagesTabState extends State<AdminIndividualMessagesTab>
           child: _isLoading
               ? Center(child: CircularProgressIndicator())
               : _users.isEmpty
-                  ? Center(child: Text('No ${widget.role}s found.'))
-                  : ListView.separated(
-                      itemCount: _users.length,
-                      separatorBuilder: (context, index) => Divider(height: 1),
-                      itemBuilder: (context, index) {
-                        final user = _users[index];
-                        return ListTile(
-                          leading: CircleAvatar(child: Text(user['name'].isNotEmpty ? user['name'][0].toUpperCase() : '?')),
-                          title: Text(user['name']),
-                          subtitle: Text(user['role'].toString().toUpperCase()),
-                          trailing: Icon(Icons.chat_bubble_outline),
-                          onTap: () => _startConversation(user),
-                        );
-                      },
-                    ),
+              ? Center(child: Text('No ${widget.role}s found.'))
+              : ListView.separated(
+                  itemCount: _users.length,
+                  separatorBuilder: (context, index) => Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final user = _users[index];
+                    return ListTile(
+                      leading: CircleAvatar(
+                        child: Text(
+                          user['name'].isNotEmpty
+                              ? user['name'][0].toUpperCase()
+                              : '?',
+                        ),
+                      ),
+                      title: Text(user['name']),
+                      subtitle: Text(user['role'].toString().toUpperCase()),
+                      trailing: Icon(Icons.chat_bubble_outline),
+                      onTap: () => _startConversation(user),
+                    );
+                  },
+                ),
         ),
       ],
     );

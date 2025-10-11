@@ -13,7 +13,8 @@ class FacilityServicesScreen extends StatefulWidget {
   State<FacilityServicesScreen> createState() => _FacilityServicesScreenState();
 }
 
-class _FacilityServicesScreenState extends State<FacilityServicesScreen> with TickerProviderStateMixin {
+class _FacilityServicesScreenState extends State<FacilityServicesScreen>
+    with TickerProviderStateMixin {
   late TabController _tabController;
   final String currentFacilityId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
@@ -46,28 +47,15 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
           unselectedLabelColor: Colors.white70,
           indicatorColor: Colors.white,
           tabs: const [
-            Tab(
-              icon: Icon(Icons.medical_services),
-              text: 'Services',
-            ),
-            Tab(
-              icon: Icon(Icons.inventory),
-              text: 'Items',
-            ),
-            Tab(
-              icon: Icon(Icons.request_quote),
-              text: 'Requests',
-            ),
+            Tab(icon: Icon(Icons.medical_services), text: 'Services'),
+            Tab(icon: Icon(Icons.inventory), text: 'Items'),
+            Tab(icon: Icon(Icons.request_quote), text: 'Requests'),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [
-          _buildServicesTab(),
-          _buildItemsTab(),
-          _buildRequestsTab(),
-        ],
+        children: [_buildServicesTab(), _buildItemsTab(), _buildRequestsTab()],
       ),
     );
   }
@@ -134,22 +122,20 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.medical_services, size: 64, color: Colors.grey[400]),
+                      Icon(
+                        Icons.medical_services,
+                        size: 64,
+                        color: Colors.grey[400],
+                      ),
                       const SizedBox(height: 16),
                       Text(
                         'No services added yet',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Add services to display them to patients',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[500],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -163,7 +149,7 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
                 itemBuilder: (context, index) {
                   final service = services[index];
                   final serviceData = service.data() as Map<String, dynamic>;
-                  
+
                   return Card(
                     margin: const EdgeInsets.only(bottom: 8),
                     elevation: 2,
@@ -187,7 +173,10 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
                           Row(
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.blue[100],
                                   borderRadius: BorderRadius.circular(12),
@@ -214,7 +203,8 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
                         ],
                       ),
                       trailing: PopupMenuButton<String>(
-                        onSelected: (value) => _handleServiceAction(service, value),
+                        onSelected: (value) =>
+                            _handleServiceAction(service, value),
                         itemBuilder: (context) => [
                           const PopupMenuItem(
                             value: 'edit',
@@ -242,7 +232,10 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
                               children: [
                                 Icon(Icons.delete, color: Colors.red),
                                 SizedBox(width: 8),
-                                Text('Delete', style: TextStyle(color: Colors.red)),
+                                Text(
+                                  'Delete',
+                                  style: TextStyle(color: Colors.red),
+                                ),
                               ],
                             ),
                           ),
@@ -326,18 +319,12 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
                       const SizedBox(height: 16),
                       Text(
                         'No items added yet',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Add items to display them to patients',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[500],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -351,7 +338,7 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
                 itemBuilder: (context, index) {
                   final item = items[index];
                   final itemData = item.data() as Map<String, dynamic>;
-                  
+
                   return Card(
                     margin: const EdgeInsets.only(bottom: 8),
                     elevation: 2,
@@ -375,7 +362,10 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
                           Row(
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.orange[100],
                                   borderRadius: BorderRadius.circular(12),
@@ -430,7 +420,10 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
                               children: [
                                 Icon(Icons.delete, color: Colors.red),
                                 SizedBox(width: 8),
-                                Text('Delete', style: TextStyle(color: Colors.red)),
+                                Text(
+                                  'Delete',
+                                  style: TextStyle(color: Colors.red),
+                                ),
                               ],
                             ),
                           ),
@@ -494,22 +487,20 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.request_quote, size: 64, color: Colors.grey[400]),
+                      Icon(
+                        Icons.request_quote,
+                        size: 64,
+                        color: Colors.grey[400],
+                      ),
                       const SizedBox(height: 16),
                       Text(
                         'No service requests yet',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Patient service requests will appear here',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[500],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -523,7 +514,7 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
                 itemBuilder: (context, index) {
                   final request = requests[index];
                   final requestData = request.data() as Map<String, dynamic>;
-                  
+
                   return Card(
                     margin: const EdgeInsets.only(bottom: 8),
                     elevation: 2,
@@ -542,18 +533,24 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Patient ID: ${requestData['patientId'] ?? 'Unknown'}'),
+                          Text(
+                            'Patient ID: ${requestData['patientId'] ?? 'Unknown'}',
+                          ),
                           Text('Status: ${requestData['status'] ?? 'pending'}'),
                           if (requestData['notes'] != null)
                             Text('Notes: ${requestData['notes']}'),
                           Text(
                             'Requested: ${_formatDate(requestData['createdAt'])}',
-                            style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 12,
+                            ),
                           ),
                         ],
                       ),
                       trailing: PopupMenuButton<String>(
-                        onSelected: (value) => _handleRequestAction(request, value),
+                        onSelected: (value) =>
+                            _handleRequestAction(request, value),
                         itemBuilder: (context) => [
                           if (requestData['status'] == 'pending') ...[
                             const PopupMenuItem(
@@ -618,7 +615,7 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
     final descriptionController = TextEditingController();
     final priceController = TextEditingController();
     String selectedCategory = 'General';
-    
+
     final categories = [
       'General',
       'Laboratory',
@@ -629,7 +626,7 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
       'Pharmacy',
       'Dental',
       'Physiotherapy',
-      'Others'
+      'Others',
     ];
 
     showDialog(
@@ -664,11 +661,16 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
                     labelText: 'Category',
                     border: OutlineInputBorder(),
                   ),
-                  items: categories.map((category) => DropdownMenuItem(
-                    value: category,
-                    child: Text(category),
-                  )).toList(),
-                  onChanged: (value) => setState(() => selectedCategory = value!),
+                  items: categories
+                      .map(
+                        (category) => DropdownMenuItem(
+                          value: category,
+                          child: Text(category),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) =>
+                      setState(() => selectedCategory = value!),
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -709,13 +711,13 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
     final priceController = TextEditingController();
     final stockController = TextEditingController();
     String selectedCategory = 'Medical Supplies';
-    
+
     final categories = [
       'Medical Supplies',
       'Medications',
       'Equipment',
       'Consumables',
-      'Others'
+      'Others',
     ];
 
     showDialog(
@@ -750,11 +752,16 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
                     labelText: 'Category',
                     border: OutlineInputBorder(),
                   ),
-                  items: categories.map((category) => DropdownMenuItem(
-                    value: category,
-                    child: Text(category),
-                  )).toList(),
-                  onChanged: (value) => setState(() => selectedCategory = value!),
+                  items: categories
+                      .map(
+                        (category) => DropdownMenuItem(
+                          value: category,
+                          child: Text(category),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) =>
+                      setState(() => selectedCategory = value!),
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -799,7 +806,13 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
     );
   }
 
-  Future<void> _addService(String name, String description, String category, String price, BuildContext context) async {
+  Future<void> _addService(
+    String name,
+    String description,
+    String category,
+    String price,
+    BuildContext context,
+  ) async {
     if (name.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter service name')),
@@ -831,18 +844,25 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error adding service: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error adding service: $e')));
       }
     }
   }
 
-  Future<void> _addItem(String name, String description, String category, String price, String stock, BuildContext context) async {
+  Future<void> _addItem(
+    String name,
+    String description,
+    String category,
+    String price,
+    String stock,
+    BuildContext context,
+  ) async {
     if (name.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter item name')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please enter item name')));
       return;
     }
 
@@ -871,9 +891,9 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error adding item: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error adding item: $e')));
       }
     }
   }
@@ -906,7 +926,10 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
     }
   }
 
-  void _handleRequestAction(QueryDocumentSnapshot request, String action) async {
+  void _handleRequestAction(
+    QueryDocumentSnapshot request,
+    String action,
+  ) async {
     switch (action) {
       case 'approve':
         _updateRequestStatus(request, 'approved');
@@ -922,7 +945,9 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('Please provide a reason for rejecting this request:'),
+                  const Text(
+                    'Please provide a reason for rejecting this request:',
+                  ),
                   const SizedBox(height: 12),
                   TextField(
                     autofocus: true,
@@ -945,7 +970,9 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
                     if (reason.trim().isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Please provide a reason for rejection'),
+                          content: Text(
+                            'Please provide a reason for rejection',
+                          ),
                           backgroundColor: Colors.red,
                         ),
                       );
@@ -961,7 +988,11 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
           },
         );
         if (confirmed == true && reason.trim().isNotEmpty) {
-          _updateRequestStatus(request, 'rejected', rejectionReason: reason.trim());
+          _updateRequestStatus(
+            request,
+            'rejected',
+            rejectionReason: reason.trim(),
+          );
         }
         break;
       case 'complete':
@@ -975,10 +1006,16 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
 
   void _editService(QueryDocumentSnapshot service) {
     final serviceData = service.data() as Map<String, dynamic>;
-    final nameController = TextEditingController(text: serviceData['name'] ?? '');
-    final descriptionController = TextEditingController(text: serviceData['description'] ?? '');
-    final priceController = TextEditingController(text: serviceData['price']?.toString() ?? '');
-    
+    final nameController = TextEditingController(
+      text: serviceData['name'] ?? '',
+    );
+    final descriptionController = TextEditingController(
+      text: serviceData['description'] ?? '',
+    );
+    final priceController = TextEditingController(
+      text: serviceData['price']?.toString() ?? '',
+    );
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1049,10 +1086,16 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
   void _editItem(QueryDocumentSnapshot item) {
     final itemData = item.data() as Map<String, dynamic>;
     final nameController = TextEditingController(text: itemData['name'] ?? '');
-    final descriptionController = TextEditingController(text: itemData['description'] ?? '');
-    final priceController = TextEditingController(text: itemData['price']?.toString() ?? '');
-    final stockController = TextEditingController(text: itemData['stockQuantity']?.toString() ?? '');
-    
+    final descriptionController = TextEditingController(
+      text: itemData['description'] ?? '',
+    );
+    final priceController = TextEditingController(
+      text: itemData['price']?.toString() ?? '',
+    );
+    final stockController = TextEditingController(
+      text: itemData['stockQuantity']?.toString() ?? '',
+    );
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1133,7 +1176,7 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
   void _toggleServiceAvailability(QueryDocumentSnapshot service) async {
     final serviceData = service.data() as Map<String, dynamic>;
     final currentStatus = serviceData['isAvailable'] ?? true;
-    
+
     try {
       await service.reference.update({
         'isAvailable': !currentStatus,
@@ -1149,9 +1192,9 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
         ),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error updating service: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error updating service: $e')));
     }
   }
 
@@ -1188,7 +1231,9 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
                 if (context.mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('✅ Stock updated successfully!')),
+                    const SnackBar(
+                      content: Text('✅ Stock updated successfully!'),
+                    ),
                   );
                 }
               } catch (e) {
@@ -1208,12 +1253,14 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
 
   void _deleteService(QueryDocumentSnapshot service) {
     final serviceData = service.data() as Map<String, dynamic>;
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Service'),
-        content: Text('Are you sure you want to delete "${serviceData['name']}"?'),
+        content: Text(
+          'Are you sure you want to delete "${serviceData['name']}"?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -1226,7 +1273,9 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
                 if (context.mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('✅ Service deleted successfully!')),
+                    const SnackBar(
+                      content: Text('✅ Service deleted successfully!'),
+                    ),
                   );
                 }
               } catch (e) {
@@ -1247,7 +1296,7 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
 
   void _deleteItem(QueryDocumentSnapshot item) {
     final itemData = item.data() as Map<String, dynamic>;
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1265,7 +1314,9 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
                 if (context.mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('✅ Item deleted successfully!')),
+                    const SnackBar(
+                      content: Text('✅ Item deleted successfully!'),
+                    ),
                   );
                 }
               } catch (e) {
@@ -1284,14 +1335,20 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
     );
   }
 
-  Future<void> _updateRequestStatus(QueryDocumentSnapshot request, String status, {String? rejectionReason}) async {
+  Future<void> _updateRequestStatus(
+    QueryDocumentSnapshot request,
+    String status, {
+    String? rejectionReason,
+  }) async {
     try {
       final updateData = {
         'status': status,
         'statusUpdatedAt': FieldValue.serverTimestamp(),
         'statusUpdatedBy': currentFacilityId,
       };
-      if (status == 'rejected' && rejectionReason != null && rejectionReason.isNotEmpty) {
+      if (status == 'rejected' &&
+          rejectionReason != null &&
+          rejectionReason.isNotEmpty) {
         updateData['rejectionReason'] = rejectionReason;
       }
       await request.reference.update(updateData);
@@ -1303,15 +1360,15 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
         ),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error updating request: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error updating request: $e')));
     }
   }
 
   void _showRequestDetails(QueryDocumentSnapshot request) {
     final requestData = request.data() as Map<String, dynamic>;
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1427,7 +1484,7 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
 
   String _formatDate(dynamic timestamp) {
     if (timestamp == null) return 'Unknown';
-    
+
     try {
       DateTime date;
       if (timestamp is Timestamp) {
@@ -1435,10 +1492,10 @@ class _FacilityServicesScreenState extends State<FacilityServicesScreen> with Ti
       } else {
         return 'Unknown';
       }
-      
+
       final now = DateTime.now();
       final diff = now.difference(date);
-      
+
       if (diff.inDays > 0) {
         return '${diff.inDays}d ago';
       } else if (diff.inHours > 0) {

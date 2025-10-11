@@ -122,7 +122,9 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                         SizedBox(height: 8),
                         Text('• Login problems: Check internet connection'),
                         Text('• Booking issues: Ensure all fields are filled'),
-                        Text('• Emergency services: Call 199 for immediate help'),
+                        Text(
+                          '• Emergency services: Call 199 for immediate help',
+                        ),
                       ],
                     ),
                   ),
@@ -242,10 +244,7 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
           value: value,
           underline: Container(),
           items: items.map((item) {
-            return DropdownMenuItem(
-              value: item,
-              child: Text(item),
-            );
+            return DropdownMenuItem(value: item, child: Text(item));
           }).toList(),
           onChanged: onChanged,
         ),
@@ -274,10 +273,14 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
         return StatefulBuilder(
           builder: (context, setState) => AlertDialog(
             title: const Text('Delete Account'),
-            content: const Text('Are you sure you want to permanently delete your account? This action cannot be undone.'),
+            content: const Text(
+              'Are you sure you want to permanently delete your account? This action cannot be undone.',
+            ),
             actions: [
               TextButton(
-                onPressed: isDeleting ? null : () => Navigator.of(context).pop(),
+                onPressed: isDeleting
+                    ? null
+                    : () => Navigator.of(context).pop(),
                 child: const Text('Cancel'),
               ),
               ElevatedButton(
@@ -288,11 +291,17 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                         setState(() => isDeleting = true);
                         try {
                           final user = FirebaseAuth.instance.currentUser;
-                          await FirebaseFirestore.instance.collection('users').doc(user!.uid).delete();
+                          await FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(user!.uid)
+                              .delete();
                           await user.delete();
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Account deleted successfully'), backgroundColor: Colors.green),
+                              const SnackBar(
+                                content: Text('Account deleted successfully'),
+                                backgroundColor: Colors.green,
+                              ),
                             );
                             Navigator.of(context).pop();
                             context.go('/login');
@@ -300,7 +309,12 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                         } catch (e) {
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Failed to delete account: e.toString()}'), backgroundColor: Colors.red),
+                              const SnackBar(
+                                content: Text(
+                                  'Failed to delete account: e.toString()}',
+                                ),
+                                backgroundColor: Colors.red,
+                              ),
                             );
                           }
                         } finally {
@@ -308,7 +322,11 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                         }
                       },
                 child: isDeleting
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
                     : const Text('Delete'),
               ),
             ],
@@ -339,9 +357,9 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                   context.go('/login');
                 }
               } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Logout failed: $e')),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text('Logout failed: $e')));
               }
             },
             child: const Text('Logout', style: TextStyle(color: Colors.white)),

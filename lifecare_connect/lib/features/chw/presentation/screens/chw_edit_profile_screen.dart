@@ -1,6 +1,5 @@
 import 'package:lifecare_connect/features/auth/presentation/screens/privacy_screen.dart';
 
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -72,8 +71,6 @@ class _CHWEditProfileScreenState extends State<CHWEditProfileScreen> {
     }
   }
 
-
-
   /// Save settings to Firestore
   Future<void> _saveSettings() async {
     try {
@@ -130,9 +127,7 @@ class _CHWEditProfileScreenState extends State<CHWEditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return Scaffold(
       appBar: AppBar(
@@ -204,10 +199,7 @@ class _CHWEditProfileScreenState extends State<CHWEditProfileScreen> {
                       ),
                       Text(
                         _userEmail,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                       Container(
                         margin: const EdgeInsets.only(top: 4),
@@ -361,25 +353,15 @@ class _CHWEditProfileScreenState extends State<CHWEditProfileScreen> {
               color: Colors.orange.shade100,
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              Icons.help,
-              color: Colors.orange.shade700,
-              size: 24,
-            ),
+            child: Icon(Icons.help, color: Colors.orange.shade700, size: 24),
           ),
           title: const Text(
             'Help & Support',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
-            ),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
           ),
           subtitle: Text(
             'Get help and contact support',
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 14,
-            ),
+            style: TextStyle(color: Colors.grey[600], fontSize: 14),
           ),
           trailing: const Icon(Icons.arrow_forward_ios, size: 16),
           onTap: () {
@@ -477,9 +459,7 @@ class _CHWEditProfileScreenState extends State<CHWEditProfileScreen> {
         backgroundColor: Colors.red,
         foregroundColor: Colors.white,
         minimumSize: const Size.fromHeight(50),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }
@@ -492,15 +472,17 @@ class _CHWEditProfileScreenState extends State<CHWEditProfileScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: ['English', 'Spanish', 'French', 'Portuguese']
-              .map((lang) => RadioListTile<String>(
-                    title: Text(lang),
-                    value: lang,
-                    groupValue: _language,
-                    onChanged: (value) {
-                      setState(() => _language = value!);
-                      Navigator.pop(context);
-                    },
-                  ))
+              .map(
+                (lang) => RadioListTile<String>(
+                  title: Text(lang),
+                  value: lang,
+                  groupValue: _language,
+                  onChanged: (value) {
+                    setState(() => _language = value!);
+                    Navigator.pop(context);
+                  },
+                ),
+              )
               .toList(),
         ),
       ),
@@ -515,15 +497,17 @@ class _CHWEditProfileScreenState extends State<CHWEditProfileScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: ['Auto', 'UTC', 'GMT+1', 'GMT-5']
-              .map((tz) => RadioListTile<String>(
-                    title: Text(tz),
-                    value: tz,
-                    groupValue: _timezone,
-                    onChanged: (value) {
-                      setState(() => _timezone = value!);
-                      Navigator.pop(context);
-                    },
-                  ))
+              .map(
+                (tz) => RadioListTile<String>(
+                  title: Text(tz),
+                  value: tz,
+                  groupValue: _timezone,
+                  onChanged: (value) {
+                    setState(() => _timezone = value!);
+                    Navigator.pop(context);
+                  },
+                ),
+              )
               .toList(),
         ),
       ),
@@ -540,7 +524,9 @@ class _CHWEditProfileScreenState extends State<CHWEditProfileScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Account'),
-        content: const Text('Are you sure you want to permanently delete your account? This action cannot be undone.'),
+        content: const Text(
+          'Are you sure you want to permanently delete your account? This action cannot be undone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),

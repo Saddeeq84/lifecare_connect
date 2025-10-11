@@ -11,14 +11,16 @@ class AdminReportsAnalyticsScreen extends StatefulWidget {
   const AdminReportsAnalyticsScreen({super.key});
 
   @override
-  State<AdminReportsAnalyticsScreen> createState() => _AdminReportsAnalyticsScreenState();
+  State<AdminReportsAnalyticsScreen> createState() =>
+      _AdminReportsAnalyticsScreenState();
 }
 
-class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScreen>
+class _AdminReportsAnalyticsScreenState
+    extends State<AdminReportsAnalyticsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool isLoading = true;
-  
+
   // Analytics Data
   Map<String, int> userStats = {};
   Map<String, int> appointmentStats = {};
@@ -28,11 +30,13 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
   Map<String, int> consultationStats = {};
   List<Map<String, dynamic>> recentActivities = [];
   List<Map<String, dynamic>> systemPerformance = [];
-  
+
   // Date Range Selection
-  DateTime selectedStartDate = DateTime.now().subtract(const Duration(days: 30));
+  DateTime selectedStartDate = DateTime.now().subtract(
+    const Duration(days: 30),
+  );
   DateTime selectedEndDate = DateTime.now();
-  
+
   @override
   void initState() {
     super.initState();
@@ -48,7 +52,7 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
 
   Future<void> _loadAnalytics() async {
     setState(() => isLoading = true);
-    
+
     try {
       await Future.wait([
         _loadUserStatistics(),
@@ -63,9 +67,9 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
     } catch (e) {
       print('Error loading analytics: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading analytics: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading analytics: $e')));
       }
     } finally {
       if (mounted) {
@@ -102,11 +106,16 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
         final lastActive = (data['lastActive'] as Timestamp?)?.toDate();
 
         // Count by role
-        if (role == 'doctor') stats['doctors'] = stats['doctors']! + 1;
-        else if (role == 'chw') stats['chw'] = stats['chw']! + 1;
-        else if (role == 'patient') stats['patients'] = stats['patients']! + 1;
-        else if (role == 'admin') stats['admin'] = stats['admin']! + 1;
-        else if (role == 'facility') stats['facility'] = stats['facility']! + 1;
+        if (role == 'doctor')
+          stats['doctors'] = stats['doctors']! + 1;
+        else if (role == 'chw')
+          stats['chw'] = stats['chw']! + 1;
+        else if (role == 'patient')
+          stats['patients'] = stats['patients']! + 1;
+        else if (role == 'admin')
+          stats['admin'] = stats['admin']! + 1;
+        else if (role == 'facility')
+          stats['facility'] = stats['facility']! + 1;
 
         // Count new users this month
         if (createdAt != null && createdAt.isAfter(startOfMonth)) {
@@ -129,7 +138,10 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
     try {
       final appointmentsSnapshot = await FirebaseFirestore.instance
           .collection('appointments')
-          .where('createdAt', isGreaterThan: Timestamp.fromDate(selectedStartDate))
+          .where(
+            'createdAt',
+            isGreaterThan: Timestamp.fromDate(selectedStartDate),
+          )
           .where('createdAt', isLessThan: Timestamp.fromDate(selectedEndDate))
           .get();
 
@@ -149,17 +161,22 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
       for (var doc in appointmentsSnapshot.docs) {
         final data = doc.data();
         final status = data['status']?.toString().toLowerCase() ?? '';
-        final appointmentDate = (data['appointmentDate'] as Timestamp?)?.toDate();
+        final appointmentDate = (data['appointmentDate'] as Timestamp?)
+            ?.toDate();
 
         // Count by status
-        if (status == 'pending') stats['pending'] = stats['pending']! + 1;
-        else if (status == 'confirmed') stats['confirmed'] = stats['confirmed']! + 1;
-        else if (status == 'completed') stats['completed'] = stats['completed']! + 1;
-        else if (status == 'cancelled') stats['cancelled'] = stats['cancelled']! + 1;
+        if (status == 'pending')
+          stats['pending'] = stats['pending']! + 1;
+        else if (status == 'confirmed')
+          stats['confirmed'] = stats['confirmed']! + 1;
+        else if (status == 'completed')
+          stats['completed'] = stats['completed']! + 1;
+        else if (status == 'cancelled')
+          stats['cancelled'] = stats['cancelled']! + 1;
 
         // Count appointments today
-        if (appointmentDate != null && 
-            appointmentDate.isAfter(startOfDay) && 
+        if (appointmentDate != null &&
+            appointmentDate.isAfter(startOfDay) &&
             appointmentDate.isBefore(endOfDay)) {
           stats['today'] = stats['today']! + 1;
         }
@@ -175,7 +192,10 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
     try {
       final referralsSnapshot = await FirebaseFirestore.instance
           .collection('referrals')
-          .where('createdAt', isGreaterThan: Timestamp.fromDate(selectedStartDate))
+          .where(
+            'createdAt',
+            isGreaterThan: Timestamp.fromDate(selectedStartDate),
+          )
           .where('createdAt', isLessThan: Timestamp.fromDate(selectedEndDate))
           .get();
 
@@ -191,10 +211,14 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
         final data = doc.data();
         final status = data['status']?.toString().toLowerCase() ?? '';
 
-        if (status == 'pending') stats['pending'] = stats['pending']! + 1;
-        else if (status == 'accepted') stats['accepted'] = stats['accepted']! + 1;
-        else if (status == 'completed') stats['completed'] = stats['completed']! + 1;
-        else if (status == 'rejected') stats['rejected'] = stats['rejected']! + 1;
+        if (status == 'pending')
+          stats['pending'] = stats['pending']! + 1;
+        else if (status == 'accepted')
+          stats['accepted'] = stats['accepted']! + 1;
+        else if (status == 'completed')
+          stats['completed'] = stats['completed']! + 1;
+        else if (status == 'rejected')
+          stats['rejected'] = stats['rejected']! + 1;
       }
 
       setState(() => referralStats = stats);
@@ -207,7 +231,10 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
     try {
       final messagesSnapshot = await FirebaseFirestore.instance
           .collection('messages')
-          .where('timestamp', isGreaterThan: Timestamp.fromDate(selectedStartDate))
+          .where(
+            'timestamp',
+            isGreaterThan: Timestamp.fromDate(selectedStartDate),
+          )
           .where('timestamp', isLessThan: Timestamp.fromDate(selectedEndDate))
           .get();
 
@@ -227,9 +254,12 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
         final type = data['type']?.toString().toLowerCase() ?? '';
         final timestamp = (data['timestamp'] as Timestamp?)?.toDate();
 
-        if (type == 'broadcast') stats['broadcast'] = stats['broadcast']! + 1;
-        else if (type == 'direct') stats['direct'] = stats['direct']! + 1;
-        else if (type == 'group') stats['group'] = stats['group']! + 1;
+        if (type == 'broadcast')
+          stats['broadcast'] = stats['broadcast']! + 1;
+        else if (type == 'direct')
+          stats['direct'] = stats['direct']! + 1;
+        else if (type == 'group')
+          stats['group'] = stats['group']! + 1;
 
         if (timestamp != null && timestamp.isAfter(startOfDay)) {
           stats['today'] = stats['today']! + 1;
@@ -261,11 +291,16 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
         final data = doc.data();
         final type = data['type']?.toString().toLowerCase() ?? '';
 
-        if (type.contains('hospital')) stats['hospitals'] = stats['hospitals']! + 1;
-        else if (type.contains('clinic')) stats['clinics'] = stats['clinics']! + 1;
-        else if (type.contains('laboratory') || type.contains('lab')) stats['laboratories'] = stats['laboratories']! + 1;
-        else if (type.contains('pharmacy')) stats['pharmacies'] = stats['pharmacies']! + 1;
-        else stats['others'] = stats['others']! + 1;
+        if (type.contains('hospital'))
+          stats['hospitals'] = stats['hospitals']! + 1;
+        else if (type.contains('clinic'))
+          stats['clinics'] = stats['clinics']! + 1;
+        else if (type.contains('laboratory') || type.contains('lab'))
+          stats['laboratories'] = stats['laboratories']! + 1;
+        else if (type.contains('pharmacy'))
+          stats['pharmacies'] = stats['pharmacies']! + 1;
+        else
+          stats['others'] = stats['others']! + 1;
       }
 
       setState(() => facilityStats = stats);
@@ -278,7 +313,10 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
     try {
       final consultationsSnapshot = await FirebaseFirestore.instance
           .collection('consultations')
-          .where('createdAt', isGreaterThan: Timestamp.fromDate(selectedStartDate))
+          .where(
+            'createdAt',
+            isGreaterThan: Timestamp.fromDate(selectedStartDate),
+          )
           .where('createdAt', isLessThan: Timestamp.fromDate(selectedEndDate))
           .get();
 
@@ -295,11 +333,15 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
         final type = data['type']?.toString().toLowerCase() ?? '';
         final status = data['status']?.toString().toLowerCase() ?? '';
 
-        if (type == 'video') stats['video'] = stats['video']! + 1;
-        else if (type == 'chat') stats['chat'] = stats['chat']! + 1;
+        if (type == 'video')
+          stats['video'] = stats['video']! + 1;
+        else if (type == 'chat')
+          stats['chat'] = stats['chat']! + 1;
 
-        if (status == 'completed') stats['completed'] = stats['completed']! + 1;
-        else if (status == 'ongoing') stats['ongoing'] = stats['ongoing']! + 1;
+        if (status == 'completed')
+          stats['completed'] = stats['completed']! + 1;
+        else if (status == 'ongoing')
+          stats['ongoing'] = stats['ongoing']! + 1;
       }
 
       setState(() => consultationStats = stats);
@@ -324,7 +366,8 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
         activities.add({
           'type': 'appointment',
           'title': 'New Appointment',
-          'description': 'Appointment scheduled with ${data['doctorName'] ?? 'Doctor'}',
+          'description':
+              'Appointment scheduled with ${data['doctorName'] ?? 'Doctor'}',
           'timestamp': data['createdAt'],
           'status': data['status'],
           'icon': Icons.calendar_today,
@@ -362,7 +405,8 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
         activities.add({
           'type': 'user',
           'title': 'New User Registration',
-          'description': '${data['role']?.toString().toUpperCase() ?? 'User'}: ${data['name'] ?? 'Unknown'}',
+          'description':
+              '${data['role']?.toString().toUpperCase() ?? 'User'}: ${data['name'] ?? 'Unknown'}',
           'timestamp': data['createdAt'],
           'status': 'active',
           'icon': Icons.person_add,
@@ -371,8 +415,10 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
 
       // Sort activities by timestamp
       activities.sort((a, b) {
-        final aTime = (a['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now();
-        final bTime = (b['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now();
+        final aTime =
+            (a['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now();
+        final bTime =
+            (b['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now();
         return bTime.compareTo(aTime);
       });
 
@@ -385,7 +431,7 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
   Future<void> _loadSystemPerformance() async {
     try {
       final performance = <Map<String, dynamic>>[];
-      
+
       // Calculate daily statistics for the last 7 days
       for (int i = 6; i >= 0; i--) {
         final date = DateTime.now().subtract(Duration(days: i));
@@ -395,21 +441,30 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
         // Count daily activities
         final appointmentsCount = await FirebaseFirestore.instance
             .collection('appointments')
-            .where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+            .where(
+              'createdAt',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay),
+            )
             .where('createdAt', isLessThan: Timestamp.fromDate(endOfDay))
             .get()
             .then((snapshot) => snapshot.docs.length);
 
         final messagesCount = await FirebaseFirestore.instance
             .collection('messages')
-            .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+            .where(
+              'timestamp',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay),
+            )
             .where('timestamp', isLessThan: Timestamp.fromDate(endOfDay))
             .get()
             .then((snapshot) => snapshot.docs.length);
 
         final referralsCount = await FirebaseFirestore.instance
             .collection('referrals')
-            .where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+            .where(
+              'createdAt',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay),
+            )
             .where('createdAt', isLessThan: Timestamp.fromDate(endOfDay))
             .get()
             .then((snapshot) => snapshot.docs.length);
@@ -485,7 +540,7 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
           // Date Range Selector
           _buildDateRangeSelector(),
           const SizedBox(height: 20),
-          
+
           // Key Metrics Cards
           Text(
             'System Overview',
@@ -495,15 +550,15 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // User Statistics
           _buildUserStatsSection(),
           const SizedBox(height: 20),
-          
+
           // Activity Overview
           _buildActivityOverview(),
           const SizedBox(height: 20),
-          
+
           // Recent Activities
           _buildRecentActivitiesSection(),
         ],
@@ -525,15 +580,15 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Performance Chart
           _buildPerformanceChart(),
           const SizedBox(height: 20),
-          
+
           // Detailed Statistics
           _buildDetailedStatistics(),
           const SizedBox(height: 20),
-          
+
           // Facility Distribution
           _buildFacilityDistribution(),
         ],
@@ -555,15 +610,15 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Report Generation Options
           _buildReportOptions(),
           const SizedBox(height: 20),
-          
+
           // System Health
           _buildSystemHealth(),
           const SizedBox(height: 20),
-          
+
           // Data Export Options
           _buildDataExportOptions(),
         ],
@@ -609,7 +664,9 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
                             ),
                           ),
                           Text(
-                            DateFormat('MMM dd, yyyy').format(selectedStartDate),
+                            DateFormat(
+                              'MMM dd, yyyy',
+                            ).format(selectedStartDate),
                             style: const TextStyle(fontWeight: FontWeight.w500),
                           ),
                         ],
@@ -855,13 +912,19 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
                         ],
                       ),
                       trailing: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
-                          color: _getStatusColor(activity['status']).withOpacity(0.1),
+                          color: _getStatusColor(
+                            activity['status'],
+                          ).withOpacity(0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          activity['status']?.toString().toUpperCase() ?? 'UNKNOWN',
+                          activity['status']?.toString().toUpperCase() ??
+                              'UNKNOWN',
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -870,7 +933,10 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
                         ),
                       ),
                     ),
-                    if (index < (recentActivities.length > 3 ? 2 : recentActivities.length - 1))
+                    if (index <
+                        (recentActivities.length > 3
+                            ? 2
+                            : recentActivities.length - 1))
                       const Divider(),
                   ],
                 );
@@ -890,9 +956,12 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
                           separatorBuilder: (context, index) => const Divider(),
                           itemBuilder: (context, index) {
                             final activity = recentActivities[index];
-                            final timestamp = activity['timestamp'] as Timestamp?;
+                            final timestamp =
+                                activity['timestamp'] as Timestamp?;
                             final timeString = timestamp != null
-                                ? DateFormat('MMM dd, HH:mm').format(timestamp.toDate())
+                                ? DateFormat(
+                                    'MMM dd, HH:mm',
+                                  ).format(timestamp.toDate())
                                 : 'Unknown time';
                             return ListTile(
                               leading: CircleAvatar(
@@ -903,11 +972,15 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
                                   size: 20,
                                 ),
                               ),
-                              title: Text(activity['title'] ?? 'Unknown Activity'),
+                              title: Text(
+                                activity['title'] ?? 'Unknown Activity',
+                              ),
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(activity['description'] ?? 'No description'),
+                                  Text(
+                                    activity['description'] ?? 'No description',
+                                  ),
                                   Text(
                                     timeString,
                                     style: TextStyle(
@@ -918,13 +991,21 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
                                 ],
                               ),
                               trailing: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: _getStatusColor(activity['status']).withOpacity(0.1),
+                                  color: _getStatusColor(
+                                    activity['status'],
+                                  ).withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
-                                  activity['status']?.toString().toUpperCase() ?? 'UNKNOWN',
+                                  activity['status']
+                                          ?.toString()
+                                          .toUpperCase() ??
+                                      'UNKNOWN',
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
@@ -982,7 +1063,9 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
                             .map((e) => e['total_activity'] as int)
                             .reduce((a, b) => a > b ? a : b);
                         final height = maxActivity > 0
-                            ? (data['total_activity'] as int) / maxActivity * 150
+                            ? (data['total_activity'] as int) /
+                                  maxActivity *
+                                  150
                             : 0.0;
 
                         return Container(
@@ -1092,7 +1175,7 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
           ),
         ),
         const SizedBox(height: 16),
-        
+
         // Referral Statistics
         Card(
           child: Padding(
@@ -1305,8 +1388,16 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
             ),
             const SizedBox(height: 16),
             _buildHealthIndicator('Database Status', 'Healthy', Colors.green),
-            _buildHealthIndicator('User Authentication', 'Active', Colors.green),
-            _buildHealthIndicator('Message System', 'Operational', Colors.green),
+            _buildHealthIndicator(
+              'User Authentication',
+              'Active',
+              Colors.green,
+            ),
+            _buildHealthIndicator(
+              'Message System',
+              'Operational',
+              Colors.green,
+            ),
             _buildHealthIndicator('File Storage', 'Available', Colors.green),
           ],
         ),
@@ -1474,7 +1565,7 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
     );
-    
+
     if (picked != null) {
       setState(() {
         if (isStartDate) {
@@ -1489,7 +1580,7 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
   Future<void> _generatePDFReport() async {
     try {
       final pdf = pw.Document();
-      
+
       pdf.addPage(
         pw.MultiPage(
           pageFormat: PdfPageFormat.a4,
@@ -1499,11 +1590,14 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
                 level: 0,
                 child: pw.Text(
                   'LifeCare Connect - System Report',
-                  style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+                  style: pw.TextStyle(
+                    fontSize: 24,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
                 ),
               ),
               pw.SizedBox(height: 20),
-              
+
               // Report Date
               pw.Text(
                 'Generated on: ${DateFormat('MMMM dd, yyyy - HH:mm').format(DateTime.now())}',
@@ -1514,7 +1608,7 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
                 style: const pw.TextStyle(fontSize: 12),
               ),
               pw.SizedBox(height: 20),
-              
+
               // User Statistics
               pw.Header(level: 1, text: 'User Statistics'),
               pw.Table.fromTextArray(
@@ -1530,7 +1624,7 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
                 ],
               ),
               pw.SizedBox(height: 20),
-              
+
               // Activity Statistics
               pw.Header(level: 1, text: 'Activity Statistics'),
               pw.Table.fromTextArray(
@@ -1540,30 +1634,30 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
                     'Appointments',
                     '${appointmentStats['total'] ?? 0}',
                     '${appointmentStats['pending'] ?? 0}',
-                    '${appointmentStats['completed'] ?? 0}'
+                    '${appointmentStats['completed'] ?? 0}',
                   ],
                   [
                     'Referrals',
                     '${referralStats['total'] ?? 0}',
                     '${referralStats['pending'] ?? 0}',
-                    '${referralStats['completed'] ?? 0}'
+                    '${referralStats['completed'] ?? 0}',
                   ],
                   [
                     'Messages',
                     '${messageStats['total'] ?? 0}',
                     '${messageStats['broadcast'] ?? 0}',
-                    '${messageStats['direct'] ?? 0}'
+                    '${messageStats['direct'] ?? 0}',
                   ],
                   [
                     'Consultations',
                     '${consultationStats['total'] ?? 0}',
                     '${consultationStats['ongoing'] ?? 0}',
-                    '${consultationStats['completed'] ?? 0}'
+                    '${consultationStats['completed'] ?? 0}',
                   ],
                 ],
               ),
               pw.SizedBox(height: 20),
-              
+
               // Facility Distribution
               pw.Header(level: 1, text: 'Facility Distribution'),
               pw.Table.fromTextArray(
@@ -1577,7 +1671,7 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
                 ],
               ),
               pw.SizedBox(height: 20),
-              
+
               // Summary
               pw.Header(level: 1, text: 'Summary'),
               pw.Text(
@@ -1594,18 +1688,18 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
       );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error generating PDF: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error generating PDF: $e')));
       }
     }
   }
 
   Future<void> _generateSpecificReport(String reportType) async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Generating $reportType report...')),
-    );
-    
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Generating $reportType report...')));
+
     // Implement specific report generation
     // This would generate targeted reports for specific data types
   }
@@ -1614,7 +1708,7 @@ class _AdminReportsAnalyticsScreenState extends State<AdminReportsAnalyticsScree
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('CSV export functionality coming soon...')),
     );
-    
+
     // Implement CSV export functionality
   }
 }

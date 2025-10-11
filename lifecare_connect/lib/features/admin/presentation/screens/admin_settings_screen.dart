@@ -19,9 +19,9 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
   final List<String> languages = ["English", "Hausa", "Yoruba", "Igbo"];
 
   void _saveSettings() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Settings saved (UI only)")),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text("Settings saved (UI only)")));
   }
 
   @override
@@ -60,10 +60,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
           DropdownButtonFormField<String>(
             initialValue: selectedLanguage,
             items: languages
-                .map((lang) => DropdownMenuItem(
-                      value: lang,
-                      child: Text(lang),
-                    ))
+                .map((lang) => DropdownMenuItem(value: lang, child: Text(lang)))
                 .toList(),
             onChanged: (val) {
               if (val != null) {
@@ -78,7 +75,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
             ),
           ),
           const SizedBox(height: 30),
-          
+
           const Text(
             "Support",
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
@@ -92,12 +89,12 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
             onTap: _showBugReportDialog,
           ),
           const SizedBox(height: 20),
-          
+
           ElevatedButton.icon(
             onPressed: _saveSettings,
             icon: const Icon(Icons.save),
             label: const Text("Save Settings"),
-          )
+          ),
         ],
       ),
     );
@@ -108,7 +105,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
     String selectedCategory = 'General';
     String selectedPriority = 'Medium';
     bool isSubmitting = false;
-    
+
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -137,12 +134,21 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                   ),
-                  items: ['General', 'UI/UX', 'Performance', 'Crash', 'Feature Request']
-                      .map((category) => DropdownMenuItem(
-                            value: category,
-                            child: Text(category),
-                          ))
-                      .toList(),
+                  items:
+                      [
+                            'General',
+                            'UI/UX',
+                            'Performance',
+                            'Crash',
+                            'Feature Request',
+                          ]
+                          .map(
+                            (category) => DropdownMenuItem(
+                              value: category,
+                              child: Text(category),
+                            ),
+                          )
+                          .toList(),
                   onChanged: (value) {
                     setState(() {
                       selectedCategory = value!;
@@ -158,10 +164,12 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
                     border: OutlineInputBorder(),
                   ),
                   items: ['Low', 'Medium', 'High', 'Critical']
-                      .map((priority) => DropdownMenuItem(
-                            value: priority,
-                            child: Text(priority),
-                          ))
+                      .map(
+                        (priority) => DropdownMenuItem(
+                          value: priority,
+                          child: Text(priority),
+                        ),
+                      )
                       .toList(),
                   onChanged: (value) {
                     setState(() {
@@ -174,33 +182,37 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: isSubmitting ? null : () => Navigator.of(context).pop(),
+              onPressed: isSubmitting
+                  ? null
+                  : () => Navigator.of(context).pop(),
               child: const Text('Cancel'),
             ),
             ElevatedButton(
-              onPressed: isSubmitting 
-                  ? null 
+              onPressed: isSubmitting
+                  ? null
                   : () async {
                       if (bugController.text.trim().isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please describe the issue')),
+                          const SnackBar(
+                            content: Text('Please describe the issue'),
+                          ),
                         );
                         return;
                       }
-                      
+
                       setState(() {
                         isSubmitting = true;
                       });
-                      
+
                       await _submitBugReport(
                         bugController.text.trim(),
                         selectedCategory,
                         selectedPriority,
                       );
-                      
+
                       Navigator.of(context).pop();
                     },
-              child: isSubmitting 
+              child: isSubmitting
                   ? const SizedBox(
                       width: 20,
                       height: 20,
@@ -214,7 +226,11 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
     );
   }
 
-  Future<void> _submitBugReport(String description, String category, String priority) async {
+  Future<void> _submitBugReport(
+    String description,
+    String category,
+    String priority,
+  ) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
@@ -226,13 +242,14 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
           .collection('users')
           .doc(user.uid)
           .get();
-      
+
       final adminData = adminDoc.data();
-      
+
       // Generate ticket ID
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final ticketId = 'BUG-${timestamp.toString().substring(timestamp.toString().length - 8)}';
-      
+      final ticketId =
+          'BUG-${timestamp.toString().substring(timestamp.toString().length - 8)}';
+
       // Collect device info (simplified for web compatibility)
       final deviceInfo = {
         'platform': 'Flutter',
@@ -258,7 +275,9 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Bug report submitted successfully! Ticket ID: $ticketId'),
+            content: Text(
+              'Bug report submitted successfully! Ticket ID: $ticketId',
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -275,5 +294,6 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
     }
   }
 }
+
 // This file defines the Admin Settings screen for the app.
 // It allows admins to configure app preferences like dark mode, notifications, and language.

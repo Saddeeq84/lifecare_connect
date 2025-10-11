@@ -4,7 +4,8 @@ class FacilityStaffLoginScreen extends StatefulWidget {
   const FacilityStaffLoginScreen({super.key});
 
   @override
-  State<FacilityStaffLoginScreen> createState() => _FacilityStaffLoginScreenState();
+  State<FacilityStaffLoginScreen> createState() =>
+      _FacilityStaffLoginScreenState();
 }
 
 class _FacilityStaffLoginScreenState extends State<FacilityStaffLoginScreen> {
@@ -15,7 +16,10 @@ class _FacilityStaffLoginScreenState extends State<FacilityStaffLoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Staff Login'), leading: const BackButton()),
+      appBar: AppBar(
+        title: const Text('Staff Login'),
+        leading: const BackButton(),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -34,7 +38,9 @@ class _FacilityStaffLoginScreenState extends State<FacilityStaffLoginScreen> {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: _isLoading ? null : () {}, // TODO: Implement login
-              child: _isLoading ? const CircularProgressIndicator() : const Text('Login'),
+              child: _isLoading
+                  ? const CircularProgressIndicator()
+                  : const Text('Login'),
             ),
           ],
         ),

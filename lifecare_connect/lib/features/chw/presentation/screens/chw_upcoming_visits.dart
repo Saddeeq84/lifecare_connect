@@ -49,12 +49,13 @@ class CHWUpcomingVisitsScreen extends StatelessWidget {
                   builder: (_) => AlertDialog(
                     title: Text(visit['patientName'] ?? 'Details'),
                     content: Text(
-                        'Visit Type: ${visit['visitType']}\nDate: ${visit['date']}'),
+                      'Visit Type: ${visit['visitType']}\nDate: ${visit['date']}',
+                    ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context),
                         child: const Text('Close'),
-                      )
+                      ),
                     ],
                   ),
                 );
@@ -66,4 +67,5 @@ class CHWUpcomingVisitsScreen extends StatelessWidget {
     );
   }
 }
+
 // This code defines a Flutter screen for displaying upcoming visits for Community Health Workers (CHWs).

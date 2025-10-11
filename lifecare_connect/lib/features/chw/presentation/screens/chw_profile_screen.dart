@@ -26,7 +26,8 @@ class _CHWProfileScreenState extends State<CHWProfileScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _experienceController = TextEditingController();
-  final TextEditingController _specializationController = TextEditingController();
+  final TextEditingController _specializationController =
+      TextEditingController();
 
   String? _profileImageUrl;
   File? _selectedImage;
@@ -59,17 +60,20 @@ class _CHWProfileScreenState extends State<CHWProfileScreen> {
 
   Future<void> _loadProfile() async {
     setState(() => _isLoading = true);
-    
+
     try {
       final user = _auth.currentUser;
       if (user != null) {
         // Try to load from chw_profiles first, then users collection
-        DocumentSnapshot doc = await _firestore.collection('chw_profiles').doc(user.uid).get();
-        
+        DocumentSnapshot doc = await _firestore
+            .collection('chw_profiles')
+            .doc(user.uid)
+            .get();
+
         if (!doc.exists) {
           doc = await _firestore.collection('users').doc(user.uid).get();
         }
-        
+
         if (doc.exists) {
           final data = doc.data() as Map<String, dynamic>;
           _nameController.text = data['fullName'] ?? data['name'] ?? '';
@@ -86,9 +90,9 @@ class _CHWProfileScreenState extends State<CHWProfileScreen> {
       }
     } catch (e) {
       debugPrint('Error loading profile: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to load profile')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Failed to load profile')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -103,19 +107,19 @@ class _CHWProfileScreenState extends State<CHWProfileScreen> {
             .collection('patients')
             .where('chwId', isEqualTo: user.uid)
             .get();
-        
+
         // Load referrals count
         final referralsQuery = await _firestore
             .collection('referrals')
             .where('referredBy', isEqualTo: user.uid)
             .get();
-        
+
         // Load consultations count
         final consultationsQuery = await _firestore
             .collection('consultations')
             .where('chwId', isEqualTo: user.uid)
             .get();
-        
+
         // Load training completions count
         final trainingsQuery = await _firestore
             .collection('training_completions')
@@ -144,7 +148,7 @@ class _CHWProfileScreenState extends State<CHWProfileScreen> {
         maxHeight: 512,
         imageQuality: 75,
       );
-      
+
       if (image != null) {
         setState(() {
           _selectedImage = File(image.path);
@@ -152,19 +156,19 @@ class _CHWProfileScreenState extends State<CHWProfileScreen> {
       }
     } catch (e) {
       debugPrint('Error picking image: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to pick image')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Failed to pick image')));
     }
   }
 
   Future<String?> _uploadImage() async {
     if (_selectedImage == null) return _profileImageUrl;
-    
+
     try {
       final user = _auth.currentUser;
       if (user == null) return null;
-      
+
       final ref = _storage.ref().child('chw_profile_photos/${user.uid}.jpg');
       await ref.putFile(_selectedImage!);
       return await ref.getDownloadURL();
@@ -176,7 +180,7 @@ class _CHWProfileScreenState extends State<CHWProfileScreen> {
 
   Future<void> _saveProfile() async {
     setState(() => _isLoading = true);
-    
+
     try {
       final user = _auth.currentUser;
       if (user == null) return;
@@ -202,24 +206,29 @@ class _CHWProfileScreenState extends State<CHWProfileScreen> {
       }
 
       // Update both collections to maintain compatibility
-      await _firestore.collection('chw_profiles').doc(user.uid).set(data, SetOptions(merge: true));
-      await _firestore.collection('users').doc(user.uid).set(data, SetOptions(merge: true));
-      
+      await _firestore
+          .collection('chw_profiles')
+          .doc(user.uid)
+          .set(data, SetOptions(merge: true));
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .set(data, SetOptions(merge: true));
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Profile updated successfully')),
       );
-      
+
       setState(() {
         _isEditing = false;
         _selectedImage = null;
         if (imageUrl != null) _profileImageUrl = imageUrl;
       });
-      
     } catch (e) {
       debugPrint('Error saving profile: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to update profile')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Failed to update profile')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -280,9 +289,10 @@ class _CHWProfileScreenState extends State<CHWProfileScreen> {
                           backgroundImage: _selectedImage != null
                               ? FileImage(_selectedImage!)
                               : _profileImageUrl != null
-                                  ? NetworkImage(_profileImageUrl!)
-                                  : null,
-                          child: _selectedImage == null && _profileImageUrl == null
+                              ? NetworkImage(_profileImageUrl!)
+                              : null,
+                          child:
+                              _selectedImage == null && _profileImageUrl == null
                               ? Icon(
                                   Icons.person,
                                   size: 60,
@@ -318,7 +328,7 @@ class _CHWProfileScreenState extends State<CHWProfileScreen> {
                     enabled: _isEditing,
                   ),
                   const SizedBox(height: 16),
-                  
+
                   _buildTextField(
                     controller: _emailController,
                     label: 'Email',
@@ -326,7 +336,7 @@ class _CHWProfileScreenState extends State<CHWProfileScreen> {
                     enabled: false, // Email shouldn't be editable
                   ),
                   const SizedBox(height: 16),
-                  
+
                   _buildTextField(
                     controller: _phoneController,
                     label: 'Phone Number',
@@ -334,7 +344,7 @@ class _CHWProfileScreenState extends State<CHWProfileScreen> {
                     enabled: _isEditing,
                   ),
                   const SizedBox(height: 16),
-                  
+
                   _buildTextField(
                     controller: _locationController,
                     label: 'Location/Area of Service',
@@ -342,7 +352,7 @@ class _CHWProfileScreenState extends State<CHWProfileScreen> {
                     enabled: _isEditing,
                   ),
                   const SizedBox(height: 16),
-                  
+
                   _buildTextField(
                     controller: _experienceController,
                     label: 'Years of Experience',
@@ -350,7 +360,7 @@ class _CHWProfileScreenState extends State<CHWProfileScreen> {
                     enabled: _isEditing,
                   ),
                   const SizedBox(height: 16),
-                  
+
                   _buildTextField(
                     controller: _specializationController,
                     label: 'Specialization/Focus Areas',
@@ -372,7 +382,7 @@ class _CHWProfileScreenState extends State<CHWProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    
+
                     Row(
                       children: [
                         Expanded(
@@ -393,7 +403,7 @@ class _CHWProfileScreenState extends State<CHWProfileScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    
+
                     Row(
                       children: [
                         Expanded(
@@ -436,9 +446,7 @@ class _CHWProfileScreenState extends State<CHWProfileScreen> {
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: Colors.teal.shade700),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Colors.teal.shade200),
@@ -477,10 +485,7 @@ class _CHWProfileScreenState extends State<CHWProfileScreen> {
             const SizedBox(height: 4),
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
-              ),
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
               textAlign: TextAlign.center,
             ),
           ],

@@ -13,14 +13,15 @@ class CHWCreateReferralScreen extends StatefulWidget {
   const CHWCreateReferralScreen({super.key});
 
   @override
-  State<CHWCreateReferralScreen> createState() => _CHWCreateReferralScreenState();
+  State<CHWCreateReferralScreen> createState() =>
+      _CHWCreateReferralScreenState();
 }
 
 class _CHWCreateReferralScreenState extends State<CHWCreateReferralScreen> {
   final _formKey = GlobalKey<FormState>();
   final _reasonController = TextEditingController();
   final _notesController = TextEditingController();
-  
+
   String? selectedPatientId;
   String? selectedPatientName;
   String? selectedDoctorId;
@@ -41,7 +42,9 @@ class _CHWCreateReferralScreenState extends State<CHWCreateReferralScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_didAutoSelect) {
-      final extra = GoRouter.of(context).routerDelegate.currentConfiguration.extra;
+      final extra = GoRouter.of(
+        context,
+      ).routerDelegate.currentConfiguration.extra;
       if (extra is Map) {
         if (extra['patientId'] != null) {
           setState(() {
@@ -93,7 +96,8 @@ class _CHWCreateReferralScreenState extends State<CHWCreateReferralScreen> {
           .get();
       for (final doc in referrals.docs) {
         final data = doc.data();
-        if (data['toProviderId'] != null && data['toProviderType'] == 'DOCTOR') {
+        if (data['toProviderId'] != null &&
+            data['toProviderType'] == 'DOCTOR') {
           interactedDoctorIds.add(data['toProviderId']);
         }
       }
@@ -125,11 +129,14 @@ class _CHWCreateReferralScreenState extends State<CHWCreateReferralScreen> {
 
       // 3. Build doctor list, marking interacted ones
       // Only include doctors that actually exist in the current snapshot
-  List<Map<String, dynamic>> allDoctors = allDoctorsSnapshot.map((doc) {
+      List<Map<String, dynamic>> allDoctors = allDoctorsSnapshot.map((doc) {
         final data = doc.data();
         return {
           'id': doc.id,
-          'name': data['fullName'] ?? data['name'] ?? '${data['firstName'] ?? ''} ${data['lastName'] ?? ''}'.trim(),
+          'name':
+              data['fullName'] ??
+              data['name'] ??
+              '${data['firstName'] ?? ''} ${data['lastName'] ?? ''}'.trim(),
           'specialization': data['specialization'] ?? 'General Practice',
           'facility': data['facility'] ?? 'Unknown Facility',
           'interacted': interactedDoctorIds.contains(doc.id),
@@ -169,7 +176,7 @@ class _CHWCreateReferralScreenState extends State<CHWCreateReferralScreen> {
 
   Future<void> _createReferral() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     if (selectedPatientId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -220,11 +227,15 @@ class _CHWCreateReferralScreenState extends State<CHWCreateReferralScreen> {
         toProviderType: 'DOCTOR',
         reason: _reasonController.text.trim(),
         urgency: selectedUrgency,
-        notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
+        notes: _notesController.text.trim().isNotEmpty
+            ? _notesController.text.trim()
+            : null,
       );
 
       // If this referral is from a consultation/appointment, update appointment status to 'referred'
-      final extra = GoRouter.of(context).routerDelegate.currentConfiguration.extra;
+      final extra = GoRouter.of(
+        context,
+      ).routerDelegate.currentConfiguration.extra;
       String? appointmentId;
       if (extra is Map && extra['appointmentId'] != null) {
         appointmentId = extra['appointmentId'] as String?;
@@ -245,8 +256,12 @@ class _CHWCreateReferralScreenState extends State<CHWCreateReferralScreen> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Appointment $appointmentId status after referral: $status'),
-                backgroundColor: status == 'referred' ? Colors.green : Colors.red,
+                content: Text(
+                  'Appointment $appointmentId status after referral: $status',
+                ),
+                backgroundColor: status == 'referred'
+                    ? Colors.green
+                    : Colors.red,
               ),
             );
           }
@@ -261,9 +276,6 @@ class _CHWCreateReferralScreenState extends State<CHWCreateReferralScreen> {
           }
         }
       }
-
-
-
 
       // Automated notification to doctor, patient, and CHW about referral, using names
       final patientId = selectedPatientId!;
@@ -289,13 +301,20 @@ class _CHWCreateReferralScreenState extends State<CHWCreateReferralScreen> {
       }
 
       // Defensive: ensure CHW name is set
-      String chwNameForMessage = chwData['name'] ?? chwData['fullName'] ?? chwData['firstName'] ?? chwId;
+      String chwNameForMessage =
+          chwData['name'] ??
+          chwData['fullName'] ??
+          chwData['firstName'] ??
+          chwId;
 
       // Debug output
-      debugPrint('DEBUG: Sending referral notification. patientId=$patientId, doctorId=$doctorId, doctorName=$doctorNameForMessage, patientName=$patientNameForMessage, chwName=$chwNameForMessage');
+      debugPrint(
+        'DEBUG: Sending referral notification. patientId=$patientId, doctorId=$doctorId, doctorName=$doctorNameForMessage, patientName=$patientNameForMessage, chwName=$chwNameForMessage',
+      );
 
       // Message to doctor (personalized)
-      final doctorMessage = 'Dr. $doctorNameForMessage, you have received a new referral for patient $patientNameForMessage from $chwNameForMessage. Please review and act.';
+      final doctorMessage =
+          'Dr. $doctorNameForMessage, you have received a new referral for patient $patientNameForMessage from $chwNameForMessage. Please review and act.';
       await firestore.collection('messages').add({
         'to': doctorId,
         'from': chwId,
@@ -307,9 +326,13 @@ class _CHWCreateReferralScreenState extends State<CHWCreateReferralScreen> {
       });
 
       // Message to patient (personalized, always includes doctor name)
-      final patientMessage = '$patientNameForMessage, you have been referred to Dr. $doctorNameForMessage for further care by $chwNameForMessage. Please await further instructions from Dr. $doctorNameForMessage.';
+      final patientMessage =
+          '$patientNameForMessage, you have been referred to Dr. $doctorNameForMessage for further care by $chwNameForMessage. Please await further instructions from Dr. $doctorNameForMessage.';
       try {
-        await CHWMessageHelper.sendReferralMessageToPatient(patientId, patientMessage);
+        await CHWMessageHelper.sendReferralMessageToPatient(
+          patientId,
+          patientMessage,
+        );
       } catch (e) {
         debugPrint('Error sending referral message to patient: $e');
       }
@@ -374,7 +397,7 @@ class _CHWCreateReferralScreenState extends State<CHWCreateReferralScreen> {
               style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const SizedBox(height: 24),
-            
+
             // Patient Selection
             const Text(
               'Select Patient',
@@ -388,9 +411,9 @@ class _CHWCreateReferralScreenState extends State<CHWCreateReferralScreen> {
               currentUserRole: 'chw',
               hintText: 'Select patient to refer',
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Doctor Selection
             const Text(
               'Select Doctor/Specialist',
@@ -410,7 +433,9 @@ class _CHWCreateReferralScreenState extends State<CHWCreateReferralScreen> {
                   value: selectedDoctorId,
                   onChanged: (String? newValue) {
                     if (newValue != null) {
-                      final doctor = _doctors.firstWhere((d) => d['id'] == newValue);
+                      final doctor = _doctors.firstWhere(
+                        (d) => d['id'] == newValue,
+                      );
                       setState(() {
                         selectedDoctorId = newValue;
                         selectedDoctorName = doctor['name'];
@@ -423,7 +448,11 @@ class _CHWCreateReferralScreenState extends State<CHWCreateReferralScreen> {
                       child: Row(
                         children: [
                           if (doctor['interacted'] == true)
-                            const Icon(Icons.star, color: Colors.orange, size: 18),
+                            const Icon(
+                              Icons.star,
+                              color: Colors.orange,
+                              size: 18,
+                            ),
                           if (doctor['interacted'] == true)
                             const SizedBox(width: 4),
                           Expanded(
@@ -435,12 +464,17 @@ class _CHWCreateReferralScreenState extends State<CHWCreateReferralScreen> {
                                   doctor['name'],
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: doctor['interacted'] == true ? Colors.orange.shade800 : null,
+                                    color: doctor['interacted'] == true
+                                        ? Colors.orange.shade800
+                                        : null,
                                   ),
                                 ),
                                 Text(
                                   '${doctor['specialization']} • ${doctor['facility']}',
-                                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
                                 ),
                               ],
                             ),
@@ -452,9 +486,9 @@ class _CHWCreateReferralScreenState extends State<CHWCreateReferralScreen> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Reason for Referral
             const Text(
               'Reason for Referral',
@@ -464,7 +498,8 @@ class _CHWCreateReferralScreenState extends State<CHWCreateReferralScreen> {
             TextFormField(
               controller: _reasonController,
               decoration: const InputDecoration(
-                hintText: 'Describe the medical condition or reason for referral',
+                hintText:
+                    'Describe the medical condition or reason for referral',
                 border: OutlineInputBorder(),
               ),
               maxLines: 3,
@@ -475,9 +510,9 @@ class _CHWCreateReferralScreenState extends State<CHWCreateReferralScreen> {
                 return null;
               },
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Urgency Level
             const Text(
               'Urgency Level',
@@ -546,9 +581,9 @@ class _CHWCreateReferralScreenState extends State<CHWCreateReferralScreen> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Additional Notes
             const Text(
               'Additional Notes (Optional)',
@@ -563,9 +598,9 @@ class _CHWCreateReferralScreenState extends State<CHWCreateReferralScreen> {
               ),
               maxLines: 3,
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // Submit Button
             _isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -577,14 +612,18 @@ class _CHWCreateReferralScreenState extends State<CHWCreateReferralScreen> {
                             context: context,
                             builder: (context) => AlertDialog(
                               title: const Text('Confirm Referral'),
-                              content: const Text('Are you sure you want to create this referral?'),
+                              content: const Text(
+                                'Are you sure you want to create this referral?',
+                              ),
                               actions: [
                                 TextButton(
-                                  onPressed: () => Navigator.of(context).pop(false),
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(false),
                                   child: const Text('Cancel'),
                                 ),
                                 ElevatedButton(
-                                  onPressed: () => Navigator.of(context).pop(true),
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(true),
                                   child: const Text('Confirm'),
                                 ),
                               ],
@@ -602,7 +641,7 @@ class _CHWCreateReferralScreenState extends State<CHWCreateReferralScreen> {
                         child: const Text('Create Referral'),
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Important Notice
                       Container(
                         padding: const EdgeInsets.all(12),

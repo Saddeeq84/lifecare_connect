@@ -11,10 +11,9 @@ class ApproveFacilitiesScreen extends StatelessWidget {
     final data = facilityDoc.data() as Map<String, dynamic>;
 
     // 1. Approve in users collection
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .update({'isApproved': true});
+    await FirebaseFirestore.instance.collection('users').doc(userId).update({
+      'isApproved': true,
+    });
 
     // 2. Copy to facilities collection
     final facilityData = {
@@ -76,9 +75,9 @@ class ApproveFacilitiesScreen extends StatelessWidget {
                   trailing: ElevatedButton(
                     onPressed: () async {
                       await _approveFacility(facility);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Approved $name')),
-                      );
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text('Approved $name')));
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.teal,

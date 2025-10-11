@@ -90,15 +90,15 @@ class HealthDataService {
   }
 
   // Add vital signs data
-  static Future<DocumentReference> addVitalSignsData(Map<String, dynamic> vitalSignsData) async {
+  static Future<DocumentReference> addVitalSignsData(
+    Map<String, dynamic> vitalSignsData,
+  ) async {
     try {
       vitalSignsData['patientId'] = _currentUserId;
       vitalSignsData['createdAt'] = FieldValue.serverTimestamp();
       vitalSignsData['updatedAt'] = FieldValue.serverTimestamp();
-      
-      return await _firestore
-          .collection('vital_signs')
-          .add(vitalSignsData);
+
+      return await _firestore.collection('vital_signs').add(vitalSignsData);
     } catch (e) {
       await reportError('addVitalSigns', e.toString());
       rethrow;
@@ -134,18 +134,18 @@ class HealthDataService {
           .child(_currentUserId)
           .child(category)
           .child(fileName);
-      
+
       final uploadTask = storageRef.putFile(file);
       final snapshot = await uploadTask;
       final downloadUrl = await snapshot.ref.getDownloadURL();
-      
+
       // Update document with actual download URL
       await docRef.update({
         'downloadUrl': downloadUrl,
         'uploadStatus': 'completed',
         'uploadCompletedAt': FieldValue.serverTimestamp(),
       });
-      
+
       return downloadUrl;
     } catch (e) {
       // Update upload status to failed if document was created
@@ -162,16 +162,16 @@ class HealthDataService {
   }
 
   // Add lab result with comprehensive metadata
-  static Future<DocumentReference> addLabResult(Map<String, dynamic> labData) async {
+  static Future<DocumentReference> addLabResult(
+    Map<String, dynamic> labData,
+  ) async {
     try {
       labData['patientId'] = _currentUserId;
       labData['uploadedAt'] = FieldValue.serverTimestamp();
       labData['status'] = 'uploaded';
       labData['isEncrypted'] = true;
-      
-      return await _firestore
-          .collection('lab_results')
-          .add(labData);
+
+      return await _firestore.collection('lab_results').add(labData);
     } catch (e) {
       await reportError('addLabResult', e.toString());
       rethrow;
@@ -198,7 +198,9 @@ class HealthDataService {
   }
 
   // Add medical record with audit trail
-  static Future<DocumentReference> addMedicalRecord(Map<String, dynamic> recordData) async {
+  static Future<DocumentReference> addMedicalRecord(
+    Map<String, dynamic> recordData,
+  ) async {
     try {
       recordData['patientId'] = _currentUserId;
       recordData['createdAt'] = FieldValue.serverTimestamp();
@@ -209,12 +211,10 @@ class HealthDataService {
           'action': 'created',
           'timestamp': FieldValue.serverTimestamp(),
           'userId': _currentUserId,
-        }
+        },
       ];
-      
-      return await _firestore
-          .collection('medical_records')
-          .add(recordData);
+
+      return await _firestore.collection('medical_records').add(recordData);
     } catch (e) {
       await reportError('addMedicalRecord', e.toString());
       rethrow;
@@ -254,13 +254,13 @@ class HealthDataService {
           .where('patientId', isEqualTo: _currentUserId)
           .limit(1)
           .get();
-      
+
       final labResults = await _firestore
           .collection('lab_results')
           .where('patientId', isEqualTo: _currentUserId)
           .limit(1)
           .get();
-      
+
       final vitalSigns = await _firestore
           .collection('vital_signs')
           .where('patientId', isEqualTo: _currentUserId)
@@ -289,7 +289,9 @@ class HealthDataService {
     return HealthDataService.getVitalSignsStream();
   }
 
-  Future<DocumentReference> addVitalSigns(Map<String, dynamic> vitalSignsData) async {
+  Future<DocumentReference> addVitalSigns(
+    Map<String, dynamic> vitalSignsData,
+  ) async {
     return await HealthDataService.addVitalSignsData(vitalSignsData);
   }
 }

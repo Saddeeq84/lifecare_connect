@@ -60,7 +60,9 @@ class ClinicalDocumentationService {
         'provisionalDiagnosis': provisionalDiagnosis,
         'differentialDiagnoses': differentialDiagnoses,
         'supportiveToolsUsed': supportiveToolsUsed,
-        'medicationsPrescribed': medicationsPrescribed.map((e) => e.toMap()).toList(),
+        'medicationsPrescribed': medicationsPrescribed
+            .map((e) => e.toMap())
+            .toList(),
         'nonPharmacologicalAdvice': nonPharmacologicalAdvice,
         'homeMonitoringPlan': homeMonitoringPlan,
         'referralsOrdered': referralsOrdered.map((e) => e.toMap()).toList(),
@@ -120,27 +122,67 @@ class ClinicalDocumentationService {
 
       if (chiefComplaint != null) updateData['chiefComplaint'] = chiefComplaint;
       if (hpi != null) updateData['hpi'] = hpi.toMap();
-      if (medicalHistory != null) updateData['medicalHistory'] = medicalHistory.toMap();
+      if (medicalHistory != null) {
+        updateData['medicalHistory'] = medicalHistory.toMap();
+      }
       if (symptoms != null) updateData['symptoms'] = symptoms.toMap();
-      if (labResults != null) updateData['labResults'] = labResults.map((e) => e.toMap()).toList();
-      if (imagingResults != null) updateData['imagingResults'] = imagingResults.map((e) => e.toMap()).toList();
-      if (previousEMRNotes != null) updateData['previousEMRNotes'] = previousEMRNotes;
+      if (labResults != null) {
+        updateData['labResults'] = labResults.map((e) => e.toMap()).toList();
+      }
+      if (imagingResults != null) {
+        updateData['imagingResults'] = imagingResults
+            .map((e) => e.toMap())
+            .toList();
+      }
+      if (previousEMRNotes != null) {
+        updateData['previousEMRNotes'] = previousEMRNotes;
+      }
       if (vitalSigns != null) updateData['vitalSigns'] = vitalSigns.toMap();
-      if (provisionalDiagnosis != null) updateData['provisionalDiagnosis'] = provisionalDiagnosis;
-      if (differentialDiagnoses != null) updateData['differentialDiagnoses'] = differentialDiagnoses;
-      if (supportiveToolsUsed != null) updateData['supportiveToolsUsed'] = supportiveToolsUsed;
-      if (medicationsPrescribed != null) updateData['medicationsPrescribed'] = medicationsPrescribed.map((e) => e.toMap()).toList();
-      if (nonPharmacologicalAdvice != null) updateData['nonPharmacologicalAdvice'] = nonPharmacologicalAdvice;
-      if (homeMonitoringPlan != null) updateData['homeMonitoringPlan'] = homeMonitoringPlan;
-      if (referralsOrdered != null) updateData['referralsOrdered'] = referralsOrdered.map((e) => e.toMap()).toList();
-      if (followUpPlan != null) updateData['followUpPlan'] = followUpPlan.toMap();
-      if (patientEducationProvided != null) updateData['patientEducationProvided'] = patientEducationProvided;
-      if (emergencyAdvice != null) updateData['emergencyAdvice'] = emergencyAdvice;
-      if (patientFeedback != null) updateData['patientFeedback'] = patientFeedback;
-      if (satisfactionRating != null) updateData['satisfactionRating'] = satisfactionRating;
+      if (provisionalDiagnosis != null) {
+        updateData['provisionalDiagnosis'] = provisionalDiagnosis;
+      }
+      if (differentialDiagnoses != null) {
+        updateData['differentialDiagnoses'] = differentialDiagnoses;
+      }
+      if (supportiveToolsUsed != null) {
+        updateData['supportiveToolsUsed'] = supportiveToolsUsed;
+      }
+      if (medicationsPrescribed != null) {
+        updateData['medicationsPrescribed'] = medicationsPrescribed
+            .map((e) => e.toMap())
+            .toList();
+      }
+      if (nonPharmacologicalAdvice != null) {
+        updateData['nonPharmacologicalAdvice'] = nonPharmacologicalAdvice;
+      }
+      if (homeMonitoringPlan != null) {
+        updateData['homeMonitoringPlan'] = homeMonitoringPlan;
+      }
+      if (referralsOrdered != null) {
+        updateData['referralsOrdered'] = referralsOrdered
+            .map((e) => e.toMap())
+            .toList();
+      }
+      if (followUpPlan != null) {
+        updateData['followUpPlan'] = followUpPlan.toMap();
+      }
+      if (patientEducationProvided != null) {
+        updateData['patientEducationProvided'] = patientEducationProvided;
+      }
+      if (emergencyAdvice != null) {
+        updateData['emergencyAdvice'] = emergencyAdvice;
+      }
+      if (patientFeedback != null) {
+        updateData['patientFeedback'] = patientFeedback;
+      }
+      if (satisfactionRating != null) {
+        updateData['satisfactionRating'] = satisfactionRating;
+      }
       if (status != null) updateData['status'] = status;
       if (attachments != null) updateData['attachments'] = attachments;
-      if (additionalNotes != null) updateData['additionalNotes'] = additionalNotes;
+      if (additionalNotes != null) {
+        updateData['additionalNotes'] = additionalNotes;
+      }
 
       await _firestore
           .collection('clinical_documentation')
@@ -197,7 +239,9 @@ class ClinicalDocumentationService {
   }
 
   /// Get clinical documentation by consultation ID
-  static Future<ClinicalDocumentation?> getByConsultationId(String consultationId) async {
+  static Future<ClinicalDocumentation?> getByConsultationId(
+    String consultationId,
+  ) async {
     try {
       final snapshot = await _firestore
           .collection('clinical_documentation')
@@ -250,7 +294,9 @@ class ClinicalDocumentationService {
   }
 
   /// Create draft documentation from consultation
-  static Future<String> createDraftFromConsultation(Consultation consultation) async {
+  static Future<String> createDraftFromConsultation(
+    Consultation consultation,
+  ) async {
     try {
       // Create basic draft with consultation info
       return await createClinicalDocumentation(
@@ -279,10 +325,7 @@ class ClinicalDocumentationService {
           familyHistory: '',
           socialHistory: '',
         ),
-        symptoms: SymptomEvaluation(
-          symptoms: [],
-          reviewOfSystems: '',
-        ),
+        symptoms: SymptomEvaluation(symptoms: [], reviewOfSystems: ''),
         labResults: [],
         imagingResults: [],
         provisionalDiagnosis: '',
@@ -306,7 +349,9 @@ class ClinicalDocumentationService {
   }
 
   /// Delete clinical documentation
-  static Future<void> deleteClinicalDocumentation(String documentationId) async {
+  static Future<void> deleteClinicalDocumentation(
+    String documentationId,
+  ) async {
     try {
       await _firestore
           .collection('clinical_documentation')
@@ -318,19 +363,25 @@ class ClinicalDocumentationService {
   }
 
   /// Format documentation for health record storage
-  static Map<String, dynamic> _formatForHealthRecord(ClinicalDocumentation doc) {
+  static Map<String, dynamic> _formatForHealthRecord(
+    ClinicalDocumentation doc,
+  ) {
     return {
       'consultationId': doc.consultationId,
       'chiefComplaint': doc.chiefComplaint,
       'provisionalDiagnosis': doc.provisionalDiagnosis,
       'differentialDiagnoses': doc.differentialDiagnoses,
-      'medicationsPrescribed': doc.medicationsPrescribed.map((m) => {
-        'name': m.name,
-        'dosage': m.dosage,
-        'frequency': m.frequency,
-        'duration': m.duration,
-        'instructions': m.instructions,
-      }).toList(),
+      'medicationsPrescribed': doc.medicationsPrescribed
+          .map(
+            (m) => {
+              'name': m.name,
+              'dosage': m.dosage,
+              'frequency': m.frequency,
+              'duration': m.duration,
+              'instructions': m.instructions,
+            },
+          )
+          .toList(),
       'vitalSigns': doc.vitalSigns?.toMap(),
       'followUpPlan': doc.followUpPlan.toMap(),
       'emergencyAdvice': doc.emergencyAdvice,
@@ -354,23 +405,23 @@ class ClinicalDocumentationService {
   /// Generate consultation summary for patient
   static String generateConsultationSummary(ClinicalDocumentation doc) {
     final summary = StringBuffer();
-    
+
     summary.writeln('CONSULTATION SUMMARY');
     summary.writeln('Date: ${doc.formattedDate} at ${doc.formattedTime}');
     summary.writeln('Provider: ${doc.providerName} (${doc.providerType})');
     summary.writeln('Patient: ${doc.patientName}');
     summary.writeln('');
-    
+
     summary.writeln('CHIEF COMPLAINT:');
     summary.writeln(doc.chiefComplaint);
     summary.writeln('');
-    
+
     if (doc.provisionalDiagnosis.isNotEmpty) {
       summary.writeln('DIAGNOSIS:');
       summary.writeln(doc.provisionalDiagnosis);
       summary.writeln('');
     }
-    
+
     if (doc.medicationsPrescribed.isNotEmpty) {
       summary.writeln('MEDICATIONS PRESCRIBED:');
       for (final med in doc.medicationsPrescribed) {
@@ -381,7 +432,7 @@ class ClinicalDocumentationService {
       }
       summary.writeln('');
     }
-    
+
     if (doc.nonPharmacologicalAdvice.isNotEmpty) {
       summary.writeln('ADVICE:');
       for (final advice in doc.nonPharmacologicalAdvice) {
@@ -389,25 +440,25 @@ class ClinicalDocumentationService {
       }
       summary.writeln('');
     }
-    
+
     if (doc.homeMonitoringPlan.isNotEmpty) {
       summary.writeln('HOME MONITORING:');
       summary.writeln(doc.homeMonitoringPlan);
       summary.writeln('');
     }
-    
+
     if (doc.followUpPlan.nextVisit.isNotEmpty) {
       summary.writeln('FOLLOW-UP:');
       summary.writeln(doc.followUpPlan.nextVisit);
       summary.writeln('');
     }
-    
+
     if (doc.emergencyAdvice.isNotEmpty) {
       summary.writeln('EMERGENCY ADVICE:');
       summary.writeln(doc.emergencyAdvice);
       summary.writeln('');
     }
-    
+
     return summary.toString();
   }
 }

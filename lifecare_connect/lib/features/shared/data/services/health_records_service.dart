@@ -22,7 +22,11 @@ class HealthRecordsService {
         'providerType': 'CHW',
         'date': FieldValue.serverTimestamp(),
         'data': ancData,
-        'accessibleBy': ['patient', 'chw', 'doctor'], // Who can access this record
+        'accessibleBy': [
+          'patient',
+          'chw',
+          'doctor',
+        ], // Who can access this record
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
         'isEditable': false, // Cannot be edited after submission
@@ -100,12 +104,16 @@ class HealthRecordsService {
         'isDeletable': false, // Cannot be deleted after submission
         'statusFlag': 'completed',
       };
-      print('[DEBUG] Saving CHW consultation health record for patientUid=$patientUid chwUid=$chwUid chwName=$chwName');
+      print(
+        '[DEBUG] Saving CHW consultation health record for patientUid=$patientUid chwUid=$chwUid chwName=$chwName',
+      );
       print('[DEBUG] Record data: ' + recordData.toString());
       final docRef = await _firestore
           .collection('health_records')
           .add(recordData);
-      print('[DEBUG] CHW consultation health record saved with id: ${docRef.id}');
+      print(
+        '[DEBUG] CHW consultation health record saved with id: ${docRef.id}',
+      );
       return docRef.id;
     } catch (e) {
       print('[ERROR] Failed to save CHW consultation: $e');
@@ -209,7 +217,8 @@ class HealthRecordsService {
         'accessibleBy': ['patient', 'doctor', 'chw'],
         'isEditable': false, // Cannot be edited after submission
         'isDeletable': false, // Cannot be deleted after submission
-        'requiresReview': true, // Needs CHW/Doctor review before appointment approval
+        'requiresReview':
+            true, // Needs CHW/Doctor review before appointment approval
       };
 
       final docRef = await _firestore
@@ -275,10 +284,7 @@ class HealthRecordsService {
   /// Get specific health record by ID
   static Future<DocumentSnapshot> getHealthRecord(String recordId) async {
     try {
-      return await _firestore
-          .collection('health_records')
-          .doc(recordId)
-          .get();
+      return await _firestore.collection('health_records').doc(recordId).get();
     } catch (e) {
       throw Exception('Failed to get health record: $e');
     }

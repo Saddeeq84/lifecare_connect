@@ -1,4 +1,3 @@
-
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/material.dart';
@@ -48,10 +47,7 @@ class LoginScreen extends StatelessWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              'Select your account type:',
-              style: TextStyle(fontSize: 16),
-            ),
+            Text('Select your account type:', style: TextStyle(fontSize: 16)),
             SizedBox(height: 20),
             SizedBox(
               width: double.maxFinite,
@@ -106,7 +102,9 @@ class LoginScreen extends StatelessWidget {
                   Navigator.pop(context);
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => DoctorCreateAccountScreen()),
+                    MaterialPageRoute(
+                      builder: (_) => DoctorCreateAccountScreen(),
+                    ),
                   );
                 },
                 label: Text('Doctor'),
@@ -126,7 +124,9 @@ class LoginScreen extends StatelessWidget {
                   Navigator.pop(context);
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => OwnerRegisterFacilityScreen()),
+                    MaterialPageRoute(
+                      builder: (_) => OwnerRegisterFacilityScreen(),
+                    ),
                   );
                 },
                 label: Text('Facility'),
@@ -155,15 +155,24 @@ class LoginScreen extends StatelessWidget {
   }
 
   void _showAboutScreen(BuildContext context) {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => AboutScreen()));
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => AboutScreen()),
+    );
   }
 
   void _showContactScreen(BuildContext context) {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => ContactScreen()));
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ContactScreen()),
+    );
   }
 
   void _showPrivacyScreen(BuildContext context) {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => PrivacyScreen()));
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => PrivacyScreen()),
+    );
   }
 
   @override
@@ -172,9 +181,7 @@ class LoginScreen extends StatelessWidget {
       future: _initializeFirebase(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return Scaffold(body: Center(child: CircularProgressIndicator()));
         }
 
         if (snapshot.hasError) {
@@ -193,12 +200,18 @@ class LoginScreen extends StatelessWidget {
           body: SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 24),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 30.0,
+                  vertical: 24,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 16),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 40,
+                        horizontal: 16,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.teal,
                         borderRadius: BorderRadius.circular(12),
@@ -213,26 +226,45 @@ class LoginScreen extends StatelessWidget {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   IconButton(
-                                    icon: Icon(Icons.info_outline, color: Colors.white, size: 22),
+                                    icon: Icon(
+                                      Icons.info_outline,
+                                      color: Colors.white,
+                                      size: 22,
+                                    ),
                                     tooltip: 'About',
                                     onPressed: () => _showAboutScreen(context),
                                   ),
                                   SizedBox(width: 2),
                                   IconButton(
-                                    icon: Icon(Icons.mail_outline, color: Colors.white, size: 22),
+                                    icon: Icon(
+                                      Icons.mail_outline,
+                                      color: Colors.white,
+                                      size: 22,
+                                    ),
                                     tooltip: 'Contact',
-                                    onPressed: () => _showContactScreen(context),
+                                    onPressed: () =>
+                                        _showContactScreen(context),
                                   ),
                                   SizedBox(width: 2),
                                   IconButton(
-                                    icon: Icon(Icons.privacy_tip_outlined, color: Colors.white, size: 22),
+                                    icon: Icon(
+                                      Icons.privacy_tip_outlined,
+                                      color: Colors.white,
+                                      size: 22,
+                                    ),
                                     tooltip: 'Privacy',
-                                    onPressed: () => _showPrivacyScreen(context),
+                                    onPressed: () =>
+                                        _showPrivacyScreen(context),
                                   ),
                                   SizedBox(width: 2),
                                   GestureDetector(
                                     onTap: () {
-                                      Navigator.push(context, MaterialPageRoute(builder: (_) => LoginAdminScreen()));
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => LoginAdminScreen(),
+                                        ),
+                                      );
                                     },
                                     child: Container(
                                       margin: EdgeInsets.only(top: 2, right: 2),
@@ -279,7 +311,10 @@ class LoginScreen extends StatelessWidget {
                     Text(
                       'Select your login type:',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     SizedBox(height: 25),
                     GridView.count(
@@ -295,11 +330,20 @@ class LoginScreen extends StatelessWidget {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.teal,
                             foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(vertical: 18, horizontal: 8),
-                            textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                            padding: EdgeInsets.symmetric(
+                              vertical: 18,
+                              horizontal: 8,
+                            ),
+                            textStyle: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                           onPressed: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => LoginPatient()));
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => LoginPatient()),
+                            );
                           },
                           label: Text('Patient'),
                         ),
@@ -308,11 +352,22 @@ class LoginScreen extends StatelessWidget {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.teal,
                             foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(vertical: 18, horizontal: 8),
-                            textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                            padding: EdgeInsets.symmetric(
+                              vertical: 18,
+                              horizontal: 8,
+                            ),
+                            textStyle: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                           onPressed: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => CHWLoginScreen()));
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => CHWLoginScreen(),
+                              ),
+                            );
                           },
                           label: Text('CHW'),
                         ),
@@ -321,11 +376,22 @@ class LoginScreen extends StatelessWidget {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.teal,
                             foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(vertical: 18, horizontal: 8),
-                            textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                            padding: EdgeInsets.symmetric(
+                              vertical: 18,
+                              horizontal: 8,
+                            ),
+                            textStyle: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                           onPressed: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => LoginDoctorScreen()));
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => LoginDoctorScreen(),
+                              ),
+                            );
                           },
                           label: Text('Doctor'),
                         ),
@@ -334,11 +400,22 @@ class LoginScreen extends StatelessWidget {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.teal,
                             foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(vertical: 18, horizontal: 8),
-                            textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                            padding: EdgeInsets.symmetric(
+                              vertical: 18,
+                              horizontal: 8,
+                            ),
+                            textStyle: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                           onPressed: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => FacilityLoginScreen()));
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => FacilityLoginScreen(),
+                              ),
+                            );
                           },
                           label: Text('Facility'),
                         ),
@@ -369,19 +446,31 @@ class LoginScreen extends StatelessWidget {
                       children: [
                         TextButton.icon(
                           icon: Icon(Icons.info_outline, color: Colors.teal),
-                          label: Text('About', style: TextStyle(color: Colors.teal)),
+                          label: Text(
+                            'About',
+                            style: TextStyle(color: Colors.teal),
+                          ),
                           onPressed: () => _showAboutScreen(context),
                         ),
                         SizedBox(width: 8),
                         TextButton.icon(
                           icon: Icon(Icons.mail_outline, color: Colors.teal),
-                          label: Text('Contact', style: TextStyle(color: Colors.teal)),
+                          label: Text(
+                            'Contact',
+                            style: TextStyle(color: Colors.teal),
+                          ),
                           onPressed: () => _showContactScreen(context),
                         ),
                         SizedBox(width: 8),
                         TextButton.icon(
-                          icon: Icon(Icons.privacy_tip_outlined, color: Colors.teal),
-                          label: Text('Privacy', style: TextStyle(color: Colors.teal)),
+                          icon: Icon(
+                            Icons.privacy_tip_outlined,
+                            color: Colors.teal,
+                          ),
+                          label: Text(
+                            'Privacy',
+                            style: TextStyle(color: Colors.teal),
+                          ),
                           onPressed: () => _showPrivacyScreen(context),
                         ),
                       ],

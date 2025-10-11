@@ -17,10 +17,12 @@ class PatientMessageDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<PatientMessageDetailScreen> createState() => _PatientMessageDetailScreenState();
+  State<PatientMessageDetailScreen> createState() =>
+      _PatientMessageDetailScreenState();
 }
 
-class _PatientMessageDetailScreenState extends State<PatientMessageDetailScreen> {
+class _PatientMessageDetailScreenState
+    extends State<PatientMessageDetailScreen> {
   final TextEditingController _replyController = TextEditingController();
   bool _isReplying = false;
 
@@ -54,7 +56,10 @@ class _PatientMessageDetailScreenState extends State<PatientMessageDetailScreen>
                       children: [
                         CircleAvatar(
                           backgroundColor: Colors.orange.shade100,
-                          child: const Icon(Icons.campaign, color: Colors.orange),
+                          child: const Icon(
+                            Icons.campaign,
+                            color: Colors.orange,
+                          ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -117,7 +122,7 @@ class _PatientMessageDetailScreenState extends State<PatientMessageDetailScreen>
                   ),
                 ),
                 const SizedBox(height: 8),
-                
+
                 // Replies List
                 Expanded(
                   child: StreamBuilder<QuerySnapshot>(
@@ -165,27 +170,30 @@ class _PatientMessageDetailScreenState extends State<PatientMessageDetailScreen>
                         itemBuilder: (context, index) {
                           final doc = snapshot.data!.docs[index];
                           final data = doc.data() as Map<String, dynamic>;
-                          final isMyReply = data['senderId'] == widget.currentUserId;
-                          
+                          final isMyReply =
+                              data['senderId'] == widget.currentUserId;
+
                           return Container(
                             margin: const EdgeInsets.only(bottom: 12),
                             child: Row(
-                              mainAxisAlignment: isMyReply 
-                                  ? MainAxisAlignment.end 
+                              mainAxisAlignment: isMyReply
+                                  ? MainAxisAlignment.end
                                   : MainAxisAlignment.start,
                               children: [
                                 Container(
                                   constraints: BoxConstraints(
-                                    maxWidth: MediaQuery.of(context).size.width * 0.8,
+                                    maxWidth:
+                                        MediaQuery.of(context).size.width * 0.8,
                                   ),
                                   child: Card(
-                                    color: isMyReply 
-                                        ? Colors.green.shade100 
+                                    color: isMyReply
+                                        ? Colors.green.shade100
                                         : Colors.grey.shade100,
                                     child: Padding(
                                       padding: const EdgeInsets.all(12),
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           if (!isMyReply)
                                             Text(
@@ -195,10 +203,13 @@ class _PatientMessageDetailScreenState extends State<PatientMessageDetailScreen>
                                                 fontSize: 12,
                                               ),
                                             ),
-                                          if (!isMyReply) const SizedBox(height: 4),
+                                          if (!isMyReply)
+                                            const SizedBox(height: 4),
                                           Text(
                                             data['message'] ?? '',
-                                            style: const TextStyle(fontSize: 14),
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                            ),
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
@@ -230,9 +241,7 @@ class _PatientMessageDetailScreenState extends State<PatientMessageDetailScreen>
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
-              border: Border(
-                top: BorderSide(color: Colors.grey.shade300),
-              ),
+              border: Border(top: BorderSide(color: Colors.grey.shade300)),
             ),
             child: Row(
               children: [
@@ -286,16 +295,17 @@ class _PatientMessageDetailScreenState extends State<PatientMessageDetailScreen>
       // Get patient name from user profile
       final currentUser = FirebaseAuth.instance.currentUser;
       String patientName = 'Patient User'; // Default fallback
-      
+
       if (currentUser != null) {
         final userDoc = await FirebaseFirestore.instance
             .collection('users')
             .doc(currentUser.uid)
             .get();
-        
+
         if (userDoc.exists) {
           final userData = userDoc.data() as Map<String, dynamic>;
-          patientName = userData['name'] ?? userData['displayName'] ?? 'Patient User';
+          patientName =
+              userData['name'] ?? userData['displayName'] ?? 'Patient User';
         }
       }
 
@@ -304,21 +314,21 @@ class _PatientMessageDetailScreenState extends State<PatientMessageDetailScreen>
           .doc(widget.messageId)
           .collection('replies')
           .add({
-        'message': _replyController.text.trim(),
-        'senderId': widget.currentUserId,
-        'senderName': patientName, // Get from user profile
-        'timestamp': FieldValue.serverTimestamp(),
-      });
+            'message': _replyController.text.trim(),
+            'senderId': widget.currentUserId,
+            'senderName': patientName, // Get from user profile
+            'timestamp': FieldValue.serverTimestamp(),
+          });
 
       _replyController.clear();
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Reply sent successfully')),
-      );
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Reply sent successfully')));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to send reply: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to send reply: $e')));
     } finally {
       setState(() => _isReplying = false);
     }

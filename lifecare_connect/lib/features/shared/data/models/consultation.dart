@@ -9,7 +9,8 @@ class Consultation {
   final String? facilityId;
   final String? facilityName;
   final String type; // 'in-person', 'telemedicine', 'follow-up'
-  final String status; // 'scheduled', 'in-progress', 'completed', 'cancelled', 'no-show'
+  final String
+  status; // 'scheduled', 'in-progress', 'completed', 'cancelled', 'no-show'
   final String? reason;
   final String? chiefComplaint;
   final DateTime scheduledDateTime;
@@ -81,7 +82,8 @@ class Consultation {
       status: data['status'] ?? 'scheduled',
       reason: data['reason'],
       chiefComplaint: data['chiefComplaint'],
-      scheduledDateTime: (data['scheduledDateTime'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      scheduledDateTime:
+          (data['scheduledDateTime'] as Timestamp?)?.toDate() ?? DateTime.now(),
       actualStartTime: (data['actualStartTime'] as Timestamp?)?.toDate(),
       actualEndTime: (data['actualEndTime'] as Timestamp?)?.toDate(),
       estimatedDurationMinutes: data['estimatedDurationMinutes'] ?? 30,
@@ -90,17 +92,18 @@ class Consultation {
       appointmentId: data['appointmentId'],
       notes: data['notes'],
       diagnosis: data['diagnosis'],
-      prescriptions: data['prescriptions'] != null 
-          ? List<String>.from(data['prescriptions']) 
+      prescriptions: data['prescriptions'] != null
+          ? List<String>.from(data['prescriptions'])
           : null,
-      recommendations: data['recommendations'] != null 
-          ? List<String>.from(data['recommendations']) 
+      recommendations: data['recommendations'] != null
+          ? List<String>.from(data['recommendations'])
           : null,
       followUpInstructions: data['followUpInstructions'],
-      nextAppointmentDate: (data['nextAppointmentDate'] as Timestamp?)?.toDate(),
+      nextAppointmentDate: (data['nextAppointmentDate'] as Timestamp?)
+          ?.toDate(),
       vitals: data['vitals'] as Map<String, dynamic>?,
-      attachments: data['attachments'] != null 
-          ? List<String>.from(data['attachments']) 
+      attachments: data['attachments'] != null
+          ? List<String>.from(data['attachments'])
           : null,
       cancelledBy: data['cancelledBy'],
       cancellationReason: data['cancellationReason'],
@@ -123,8 +126,12 @@ class Consultation {
       'reason': reason,
       'chiefComplaint': chiefComplaint,
       'scheduledDateTime': Timestamp.fromDate(scheduledDateTime),
-      'actualStartTime': actualStartTime != null ? Timestamp.fromDate(actualStartTime!) : null,
-      'actualEndTime': actualEndTime != null ? Timestamp.fromDate(actualEndTime!) : null,
+      'actualStartTime': actualStartTime != null
+          ? Timestamp.fromDate(actualStartTime!)
+          : null,
+      'actualEndTime': actualEndTime != null
+          ? Timestamp.fromDate(actualEndTime!)
+          : null,
       'estimatedDurationMinutes': estimatedDurationMinutes,
       'priority': priority,
       'referralId': referralId,
@@ -134,7 +141,9 @@ class Consultation {
       'prescriptions': prescriptions,
       'recommendations': recommendations,
       'followUpInstructions': followUpInstructions,
-      'nextAppointmentDate': nextAppointmentDate != null ? Timestamp.fromDate(nextAppointmentDate!) : null,
+      'nextAppointmentDate': nextAppointmentDate != null
+          ? Timestamp.fromDate(nextAppointmentDate!)
+          : null,
       'vitals': vitals,
       'attachments': attachments,
       'cancelledBy': cancelledBy,
@@ -192,7 +201,8 @@ class Consultation {
       scheduledDateTime: scheduledDateTime ?? this.scheduledDateTime,
       actualStartTime: actualStartTime ?? this.actualStartTime,
       actualEndTime: actualEndTime ?? this.actualEndTime,
-      estimatedDurationMinutes: estimatedDurationMinutes ?? this.estimatedDurationMinutes,
+      estimatedDurationMinutes:
+          estimatedDurationMinutes ?? this.estimatedDurationMinutes,
       priority: priority ?? this.priority,
       referralId: referralId ?? this.referralId,
       notes: notes ?? this.notes,
@@ -218,22 +228,26 @@ class Consultation {
   bool get isCancelled => status == 'cancelled';
   bool get isNoShow => status == 'no-show';
 
-  bool get isUpcoming => isScheduled && scheduledDateTime.isAfter(DateTime.now());
-  bool get isPastDue => isScheduled && scheduledDateTime.isBefore(DateTime.now());
-  bool get isToday => scheduledDateTime.day == DateTime.now().day &&
-                     scheduledDateTime.month == DateTime.now().month &&
-                     scheduledDateTime.year == DateTime.now().year;
+  bool get isUpcoming =>
+      isScheduled && scheduledDateTime.isAfter(DateTime.now());
+  bool get isPastDue =>
+      isScheduled && scheduledDateTime.isBefore(DateTime.now());
+  bool get isToday =>
+      scheduledDateTime.day == DateTime.now().day &&
+      scheduledDateTime.month == DateTime.now().month &&
+      scheduledDateTime.year == DateTime.now().year;
 
   bool get isHighPriority => priority == 'urgent' || priority == 'emergency';
   bool get isEmergency => priority == 'emergency';
 
-  String get formattedScheduledDate => 
+  String get formattedScheduledDate =>
       '${scheduledDateTime.day}/${scheduledDateTime.month}/${scheduledDateTime.year}';
-  
-  String get formattedScheduledTime => 
+
+  String get formattedScheduledTime =>
       '${scheduledDateTime.hour.toString().padLeft(2, '0')}:${scheduledDateTime.minute.toString().padLeft(2, '0')}';
 
-  String get formattedScheduledDateTime => '$formattedScheduledDate at $formattedScheduledTime';
+  String get formattedScheduledDateTime =>
+      '$formattedScheduledDate at $formattedScheduledTime';
 
   Duration? get actualDuration {
     if (actualStartTime != null && actualEndTime != null) {

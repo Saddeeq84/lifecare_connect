@@ -14,10 +14,12 @@ class AdminTrainingUploadScreen extends StatefulWidget {
   const AdminTrainingUploadScreen({super.key});
 
   @override
-  State<AdminTrainingUploadScreen> createState() => _AdminTrainingUploadScreenState();
+  State<AdminTrainingUploadScreen> createState() =>
+      _AdminTrainingUploadScreenState();
 }
 
-class _AdminTrainingUploadScreenState extends State<AdminTrainingUploadScreen> with SingleTickerProviderStateMixin {
+class _AdminTrainingUploadScreenState extends State<AdminTrainingUploadScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   final _formKeyCHW = GlobalKey<FormState>();
@@ -26,7 +28,8 @@ class _AdminTrainingUploadScreenState extends State<AdminTrainingUploadScreen> w
 
   final _titleController = TextEditingController();
   final _descController = TextEditingController();
-  final _healthTipController = TextEditingController(); // For patient health tips
+  final _healthTipController =
+      TextEditingController(); // For patient health tips
 
   String _selectedType = 'pdf';
   File? _selectedFile;
@@ -88,7 +91,10 @@ class _AdminTrainingUploadScreenState extends State<AdminTrainingUploadScreen> w
     }
   }
 
-  Future<void> _uploadMaterial(String targetRole, GlobalKey<FormState> formKey) async {
+  Future<void> _uploadMaterial(
+    String targetRole,
+    GlobalKey<FormState> formKey,
+  ) async {
     if (!formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please complete the form.')),
@@ -97,7 +103,9 @@ class _AdminTrainingUploadScreenState extends State<AdminTrainingUploadScreen> w
     }
 
     // For patients, we can upload health tips without files
-    if (targetRole == 'patient' && _selectedFile == null && _healthTipController.text.trim().isNotEmpty) {
+    if (targetRole == 'patient' &&
+        _selectedFile == null &&
+        _healthTipController.text.trim().isNotEmpty) {
       // Upload health tip as text-only content
       await _uploadHealthTip(targetRole);
       return;
@@ -105,33 +113,40 @@ class _AdminTrainingUploadScreenState extends State<AdminTrainingUploadScreen> w
 
     // For all other cases, require a file
     if (_selectedFile == null && _selectedFileBytes == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a file.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a file.')));
       return;
     }
 
     setState(() => _isUploading = true);
 
     try {
-      final fileName = _selectedFile != null ? p.basename(_selectedFile!.path) : 'web_upload_${DateTime.now().millisecondsSinceEpoch}';
+      final fileName = _selectedFile != null
+          ? p.basename(_selectedFile!.path)
+          : 'web_upload_${DateTime.now().millisecondsSinceEpoch}';
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final ref = FirebaseStorage.instance
-          .ref()
-          .child('training_materials/$targetRole/${_selectedType}s/${timestamp}_$fileName');
+      final ref = FirebaseStorage.instance.ref().child(
+        'training_materials/$targetRole/${_selectedType}s/${timestamp}_$fileName',
+      );
 
       String downloadUrl;
       int fileSize;
 
-  // Platform check for web
-  bool isWeb = kIsWeb;
+      // Platform check for web
+      bool isWeb = kIsWeb;
 
       if (isWeb && _selectedFileBytes != null) {
         fileSize = _selectedFileBytes!.length;
         // Firebase Storage web upload limit is 10MB
         if (fileSize > 10 * 1024 * 1024) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('File too large. Max 10MB allowed for web uploads.'), backgroundColor: Colors.red),
+            const SnackBar(
+              content: Text(
+                'File too large. Max 10MB allowed for web uploads.',
+              ),
+              backgroundColor: Colors.red,
+            ),
           );
           setState(() => _isUploading = false);
           return;
@@ -142,7 +157,10 @@ class _AdminTrainingUploadScreenState extends State<AdminTrainingUploadScreen> w
         } catch (e) {
           debugPrint('Web upload error: $e');
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Web upload failed: $e'), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text('Web upload failed: $e'),
+              backgroundColor: Colors.red,
+            ),
           );
           setState(() => _isUploading = false);
           return;
@@ -155,14 +173,20 @@ class _AdminTrainingUploadScreenState extends State<AdminTrainingUploadScreen> w
         } catch (e) {
           debugPrint('Mobile/desktop upload error: $e');
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Upload failed: $e'), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text('Upload failed: $e'),
+              backgroundColor: Colors.red,
+            ),
           );
           setState(() => _isUploading = false);
           return;
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No file data available for upload.'), backgroundColor: Colors.red),
+          const SnackBar(
+            content: Text('No file data available for upload.'),
+            backgroundColor: Colors.red,
+          ),
         );
         setState(() => _isUploading = false);
         return;
@@ -187,11 +211,16 @@ class _AdminTrainingUploadScreenState extends State<AdminTrainingUploadScreen> w
       };
 
       try {
-        await FirebaseFirestore.instance.collection('training_materials').add(materialData);
+        await FirebaseFirestore.instance
+            .collection('training_materials')
+            .add(materialData);
       } catch (e) {
         debugPrint('Firestore write error: $e');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save material: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Failed to save material: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
         setState(() => _isUploading = false);
         return;
@@ -199,7 +228,9 @@ class _AdminTrainingUploadScreenState extends State<AdminTrainingUploadScreen> w
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Material uploaded successfully for $targetRole users!'),
+          content: Text(
+            'Material uploaded successfully for $targetRole users!',
+          ),
           backgroundColor: Colors.green,
         ),
       );
@@ -224,7 +255,7 @@ class _AdminTrainingUploadScreenState extends State<AdminTrainingUploadScreen> w
 
     try {
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      
+
       // Upload health tip as text-only content
       final materialData = {
         'id': '${timestamp}_${targetRole}_health_tip',
@@ -241,11 +272,15 @@ class _AdminTrainingUploadScreenState extends State<AdminTrainingUploadScreen> w
         'syncStatus': 'synced',
       };
 
-      await FirebaseFirestore.instance.collection('training_materials').add(materialData);
+      await FirebaseFirestore.instance
+          .collection('training_materials')
+          .add(materialData);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Health tip uploaded successfully for $targetRole users!'),
+          content: Text(
+            'Health tip uploaded successfully for $targetRole users!',
+          ),
           backgroundColor: Colors.green,
         ),
       );
@@ -267,7 +302,7 @@ class _AdminTrainingUploadScreenState extends State<AdminTrainingUploadScreen> w
 
   List<String> _generateTags(String targetRole, String type) {
     List<String> tags = [targetRole, type];
-    
+
     // Add contextual tags based on role
     switch (targetRole.toLowerCase()) {
       case 'chw':
@@ -280,7 +315,7 @@ class _AdminTrainingUploadScreenState extends State<AdminTrainingUploadScreen> w
         tags.addAll(['education', 'self_care', 'health_literacy']);
         break;
     }
-    
+
     // Add type-specific tags
     if (type == 'video') {
       tags.addAll(['multimedia', 'visual_learning']);
@@ -289,13 +324,13 @@ class _AdminTrainingUploadScreenState extends State<AdminTrainingUploadScreen> w
     } else if (type == 'health_tip') {
       tags.addAll(['quick_tips', 'wellness']);
     }
-    
+
     return tags;
   }
 
   Widget _buildUploadForm(String roleLabel, GlobalKey<FormState> formKey) {
     final isPatient = roleLabel.toLowerCase() == 'patient';
-    
+
     // Define custom headings based on role
     String heading;
     switch (roleLabel.toLowerCase()) {
@@ -326,15 +361,17 @@ class _AdminTrainingUploadScreenState extends State<AdminTrainingUploadScreen> w
             TextFormField(
               controller: _titleController,
               decoration: const InputDecoration(labelText: 'Title'),
-              validator: (value) => value == null || value.isEmpty ? 'Enter title' : null,
+              validator: (value) =>
+                  value == null || value.isEmpty ? 'Enter title' : null,
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _descController,
               decoration: const InputDecoration(labelText: 'Description'),
-              validator: (value) => value == null || value.isEmpty ? 'Enter description' : null,
+              validator: (value) =>
+                  value == null || value.isEmpty ? 'Enter description' : null,
             ),
-            
+
             // Health Tips field (Patient only)
             if (isPatient) ...[
               const SizedBox(height: 12),
@@ -349,15 +386,12 @@ class _AdminTrainingUploadScreenState extends State<AdminTrainingUploadScreen> w
               const SizedBox(height: 8),
               Text(
                 'Note: You can upload either a video file OR just post a health tip (or both).',
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: Colors.grey[600], fontSize: 12),
               ),
             ],
-            
+
             const SizedBox(height: 12),
-            
+
             // Material Type dropdown (hidden for patients - always video)
             if (!isPatient) ...[
               DropdownButtonFormField<String>(
@@ -401,10 +435,12 @@ class _AdminTrainingUploadScreenState extends State<AdminTrainingUploadScreen> w
               ),
               const SizedBox(height: 12),
             ],
-            
+
             ElevatedButton.icon(
               icon: const Icon(Icons.attach_file),
-              label: Text(isPatient ? 'Choose Video File (Optional)' : 'Choose File'),
+              label: Text(
+                isPatient ? 'Choose Video File (Optional)' : 'Choose File',
+              ),
               onPressed: _pickFile,
             ),
             if (_selectedFile != null)
@@ -417,8 +453,11 @@ class _AdminTrainingUploadScreenState extends State<AdminTrainingUploadScreen> w
                 ? const Center(child: CircularProgressIndicator())
                 : ElevatedButton.icon(
                     icon: const Icon(Icons.upload),
-                    label: Text(isPatient ? 'Upload Content' : 'Upload Material'),
-                    onPressed: () => _uploadMaterial(roleLabel.toLowerCase(), formKey),
+                    label: Text(
+                      isPatient ? 'Upload Content' : 'Upload Material',
+                    ),
+                    onPressed: () =>
+                        _uploadMaterial(roleLabel.toLowerCase(), formKey),
                   ),
           ],
         ),

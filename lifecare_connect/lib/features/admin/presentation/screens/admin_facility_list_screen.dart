@@ -22,12 +22,12 @@ class AdminFacilityListScreen extends StatelessWidget {
       body: StreamBuilder<QuerySnapshot>(
         stream: facilityType != null
             ? FirebaseFirestore.instance
-                .collection('healthFacilities')
-                .where('type', isEqualTo: facilityType)
-                .snapshots()
+                  .collection('healthFacilities')
+                  .where('type', isEqualTo: facilityType)
+                  .snapshots()
             : FirebaseFirestore.instance
-                .collection('healthFacilities')
-                .snapshots(),
+                  .collection('healthFacilities')
+                  .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -62,13 +62,13 @@ class AdminFacilityListScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               final facility = facilities[index];
               final data = facility.data() as Map<String, dynamic>?;
-              
+
               if (data == null) return const SizedBox.shrink();
-              
+
               final name = data['name'] ?? 'Unnamed Facility';
               final type = data['type'] ?? 'Unknown Type';
               final address = data['address'] ?? 'No address provided';
-              
+
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: ListTile(
@@ -79,10 +79,7 @@ class AdminFacilityListScreen extends StatelessWidget {
                   title: Text(name),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Type: $type'),
-                      Text('Address: $address'),
-                    ],
+                    children: [Text('Type: $type'), Text('Address: $address')],
                   ),
                   onTap: () {
                     // Handle tap on facility item

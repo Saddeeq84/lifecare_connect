@@ -29,8 +29,9 @@ class _HealthStatusIndicatorState extends State<HealthStatusIndicator> {
     HealthDataService.getConnectivityStream().listen((connectivityResults) {
       if (mounted) {
         setState(() {
-          _isOnline = connectivityResults.any((result) => 
-            result != ConnectivityResult.none);
+          _isOnline = connectivityResults.any(
+            (result) => result != ConnectivityResult.none,
+          );
         });
       }
     });
@@ -65,7 +66,9 @@ class _HealthStatusIndicatorState extends State<HealthStatusIndicator> {
           ),
         ],
         border: Border.all(
-          color: _isOnline ? Colors.green.withValues(alpha: 0.3) : Colors.orange.withValues(alpha: 0.3),
+          color: _isOnline
+              ? Colors.green.withValues(alpha: 0.3)
+              : Colors.orange.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -90,17 +93,17 @@ class _HealthStatusIndicatorState extends State<HealthStatusIndicator> {
               const Spacer(),
               if (_hasPendingSync)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.blue.shade100,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     'Syncing...',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.blue.shade700,
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.blue.shade700),
                   ),
                 ),
             ],
@@ -137,7 +140,12 @@ class _HealthStatusIndicatorState extends State<HealthStatusIndicator> {
     );
   }
 
-  Widget _buildSummaryItem(String label, String count, IconData icon, Color color) {
+  Widget _buildSummaryItem(
+    String label,
+    String count,
+    IconData icon,
+    Color color,
+  ) {
     return Column(
       children: [
         Container(
@@ -146,27 +154,14 @@ class _HealthStatusIndicatorState extends State<HealthStatusIndicator> {
             color: color.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
-          child: Icon(
-            icon,
-            size: 16,
-            color: color,
-          ),
+          child: Icon(icon, size: 16, color: color),
         ),
         const SizedBox(height: 4),
         Text(
           count,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10,
-            color: Colors.grey[600],
-          ),
-        ),
+        Text(label, style: TextStyle(fontSize: 10, color: Colors.grey[600])),
       ],
     );
   }

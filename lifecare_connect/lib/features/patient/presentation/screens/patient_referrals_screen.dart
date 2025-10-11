@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
 import '../../../shared/data/models/referral.dart';
 import '../../../shared/data/services/referral_service.dart';
 
@@ -26,13 +27,12 @@ class _PatientReferralsScreenState extends State<PatientReferralsScreen> {
 
   void _loadReferrals() {
     if (_currentUserId == null) return;
-    
+
     setState(() {
       _isLoading = true;
     });
 
-    ReferralService.getPatientReferrals(patientId: _currentUserId!)
-        .listen(
+    ReferralService.getPatientReferrals(patientId: _currentUserId!).listen(
       (snapshot) {
         final referrals = snapshot.docs
             .map((doc) => Referral.fromFirestore(doc))
@@ -71,7 +71,10 @@ class _PatientReferralsScreenState extends State<PatientReferralsScreen> {
             children: [
               _buildDetailRow('Status', referral.status.toUpperCase()),
               _buildDetailRow('Doctor', referral.toProviderName),
-              _buildDetailRow('Facility', referral.facilityName ?? 'Not specified'),
+              _buildDetailRow(
+                'Facility',
+                referral.facilityName ?? 'Not specified',
+              ),
               _buildDetailRow('Urgency', referral.urgency.toUpperCase()),
               _buildDetailRow('Reason', referral.reason),
               _buildDetailRow('Created', referral.formattedCreatedDate),
@@ -105,9 +108,7 @@ class _PatientReferralsScreenState extends State<PatientReferralsScreen> {
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
-          Expanded(
-            child: Text(value),
-          ),
+          Expanded(child: Text(value)),
         ],
       ),
     );
@@ -151,10 +152,7 @@ class _PatientReferralsScreenState extends State<PatientReferralsScreen> {
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
         actions: [
-          IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: _refreshReferrals,
-          ),
+          IconButton(icon: Icon(Icons.refresh), onPressed: _refreshReferrals),
         ],
       ),
       body: _isLoading
@@ -164,24 +162,20 @@ class _PatientReferralsScreenState extends State<PatientReferralsScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        Icons.assignment_outlined,
-                        size: 64,
-                        color: Colors.grey,
-                      ),
+                      Icon(Icons.assignment_outlined, size: 64, color: Colors.grey),
                       SizedBox(height: 16),
                       Text(
                         'No referrals yet',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              color: Colors.grey,
-                            ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.headlineSmall?.copyWith(color: Colors.grey),
                       ),
                       SizedBox(height: 8),
                       Text(
                         'Your healthcare provider will refer you when needed',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.grey,
-                            ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -196,88 +190,117 @@ class _PatientReferralsScreenState extends State<PatientReferralsScreen> {
                       final referral = _referrals[index];
                       return Card(
                         margin: EdgeInsets.only(bottom: 12),
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: _getStatusColor(referral.status),
-                            child: Icon(
-                              _getStatusIcon(referral.status),
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
-                          title: Text(
-                            referral.toProviderName,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(referral.facilityName ?? 'Not specified'),
-                              SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: _getStatusColor(referral.status).withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(4),
-                                      border: Border.all(
-                                        color: _getStatusColor(referral.status),
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Text(
-                                      referral.status.toUpperCase(),
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                        color: _getStatusColor(referral.status),
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  if (referral.urgency == 'urgent')
-                                    Container(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.red.withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(4),
-                                        border: Border.all(
-                                          color: Colors.red,
-                                          width: 1,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        'URGENT',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.red,
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                'Created: ${referral.formattedCreatedDate}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
+                        child: Column(
+                          children: [
+                            ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: _getStatusColor(referral.status),
+                                child: Icon(
+                                  _getStatusIcon(referral.status),
+                                  color: Colors.white,
+                                  size: 20,
                                 ),
                               ),
-                            ],
-                          ),
-                          trailing: Icon(Icons.arrow_forward_ios, size: 16),
-                          onTap: () => _showReferralDetails(referral),
+                              title: Text(
+                                referral.toProviderName,
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(referral.facilityName ?? 'Not specified'),
+                                  SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: _getStatusColor(
+                                            referral.status,
+                                          ).withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(4),
+                                          border: Border.all(
+                                            color: _getStatusColor(referral.status),
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          referral.status.toUpperCase(),
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            color: _getStatusColor(referral.status),
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(width: 8),
+                                      if (referral.urgency == 'urgent')
+                                        Container(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.red.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(4),
+                                            border: Border.all(
+                                              color: Colors.red,
+                                              width: 1,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            'URGENT',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.red,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    'Created: ${referral.formattedCreatedDate}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                              onTap: () => _showReferralDetails(referral),
+                            ),
+                            if (referral.status.toLowerCase() == 'approved')
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 16, right: 16, bottom: 16),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton.icon(
+                                    icon: Icon(Icons.event_available),
+                                    label: Text('Book Appointment'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.teal,
+                                      foregroundColor: Colors.white,
+                                    ),
+                                    onPressed: () {
+                                      context.push(
+                                        '/book_appointment',
+                                        extra: {
+                                          'preSelectedProvider': referral.toProviderMap(),
+                                          'fromReferral': true,
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                       );
                     },

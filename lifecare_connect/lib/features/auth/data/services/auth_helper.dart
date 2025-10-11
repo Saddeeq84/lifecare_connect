@@ -50,10 +50,12 @@ Future<void> loginAndRedirect({
     String message = 'Login failed';
     if (e.code == 'user-not-found') message = 'User not found';
     if (e.code == 'wrong-password') message = 'Incorrect password';
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Login failed: $e')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Login failed: $e')));
   }
 }

@@ -32,7 +32,10 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
     if (user == null) return;
 
     try {
-      final doc = await _firestore.collection('patient_profiles').doc(user.uid).get();
+      final doc = await _firestore
+          .collection('patient_profiles')
+          .doc(user.uid)
+          .get();
 
       if (doc.exists) {
         setState(() {
@@ -41,9 +44,9 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
       }
     } catch (e) {
       debugPrint('Error loading profile: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to load profile')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Failed to load profile')));
     } finally {
       setState(() {
         _isLoading = false;
@@ -83,7 +86,11 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                     CircleAvatar(
                       radius: 45,
                       backgroundColor: Colors.grey.shade200,
-                      child: Icon(Icons.person, size: 48, color: Colors.grey.shade600),
+                      child: Icon(
+                        Icons.person,
+                        size: 48,
+                        color: Colors.grey.shade600,
+                      ),
                     ),
                     Positioned(
                       bottom: 0,
@@ -93,21 +100,30 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                         radius: 14,
                         child: IconButton(
                           padding: EdgeInsets.zero,
-                          icon: const Icon(Icons.edit, size: 14, color: Colors.white),
+                          icon: const Icon(
+                            Icons.edit,
+                            size: 14,
+                            color: Colors.white,
+                          ),
                           onPressed: () {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Change picture (UI only)")),
+                              const SnackBar(
+                                content: Text("Change picture (UI only)"),
+                              ),
                             );
                           },
                         ),
                       ),
-                    )
+                    ),
                   ],
                 ),
                 const SizedBox(height: 10),
                 Text(
                   fullName,
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 Text('Patient ID: $patientId'),
                 const SizedBox(height: 8),
@@ -117,7 +133,9 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                   onPressed: () async {
                     final updated = await Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                      MaterialPageRoute(
+                        builder: (_) => const EditProfileScreen(),
+                      ),
                     );
                     if (updated == true) {
                       _fetchProfile(); // Refresh after editing
@@ -131,7 +149,10 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
           const SizedBox(height: 30),
 
           // 🔎 Personal Info
-          const Text('Personal Info', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text(
+            'Personal Info',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 10),
           _profileTile('Age', age),
           _profileTile('Gender', gender),
@@ -167,7 +188,10 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
       dense: true,
       contentPadding: EdgeInsets.zero,
       title: Text(title, style: const TextStyle(color: Colors.grey)),
-      trailing: Text(value, style: const TextStyle(fontWeight: FontWeight.w500)),
+      trailing: Text(
+        value,
+        style: const TextStyle(fontWeight: FontWeight.w500),
+      ),
     );
   }
 }

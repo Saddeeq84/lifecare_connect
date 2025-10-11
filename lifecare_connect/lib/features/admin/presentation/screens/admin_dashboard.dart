@@ -12,7 +12,6 @@ class AdminDashboard extends StatefulWidget {
   State<AdminDashboard> createState() => _AdminDashboardState();
 }
 
-
 class _AdminDashboardState extends State<AdminDashboard> {
   String _adminName = 'Admin';
   int _unreadCount = 0;
@@ -36,31 +35,38 @@ class _AdminDashboardState extends State<AdminDashboard> {
         .where('participantIds', arrayContains: userId)
         .snapshots()
         .listen((snapshot) {
-      int totalUnread = 0;
-      for (final doc in snapshot.docs) {
-        final data = doc.data();
-        final unreadCounts = data['unreadCounts'] as Map<String, dynamic>?;
-        if (unreadCounts != null && unreadCounts[userId] != null) {
-          totalUnread += unreadCounts[userId] is int ? unreadCounts[userId] as int : 0;
-        }
-      }
-      if (mounted) {
-        setState(() {
-          _unreadCount = totalUnread;
+          int totalUnread = 0;
+          for (final doc in snapshot.docs) {
+            final data = doc.data();
+            final unreadCounts = data['unreadCounts'] as Map<String, dynamic>?;
+            if (unreadCounts != null && unreadCounts[userId] != null) {
+              totalUnread += unreadCounts[userId] is int
+                  ? unreadCounts[userId] as int
+                  : 0;
+            }
+          }
+          if (mounted) {
+            setState(() {
+              _unreadCount = totalUnread;
+            });
+          }
         });
-      }
-    });
   }
 
   Future<void> _checkAdminDocument() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
-    final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
     if (!userDoc.exists) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("⚠️ Admin user exists but no Firestore document was found."),
+          content: Text(
+            "⚠️ Admin user exists but no Firestore document was found.",
+          ),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -71,7 +77,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
-    final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
     if (userDoc.exists && userDoc.data() != null) {
       final data = userDoc.data()!;
       setState(() {
@@ -100,7 +109,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   right: 8,
                   top: 8,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.red,
                       borderRadius: BorderRadius.circular(12),
@@ -177,7 +189,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
               icon: Icons.account_balance,
               title: 'Finance',
               subtitle: 'Manage financial transactions',
-              onTap: () => _showComingSoonDialog(context, 'Finance'),
+              onTap: () => context.push('/admin_dashboard/finance'),
             ),
             const SizedBox(height: 30),
           ],
@@ -213,30 +225,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     }
   }
 
-  void _showComingSoonDialog(BuildContext context, String feature) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.upcoming, color: Colors.teal),
-            SizedBox(width: 8),
-            Text('Coming Soon'),
-          ],
-        ),
-        content: Text(
-          '$feature feature is under development and will be available in a future update.',
-          style: TextStyle(fontSize: 16),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text('OK', style: TextStyle(color: Colors.teal)),
-          ),
-        ],
-      ),
-    );
-  }
+  // Removed unused _showComingSoonDialog method
 }
 
 class DashboardTile extends StatelessWidget {

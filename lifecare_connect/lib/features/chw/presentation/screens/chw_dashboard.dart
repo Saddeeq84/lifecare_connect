@@ -1,6 +1,8 @@
+import 'chw_wallet_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'chw_ask_ai_screen.dart';
 
 class CHWDashboard extends StatefulWidget {
@@ -11,9 +13,41 @@ class CHWDashboard extends StatefulWidget {
 }
 
 class _CHWDashboardState extends State<CHWDashboard> {
+  bool _showChatBadge = false;
+  int _unreadCount = 0;
+
   @override
   void initState() {
     super.initState();
+    _listenForUnreadMessages();
+  }
+
+  void _listenForUnreadMessages() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final userId = user.uid;
+    FirebaseFirestore.instance
+        .collection('messages')
+        .where('participants', arrayContains: userId)
+        .where('isActive', isEqualTo: true)
+        .snapshots()
+        .listen((snapshot) {
+      int totalUnread = 0;
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        final unreadCounts = data['unreadCounts'] as Map<String, dynamic>? ?? {};
+        final unread = unreadCounts[userId] ?? 0;
+        if (unread is int && unread > 0) {
+          totalUnread += unread;
+        }
+      }
+      if (mounted) {
+        setState(() {
+          _unreadCount = totalUnread;
+          _showChatBadge = totalUnread > 0;
+        });
+      }
+    });
   }
 
   @override
@@ -30,6 +64,7 @@ class _CHWDashboardState extends State<CHWDashboard> {
         'title': 'Messages',
         'route': '/chw_dashboard/messages',
         'subtitle': 'Communicate with patients',
+        'showBadge': _showChatBadge,
       },
       {
         'icon': Icons.people,
@@ -37,7 +72,6 @@ class _CHWDashboardState extends State<CHWDashboard> {
         'route': '/chw_dashboard/patients',
         'subtitle': 'Patient list and details',
       },
-
       {
         'icon': Icons.person_add,
         'title': 'Register Patient',
@@ -75,6 +109,48 @@ class _CHWDashboardState extends State<CHWDashboard> {
         title: const Text('CHW Dashboard'),
         backgroundColor: Colors.teal,
         actions: [
+          // Message icon with badge and count
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.message),
+                tooltip: 'Messages',
+                onPressed: () {
+                  setState(() {
+                    _showChatBadge = false;
+                    _unreadCount = 0;
+                  });
+                  context.go('/chw_dashboard/messages');
+                },
+              ),
+              if (_showChatBadge && _unreadCount > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 18,
+                      minHeight: 18,
+                    ),
+                    child: Center(
+                      child: Text(
+                        _unreadCount > 99 ? '99+' : '$_unreadCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
           IconButton(
             icon: const Icon(Icons.person),
             tooltip: 'Profile',
@@ -82,27 +158,17 @@ class _CHWDashboardState extends State<CHWDashboard> {
               context.go('/chw_dashboard/profile');
             },
           ),
-           IconButton(
-             icon: const Icon(Icons.account_balance_wallet),
-             tooltip: 'Wallet',
-             onPressed: () {
-               showDialog(
-                 context: context,
-                 builder: (BuildContext context) {
-                   return AlertDialog(
-                     title: const Text('Wallet'),
-                     content: const Text('Coming Soon'),
-                     actions: [
-                       TextButton(
-                         onPressed: () => Navigator.of(context).pop(),
-                         child: const Text('OK'),
-                       ),
-                     ],
-                   );
-                 },
-               );
-             },
-           ),
+          IconButton(
+            icon: const Icon(Icons.account_balance_wallet),
+            tooltip: 'Wallet',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const ChwWalletScreen(),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.settings),
             tooltip: 'Settings',
@@ -132,12 +198,9 @@ class _CHWDashboardState extends State<CHWDashboard> {
                 ),
               );
               if (shouldLogout == true) {
-
                 try {
                   await FirebaseAuth.instance.signOut();
-                } catch (e) {
-
-                }
+                } catch (e) {}
                 context.go('/login');
               }
             },
@@ -157,10 +220,38 @@ class _CHWDashboardState extends State<CHWDashboard> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: ListTile(
-                leading: Icon(item['icon'] as IconData, color: Colors.teal, size: 32),
-                title: Text(item['title'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
+                leading: Stack(
+                  children: [
+                    Icon(
+                      item['icon'] as IconData,
+                      color: Colors.teal,
+                      size: 32,
+                    ),
+                    if (item['showBadge'] == true)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          width: 12,
+                          height: 12,
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                title: Text(
+                  item['title'] as String,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
                 subtitle: Text(item['subtitle'] as String),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 18, color: Colors.teal),
+                trailing: const Icon(
+                  Icons.arrow_forward_ios,
+                  size: 18,
+                  color: Colors.teal,
+                ),
                 onTap: () {
                   if (item['route'] == '/chw_dashboard/ask_ai') {
                     Navigator.push(
@@ -179,4 +270,3 @@ class _CHWDashboardState extends State<CHWDashboard> {
     );
   }
 }
-

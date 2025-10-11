@@ -16,15 +16,15 @@ android {
         }
     }
     namespace = "com.lifecare_connect"
-    compileSdk = 36
-    ndkVersion = "27.0.12077973" // Required for 16 KB page size support
+    compileSdk = 36 // Use 36 for latest plugin and Play Store support (API 36)
+    ndkVersion = "27.0.12077973" // NDK r27+ required for latest plugins and 16 KB page size support
 
     defaultConfig {
         applicationId = "com.lifecare_connect"
-        minSdk = flutter.minSdkVersion
-    targetSdk = 36
-    versionCode = 15 // Increased from 14 to 15
-    versionName = "1.0.15" // Updated version name
+        minSdk = flutter.minSdkVersion // Recommended for 16 KB support
+        targetSdk = 36
+        versionCode = 17 // Bump version for next Play Store release
+        versionName = "1.0.17" // Updated version name
         multiDexEnabled = true // ✅ Required for large apps using many methods (e.g., Firebase)
     }
 
@@ -52,9 +52,12 @@ android {
             signingConfig = signingConfigs.getByName("release")
         }
     }
-        // Use the latest AndroidX window dependency for agora_rtc_engine
+        // Use the latest AndroidX window dependencies for agora_rtc_engine and related plugins
         dependencies {
             implementation("androidx.window:window:1.2.0")
+            implementation("androidx.window:window-java:1.2.0")
+            implementation("androidx.window:window-extensions:1.0.0")
+            implementation("androidx.window:window-sidecar:1.0.0")
         }
 }
 

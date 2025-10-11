@@ -21,7 +21,7 @@ class _AdminDebugScreenState extends State<AdminDebugScreen> {
 
   Future<void> _createMissingConsultations() async {
     if (_isProcessing) return;
-    
+
     setState(() {
       _isProcessing = true;
       _logOutput = '';
@@ -61,9 +61,8 @@ class _AdminDebugScreenState extends State<AdminDebugScreen> {
                   children: [
                     Text(
                       'Consultation Migration',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     const Text(
@@ -71,19 +70,28 @@ class _AdminDebugScreenState extends State<AdminDebugScreen> {
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton.icon(
-                      onPressed: _isProcessing ? null : _createMissingConsultations,
-                      icon: _isProcessing 
+                      onPressed: _isProcessing
+                          ? null
+                          : _createMissingConsultations,
+                      icon: _isProcessing
                           ? const SizedBox(
-                              width: 16, 
-                              height: 16, 
+                              width: 16,
+                              height: 16,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(Icons.build),
-                      label: Text(_isProcessing ? 'Processing...' : 'Create Missing Consultations'),
+                      label: Text(
+                        _isProcessing
+                            ? 'Processing...'
+                            : 'Create Missing Consultations',
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
                       ),
                     ),
                   ],
@@ -93,9 +101,9 @@ class _AdminDebugScreenState extends State<AdminDebugScreen> {
             const SizedBox(height: 20),
             Text(
               'Log Output:',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Expanded(

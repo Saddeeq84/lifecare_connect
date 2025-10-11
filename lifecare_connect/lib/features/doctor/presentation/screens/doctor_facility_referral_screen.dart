@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-
 class DoctorFacilityReferralScreen extends StatelessWidget {
   const DoctorFacilityReferralScreen({super.key});
 
@@ -87,7 +86,9 @@ class DoctorFacilityReferralScreen extends StatelessWidget {
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Refer patient or message $facilityName')),
+                      SnackBar(
+                        content: Text('Refer patient or message $facilityName'),
+                      ),
                     );
                   },
                 ),

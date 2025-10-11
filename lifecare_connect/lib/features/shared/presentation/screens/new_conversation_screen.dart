@@ -37,13 +37,13 @@ class _NewConversationScreenState extends State<NewConversationScreen> {
 
   Future<void> _loadCurrentUserInfo() async {
     if (_currentUserId == null) return;
-    
+
     try {
       final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(_currentUserId!)
           .get();
-      
+
       if (userDoc.exists) {
         final userData = userDoc.data() as Map<String, dynamic>;
         setState(() {
@@ -84,15 +84,17 @@ class _NewConversationScreenState extends State<NewConversationScreen> {
         _isLoading = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error searching users: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error searching users: $e')));
       }
     }
   }
 
   Future<void> _startConversation(Map<String, dynamic> user) async {
-    if (_currentUserId == null || _currentUserName == null || _currentUserRole == null) {
+    if (_currentUserId == null ||
+        _currentUserName == null ||
+        _currentUserRole == null) {
       return;
     }
 
@@ -133,16 +135,10 @@ class _NewConversationScreenState extends State<NewConversationScreen> {
         backgroundColor: _getRoleColor(user['role']),
         child: Text(
           user['name'].isNotEmpty ? user['name'][0].toUpperCase() : '?',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
       ),
-      title: Text(
-        user['name'],
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
+      title: Text(user['name'], style: TextStyle(fontWeight: FontWeight.bold)),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -238,13 +234,16 @@ class _NewConversationScreenState extends State<NewConversationScreen> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
               ),
               onChanged: (_) => _searchUsers(),
               textCapitalization: TextCapitalization.words,
             ),
           ),
-          
+
           // Quick access filters
           if (_currentUserRole != null)
             Container(
@@ -266,52 +265,47 @@ class _NewConversationScreenState extends State<NewConversationScreen> {
                 ],
               ),
             ),
-          
+
           SizedBox(height: 16),
-          
+
           // Search results
           Expanded(
             child: _isLoading
                 ? Center(child: CircularProgressIndicator())
                 : _users.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.search,
-                              size: 64,
-                              color: Colors.grey,
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              _searchController.text.isEmpty
-                                  ? 'Search for healthcare team members'
-                                  : 'No users found',
-                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                    color: Colors.grey,
-                                  ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              _searchController.text.isEmpty
-                                  ? 'Type a name or role to find someone to chat with'
-                                  : 'Try a different search term',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Colors.grey,
-                                  ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.search, size: 64, color: Colors.grey),
+                        SizedBox(height: 16),
+                        Text(
+                          _searchController.text.isEmpty
+                              ? 'Search for healthcare team members'
+                              : 'No users found',
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(color: Colors.grey),
                         ),
-                      )
-                    : ListView.separated(
-                        itemCount: _users.length,
-                        separatorBuilder: (context, index) => Divider(height: 1),
-                        itemBuilder: (context, index) {
-                          return _buildUserTile(_users[index]);
-                        },
-                      ),
+                        SizedBox(height: 8),
+                        Text(
+                          _searchController.text.isEmpty
+                              ? 'Type a name or role to find someone to chat with'
+                              : 'Try a different search term',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.separated(
+                    itemCount: _users.length,
+                    separatorBuilder: (context, index) => Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      return _buildUserTile(_users[index]);
+                    },
+                  ),
           ),
         ],
       ),
@@ -330,8 +324,13 @@ class _NewConversationScreenState extends State<NewConversationScreen> {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? _getRoleColor(role).withOpacity(0.3) : _getRoleColor(role).withOpacity(0.1),
-          border: Border.all(color: _getRoleColor(role), width: isSelected ? 2 : 1),
+          color: isSelected
+              ? _getRoleColor(role).withOpacity(0.3)
+              : _getRoleColor(role).withOpacity(0.1),
+          border: Border.all(
+            color: _getRoleColor(role),
+            width: isSelected ? 2 : 1,
+          ),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(

@@ -34,7 +34,7 @@ class _CHWTrainingScreenState extends State<CHWTrainingScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-  // ...existing code...
+    // ...existing code...
   }
 
   // Removed debug test function
@@ -47,13 +47,13 @@ class _CHWTrainingScreenState extends State<CHWTrainingScreen>
 
   /// Get training resources filtered by type
   Stream<QuerySnapshot> _getResourcesStream(String type) {
-  print('🔍 Loading training materials for type: $type');
-  return FirebaseFirestore.instance
-    .collection('training_materials')
-    .where('targetRole', isEqualTo: 'chw')
-    .where('type', isEqualTo: type)
-    .orderBy('uploadedAt', descending: true)
-    .snapshots();
+    print('🔍 Loading training materials for type: $type');
+    return FirebaseFirestore.instance
+        .collection('training_materials')
+        .where('targetRole', isEqualTo: 'chw')
+        .where('type', isEqualTo: type)
+        .orderBy('uploadedAt', descending: true)
+        .snapshots();
   }
 
   /// Launch video URL in browser or video player
@@ -92,16 +92,20 @@ class _CHWTrainingScreenState extends State<CHWTrainingScreen>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error playing video: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error playing video: $e')));
       }
     }
   }
 
   /// Download and open PDF file
-  Future<void> _downloadAndOpenPdf(String url, String fileName, String docId) async {
-  // ...existing code...
+  Future<void> _downloadAndOpenPdf(
+    String url,
+    String fileName,
+    String docId,
+  ) async {
+    // ...existing code...
     // View PDF inline using syncfusion_flutter_pdfviewer in a dialog
     setState(() => _downloadingFiles[docId] = true);
     try {
@@ -158,9 +162,9 @@ class _CHWTrainingScreenState extends State<CHWTrainingScreen>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading PDF: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading PDF: $e')));
       }
     } finally {
       setState(() => _downloadingFiles[docId] = false);
@@ -172,15 +176,19 @@ class _CHWTrainingScreenState extends State<CHWTrainingScreen>
     return StreamBuilder<QuerySnapshot>(
       stream: _getResourcesStream(type),
       builder: (context, snapshot) {
-        print('📱 StreamBuilder for $type - State: ${snapshot.connectionState}');
+        print(
+          '📱 StreamBuilder for $type - State: ${snapshot.connectionState}',
+        );
         print('📱 Has data: ${snapshot.hasData}');
         print('📱 Has error: ${snapshot.hasError}');
-        
+
         if (snapshot.hasData) {
           print('📱 Documents count for $type: ${snapshot.data!.docs.length}');
           snapshot.data!.docs.forEach((doc) {
             final data = doc.data() as Map<String, dynamic>;
-            print('📱 Document: ${data['title']} (${data['type']}) - Active: ${data['isActive']}');
+            print(
+              '📱 Document: ${data['title']} (${data['type']}) - Active: ${data['isActive']}',
+            );
           });
         }
 
@@ -194,7 +202,10 @@ class _CHWTrainingScreenState extends State<CHWTrainingScreen>
                 const SizedBox(height: 16),
                 Text('Error loading training materials'),
                 const SizedBox(height: 8),
-                Text('${snapshot.error}', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                Text(
+                  '${snapshot.error}',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () => setState(() {}),
@@ -227,7 +238,11 @@ class _CHWTrainingScreenState extends State<CHWTrainingScreen>
         final resources = snapshot.data!.docs;
         const showMax = 3;
         bool showAll = type == 'video' ? _showAllVideos : _showAllMaterials;
-        final showList = showAll ? resources : (resources.length > showMax ? resources.sublist(0, showMax) : resources);
+        final showList = showAll
+            ? resources
+            : (resources.length > showMax
+                  ? resources.sublist(0, showMax)
+                  : resources);
 
         return Column(
           children: [
@@ -251,7 +266,9 @@ class _CHWTrainingScreenState extends State<CHWTrainingScreen>
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: type == 'video' ? Colors.red : Colors.teal,
+                      backgroundColor: type == 'video'
+                          ? Colors.red
+                          : Colors.teal,
                       foregroundColor: Colors.white,
                     ),
                     onPressed: () {
@@ -298,10 +315,7 @@ class _CHWTrainingScreenState extends State<CHWTrainingScreen>
             type == 'video'
                 ? 'Training videos will appear here when\nadmin uploads them for CHWs.'
                 : 'Training materials and documents will\nappear here when admin uploads them.',
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.grey,
-            ),
+            style: const TextStyle(fontSize: 16, color: Colors.grey),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
@@ -367,10 +381,7 @@ class _CHWTrainingScreenState extends State<CHWTrainingScreen>
             const SizedBox(height: 12),
             Text(
               description,
-              style: TextStyle(
-                color: Colors.grey[700],
-                fontSize: 14,
-              ),
+              style: TextStyle(color: Colors.grey[700], fontSize: 14),
             ),
             const SizedBox(height: 16),
             SizedBox(
@@ -458,22 +469,21 @@ class _CHWTrainingScreenState extends State<CHWTrainingScreen>
             const SizedBox(height: 12),
             Text(
               description,
-              style: TextStyle(
-                color: Colors.grey[700],
-                fontSize: 14,
-              ),
+              style: TextStyle(color: Colors.grey[700], fontSize: 14),
             ),
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                icon: isDownloading 
+                icon: isDownloading
                     ? const SizedBox(
                         width: 16,
                         height: 16,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
                         ),
                       )
                     : const Icon(Icons.picture_as_pdf),
@@ -482,9 +492,13 @@ class _CHWTrainingScreenState extends State<CHWTrainingScreen>
                   backgroundColor: Colors.teal,
                   foregroundColor: Colors.white,
                 ),
-                onPressed: isDownloading 
+                onPressed: isDownloading
                     ? null
-                    : () => _downloadAndOpenPdf(data['url'] ?? '', fileName, docId),
+                    : () => _downloadAndOpenPdf(
+                        data['url'] ?? '',
+                        fileName,
+                        docId,
+                      ),
               ),
             ),
           ],
@@ -511,23 +525,14 @@ class _CHWTrainingScreenState extends State<CHWTrainingScreen>
           unselectedLabelColor: Colors.white70,
           indicatorColor: Colors.white,
           tabs: const [
-            Tab(
-              icon: Icon(Icons.video_library),
-              text: 'Training Videos',
-            ),
-            Tab(
-              icon: Icon(Icons.description),
-              text: 'Training Materials',
-            ),
+            Tab(icon: Icon(Icons.video_library), text: 'Training Videos'),
+            Tab(icon: Icon(Icons.description), text: 'Training Materials'),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [
-          _buildResourceList('video'),
-          _buildResourceList('pdf'),
-        ],
+        children: [_buildResourceList('video'), _buildResourceList('pdf')],
       ),
     );
   }

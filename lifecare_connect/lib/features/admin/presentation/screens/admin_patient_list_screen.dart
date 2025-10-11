@@ -4,7 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-// import '../sharedscreen/patient_list_widget.dart'; 
+// import '../sharedscreen/patient_list_widget.dart';
 
 class AdminPatientListScreen extends StatelessWidget {
   const AdminPatientListScreen({super.key});
@@ -56,10 +56,13 @@ class AdminPatientListScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               final patient = patients[index];
               final patientData = patient.data() as Map<String, dynamic>;
-              final patientName = patientData['name'] ?? patientData['fullName'] ?? 'Unknown Patient';
+              final patientName =
+                  patientData['name'] ??
+                  patientData['fullName'] ??
+                  'Unknown Patient';
               final email = patientData['email'] ?? 'No email';
               final phone = patientData['phone'] ?? 'No phone';
-              
+
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: ListTile(
@@ -70,16 +73,15 @@ class AdminPatientListScreen extends StatelessWidget {
                   title: Text(patientName),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Email: $email'),
-                      Text('Phone: $phone'),
-                    ],
+                    children: [Text('Email: $email'), Text('Phone: $phone')],
                   ),
                   onTap: () {
                     showModalBottomSheet(
                       context: context,
                       shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(20),
+                        ),
                       ),
                       builder: (context) => Container(
                         padding: const EdgeInsets.all(16),
@@ -105,35 +107,60 @@ class AdminPatientListScreen extends StatelessWidget {
                             ),
                             const Divider(height: 32),
                             ListTile(
-                              leading: const Icon(Icons.folder_open, color: Colors.teal),
+                              leading: const Icon(
+                                Icons.folder_open,
+                                color: Colors.teal,
+                              ),
                               title: const Text('Complete Health Records'),
                               subtitle: const Text('View all patient records'),
                               onTap: () {
                                 Navigator.pop(context);
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Health records for $patientName (Coming soon)')),
+                                  SnackBar(
+                                    content: Text(
+                                      'Health records for $patientName (Coming soon)',
+                                    ),
+                                  ),
                                 );
                               },
                             ),
                             ListTile(
-                              leading: const Icon(Icons.edit, color: Colors.teal),
+                              leading: const Icon(
+                                Icons.edit,
+                                color: Colors.teal,
+                              ),
                               title: const Text('Manage Patient'),
-                              subtitle: const Text('Edit or update patient information'),
+                              subtitle: const Text(
+                                'Edit or update patient information',
+                              ),
                               onTap: () {
                                 Navigator.pop(context);
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Manage $patientName (Coming soon)')),
+                                  SnackBar(
+                                    content: Text(
+                                      'Manage $patientName (Coming soon)',
+                                    ),
+                                  ),
                                 );
                               },
                             ),
                             ListTile(
-                              leading: const Icon(Icons.analytics, color: Colors.teal),
+                              leading: const Icon(
+                                Icons.analytics,
+                                color: Colors.teal,
+                              ),
                               title: const Text('Patient Analytics'),
-                              subtitle: const Text('View patient statistics and reports'),
+                              subtitle: const Text(
+                                'View patient statistics and reports',
+                              ),
                               onTap: () {
                                 Navigator.pop(context);
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Analytics for $patientName (Coming soon)')),
+                                  SnackBar(
+                                    content: Text(
+                                      'Analytics for $patientName (Coming soon)',
+                                    ),
+                                  ),
                                 );
                               },
                             ),

@@ -2,7 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class CHWMessageHelper {
-  static Future<void> sendPatientMessageToId(String patientId, String appointmentId, String message) async {
+  static Future<void> sendPatientMessageToId(
+    String patientId,
+    String appointmentId,
+    String message,
+  ) async {
     await FirebaseFirestore.instance.collection('messages').add({
       'to': patientId,
       'from': FirebaseAuth.instance.currentUser?.uid ?? '',
@@ -13,7 +17,10 @@ class CHWMessageHelper {
     });
   }
 
-  static Future<void> sendReferralMessageToPatient(String patientId, String referralDetails) async {
+  static Future<void> sendReferralMessageToPatient(
+    String patientId,
+    String referralDetails,
+  ) async {
     final senderId = FirebaseAuth.instance.currentUser?.uid ?? '';
     final messageText = 'You have been referred: $referralDetails';
     await FirebaseFirestore.instance.collection('messages').add({
@@ -31,7 +38,11 @@ class CHWMessageHelper {
     });
   }
 
-  static Future<void> sendHealthRecordUpdateToPatient(String patientId, String updateType, String details) async {
+  static Future<void> sendHealthRecordUpdateToPatient(
+    String patientId,
+    String updateType,
+    String details,
+  ) async {
     await FirebaseFirestore.instance.collection('messages').add({
       'to': patientId,
       'from': FirebaseAuth.instance.currentUser?.uid ?? '',

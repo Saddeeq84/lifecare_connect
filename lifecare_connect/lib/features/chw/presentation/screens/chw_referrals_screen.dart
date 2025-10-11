@@ -50,7 +50,7 @@ class _CHWReferralTabsState extends State<CHWReferralTabs>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+  _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -62,7 +62,7 @@ class _CHWReferralTabsState extends State<CHWReferralTabs>
   @override
   Widget build(BuildContext context) {
     final userId = FirebaseAuth.instance.currentUser?.uid;
-    
+
     return Column(
       children: [
         Container(
@@ -74,22 +74,9 @@ class _CHWReferralTabsState extends State<CHWReferralTabs>
             unselectedLabelColor: Colors.white70,
             isScrollable: true,
             tabs: const [
-              Tab(
-                icon: Icon(Icons.pending_actions),
-                text: "Pending",
-              ),
-              Tab(
-                icon: Icon(Icons.check_circle),
-                text: "Approved",
-              ),
-              Tab(
-                icon: Icon(Icons.cancel),
-                text: "Rejected",
-              ),
-              Tab(
-                icon: Icon(Icons.check_circle_outline),
-                text: "Completed",
-              ),
+              Tab(icon: Icon(Icons.pending_actions), text: "Pending"),
+              Tab(icon: Icon(Icons.check_circle), text: "Approved"),
+              Tab(icon: Icon(Icons.cancel), text: "Rejected"),
             ],
           ),
         ),
@@ -100,7 +87,6 @@ class _CHWReferralTabsState extends State<CHWReferralTabs>
               CHWReferralStatusTab(userId: userId, status: 'pending'),
               CHWReferralStatusTab(userId: userId, status: 'approved'),
               CHWReferralStatusTab(userId: userId, status: 'rejected'),
-              CHWReferralStatusTab(userId: userId, status: 'completed'),
             ],
           ),
         ),
@@ -126,10 +112,7 @@ class CHWReferralStatusTab extends StatelessWidget {
     }
 
     return StreamBuilder<QuerySnapshot>(
-      stream: ReferralService.getCHWReferrals(
-        chwId: userId!,
-        status: status,
-      ),
+      stream: ReferralService.getCHWReferrals(chwId: userId!, status: status),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -146,11 +129,7 @@ class CHWReferralStatusTab extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  _getStatusIcon(status),
-                  size: 64,
-                  color: Colors.grey,
-                ),
+                Icon(_getStatusIcon(status), size: 64, color: Colors.grey),
                 const SizedBox(height: 16),
                 Text(
                   "No $status referrals",
@@ -174,7 +153,7 @@ class CHWReferralStatusTab extends StatelessWidget {
           itemBuilder: (context, index) {
             final doc = referrals[index];
             final referral = Referral.fromFirestore(doc);
-            
+
             return ReferralCard(
               referral: referral,
               onTap: () => _showReferralDetails(context, referral),
@@ -214,11 +193,7 @@ class ReferralCard extends StatelessWidget {
   final Referral referral;
   final VoidCallback onTap;
 
-  const ReferralCard({
-    super.key,
-    required this.referral,
-    required this.onTap,
-  });
+  const ReferralCard({super.key, required this.referral, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -244,7 +219,10 @@ class ReferralCard extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: _getStatusColor(referral.status),
                       borderRadius: BorderRadius.circular(12),
@@ -272,7 +250,10 @@ class ReferralCard extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: _getUrgencyColor(referral.urgency),
                       borderRadius: BorderRadius.circular(8),
@@ -291,7 +272,11 @@ class ReferralCard extends StatelessWidget {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const Icon(Icons.medical_services, size: 16, color: Colors.grey),
+                  const Icon(
+                    Icons.medical_services,
+                    size: 16,
+                    color: Colors.grey,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -306,7 +291,11 @@ class ReferralCard extends StatelessWidget {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                  const Icon(
+                    Icons.calendar_today,
+                    size: 16,
+                    color: Colors.grey,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     '${referral.formattedCreatedDate} at ${referral.formattedCreatedTime}',
@@ -430,11 +419,15 @@ class ReferralDetailsModal extends StatelessWidget {
                   ],
                   const SizedBox(height: 16),
                   _buildDetailSection('Timeline', [
-                    _buildDetailRow('Created', 
-                        '${referral.formattedCreatedDate} at ${referral.formattedCreatedTime}'),
+                    _buildDetailRow(
+                      'Created',
+                      '${referral.formattedCreatedDate} at ${referral.formattedCreatedTime}',
+                    ),
                     if (referral.actionDate != null)
-                      _buildDetailRow('Action Date', 
-                          '${referral.actionDate!.day}/${referral.actionDate!.month}/${referral.actionDate!.year}'),
+                      _buildDetailRow(
+                        'Action Date',
+                        '${referral.actionDate!.day}/${referral.actionDate!.month}/${referral.actionDate!.year}',
+                      ),
                     if (referral.actionBy != null)
                       _buildDetailRow('Action By', referral.actionBy!),
                   ]),
@@ -481,12 +474,7 @@ class ReferralDetailsModal extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 14),
-            ),
-          ),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: 14))),
         ],
       ),
     );

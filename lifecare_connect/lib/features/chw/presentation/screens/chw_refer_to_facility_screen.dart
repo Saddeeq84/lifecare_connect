@@ -87,7 +87,9 @@ class CHWReferToFacilityScreen extends StatelessWidget {
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Referral initiated for $facilityName')),
+                      SnackBar(
+                        content: Text('Referral initiated for $facilityName'),
+                      ),
                     );
                   },
                 ),

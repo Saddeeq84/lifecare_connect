@@ -35,10 +35,10 @@ class AppointmentService {
         'facilityName': facilityName,
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
-        
+
         // For CHW appointments
         if (providerType == 'CHW') 'chwId': providerId,
-        // For doctor appointments  
+        // For doctor appointments
         if (providerType == 'DOCTOR') 'doctorId': providerId,
         // For facility appointments
         if (providerType == 'FACILITY') 'staffId': providerId,
@@ -62,10 +62,7 @@ class AppointmentService {
   }) async {
     try {
       // Update the appointment
-      await _firestore
-          .collection('appointments')
-          .doc(appointmentId)
-          .update({
+      await _firestore.collection('appointments').doc(appointmentId).update({
         'status': status,
         'updatedAt': FieldValue.serverTimestamp(),
         if (notes != null) 'statusNotes': notes,
@@ -81,7 +78,9 @@ class AppointmentService {
   }
 
   /// Private method to create consultation from approved appointment
-  static Future<void> _createConsultationFromAppointment(String appointmentId) async {
+  static Future<void> _createConsultationFromAppointment(
+    String appointmentId,
+  ) async {
     try {
       // Get the appointment details
       final appointmentDoc = await _firestore
@@ -92,17 +91,26 @@ class AppointmentService {
       if (!appointmentDoc.exists) return;
 
       final appointmentData = appointmentDoc.data() as Map<String, dynamic>;
-      
+
       // Create consultation for both doctor and CHW appointments
-      final providerType = appointmentData['providerType']?.toString().toLowerCase() ?? '';
-      
+      final providerType =
+          appointmentData['providerType']?.toString().toLowerCase() ?? '';
+
       // Skip if it's not a valid provider type that requires consultations
-      if (!['doctor', 'community health worker', 'chw'].contains(providerType)) {
-        print('⚠️ Skipping consultation creation for provider type: ${appointmentData['providerType']}');
+      if (![
+        'doctor',
+        'community health worker',
+        'chw',
+      ].contains(providerType)) {
+        print(
+          '⚠️ Skipping consultation creation for provider type: ${appointmentData['providerType']}',
+        );
         return;
       }
-      
-      print('🏥 Creating consultation for approved appointment with provider type: ${appointmentData['providerType']}');
+
+      print(
+        '🏥 Creating consultation for approved appointment with provider type: ${appointmentData['providerType']}',
+      );
 
       // Check if consultation already exists for this appointment in health_records
       final existingConsultation = await _firestore
@@ -111,17 +119,22 @@ class AppointmentService {
           .where('type', isEqualTo: 'DOCTOR_CONSULTATION')
           .get();
 
-      if (existingConsultation.docs.isNotEmpty) return; // Consultation already exists
+      if (existingConsultation.docs.isNotEmpty) {
+        return; // Consultation already exists
+      }
 
       // Create consultation from appointment data with field name fallback handling
-      final patientId = appointmentData['patientId'] ?? appointmentData['patientUid'];
+      final patientId =
+          appointmentData['patientId'] ?? appointmentData['patientUid'];
       final patientName = appointmentData['patientName'];
-      
+
       if (patientId == null || patientName == null) {
-        print('❌ Missing required patient information: patientId=$patientId, patientName=$patientName');
+        print(
+          '❌ Missing required patient information: patientId=$patientId, patientName=$patientName',
+        );
         return;
       }
-      
+
       await ConsultationService.createConsultation(
         patientId: patientId,
         patientName: patientName,
@@ -130,18 +143,24 @@ class AppointmentService {
         facilityId: appointmentData['facilityId'],
         facilityName: appointmentData['facilityName'],
         type: 'in-person', // Default type, can be updated later
-        scheduledDateTime: (appointmentData['appointmentDate'] as Timestamp).toDate(),
+        scheduledDateTime: (appointmentData['appointmentDate'] as Timestamp)
+            .toDate(),
         estimatedDurationMinutes: 30, // Default duration
         priority: 'routine', // Default priority
         reason: appointmentData['reason'],
         chiefComplaint: appointmentData['notes'],
-        createdBy: appointmentData['chwId'] ?? patientId, // CHW or patient who booked
+        createdBy:
+            appointmentData['chwId'] ?? patientId, // CHW or patient who booked
         appointmentId: appointmentId, // Link back to original appointment
       );
-      
-      print('✅ Consultation created successfully for appointment $appointmentId');
+
+      print(
+        '✅ Consultation created successfully for appointment $appointmentId',
+      );
     } catch (e) {
-      print('❌ Error creating consultation from appointment $appointmentId: $e');
+      print(
+        '❌ Error creating consultation from appointment $appointmentId: $e',
+      );
       // Don't throw error to avoid breaking the appointment approval process
     }
   }
@@ -150,27 +169,29 @@ class AppointmentService {
   static Future<void> createMissingConsultations() async {
     try {
       print('🔍 Checking for approved appointments without consultations...');
-      
+
       // Get all approved appointments
       final approvedAppointments = await _firestore
           .collection('appointments')
           .where('status', isEqualTo: 'approved')
           .get();
-      
-      print('📋 Found ${approvedAppointments.docs.length} approved appointments');
-      
+
+      print(
+        '📋 Found ${approvedAppointments.docs.length} approved appointments',
+      );
+
       int created = 0;
       int skipped = 0;
-      
+
       for (var doc in approvedAppointments.docs) {
         final appointmentId = doc.id;
-        
+
         // Check if consultation already exists
         final existingConsultation = await _firestore
             .collection('consultations')
             .where('appointmentId', isEqualTo: appointmentId)
             .get();
-        
+
         if (existingConsultation.docs.isEmpty) {
           // No consultation exists, create one
           try {
@@ -178,15 +199,19 @@ class AppointmentService {
             created++;
             print('✅ Created consultation for appointment $appointmentId');
           } catch (e) {
-            print('❌ Failed to create consultation for appointment $appointmentId: $e');
+            print(
+              '❌ Failed to create consultation for appointment $appointmentId: $e',
+            );
             skipped++;
           }
         } else {
           skipped++;
         }
       }
-      
-      print('📊 Migration complete: $created consultations created, $skipped skipped');
+
+      print(
+        '📊 Migration complete: $created consultations created, $skipped skipped',
+      );
     } catch (e) {
       print('❌ Error during consultation migration: $e');
       throw Exception('Failed to create missing consultations: $e');
@@ -200,10 +225,7 @@ class AppointmentService {
     String? notes,
   }) async {
     try {
-      await _firestore
-          .collection('appointments')
-          .doc(appointmentId)
-          .update({
+      await _firestore.collection('appointments').doc(appointmentId).update({
         'appointmentDate': Timestamp.fromDate(newDate),
         'status': 'pending', // Reset to pending after rescheduling
         'updatedAt': FieldValue.serverTimestamp(),
@@ -223,16 +245,14 @@ class AppointmentService {
     Query query = _firestore
         .collection('appointments')
         .where('chwId', isEqualTo: chwId);
-    
+
     if (statusList != null && statusList.isNotEmpty) {
       query = query.where('status', whereIn: statusList);
     } else if (status != null) {
       query = query.where('status', isEqualTo: status);
     }
-    
-    return query
-        .orderBy('appointmentDate', descending: false)
-        .snapshots();
+
+    return query.orderBy('appointmentDate', descending: false).snapshots();
   }
 
   /// Get appointments for patient
@@ -243,14 +263,12 @@ class AppointmentService {
     Query query = _firestore
         .collection('appointments')
         .where('patientId', isEqualTo: patientId);
-    
+
     if (status != null) {
       query = query.where('status', isEqualTo: status);
     }
-    
-    return query
-        .orderBy('appointmentDate', descending: false)
-        .snapshots();
+
+    return query.orderBy('appointmentDate', descending: false).snapshots();
   }
 
   /// Get appointments for doctor
@@ -268,8 +286,12 @@ class AppointmentService {
     }
 
     // Combine both queries using snapshots and merge results
-    final doctorStream = query.orderBy('appointmentDate', descending: false).snapshots();
-    final providerStream = altQuery.orderBy('appointmentDate', descending: false).snapshots();
+    final doctorStream = query
+        .orderBy('appointmentDate', descending: false)
+        .snapshots();
+    final providerStream = altQuery
+        .orderBy('appointmentDate', descending: false)
+        .snapshots();
 
     return doctorStream.asyncMap((doctorSnap) async {
       final providerSnap = await providerStream.first;
@@ -294,14 +316,12 @@ class AppointmentService {
     Query query = _firestore
         .collection('appointments')
         .where('facilityId', isEqualTo: facilityId);
-    
+
     if (status != null) {
       query = query.where('status', isEqualTo: status);
     }
-    
-    return query
-        .orderBy('appointmentDate', descending: false)
-        .snapshots();
+
+    return query.orderBy('appointmentDate', descending: false).snapshots();
   }
 
   /// Cancel appointment
@@ -310,10 +330,7 @@ class AppointmentService {
     String? reason,
   }) async {
     try {
-      await _firestore
-          .collection('appointments')
-          .doc(appointmentId)
-          .update({
+      await _firestore.collection('appointments').doc(appointmentId).update({
         'status': 'cancelled',
         'updatedAt': FieldValue.serverTimestamp(),
         if (reason != null) 'cancellationReason': reason,
@@ -329,10 +346,7 @@ class AppointmentService {
     String? notes,
   }) async {
     try {
-      await _firestore
-          .collection('appointments')
-          .doc(appointmentId)
-          .update({
+      await _firestore.collection('appointments').doc(appointmentId).update({
         'status': 'completed',
         'completedAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
@@ -344,7 +358,9 @@ class AppointmentService {
   }
 
   /// Get appointment by ID
-  static Future<DocumentSnapshot> getAppointmentById(String appointmentId) async {
+  static Future<DocumentSnapshot> getAppointmentById(
+    String appointmentId,
+  ) async {
     try {
       return await _firestore
           .collection('appointments')
@@ -363,7 +379,7 @@ class AppointmentService {
     String? status,
   }) {
     Query query;
-    
+
     // Base query based on user role
     switch (userRole.toLowerCase()) {
       case 'chw':
@@ -389,13 +405,11 @@ class AppointmentService {
       default:
         query = _firestore.collection('appointments');
     }
-    
+
     if (status != null) {
       query = query.where('status', isEqualTo: status);
     }
-    
-    return query
-        .orderBy('appointmentDate', descending: false)
-        .snapshots();
+
+    return query.orderBy('appointmentDate', descending: false).snapshots();
   }
 }

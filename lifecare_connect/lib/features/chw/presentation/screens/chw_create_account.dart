@@ -47,12 +47,11 @@ class _CHWCreateAccountScreenState extends State<CHWCreateAccountScreen> {
     });
   }
 
-
   Future<void> _verifyOtpAndLinkPhone() async {
     if (_verificationId == null || otpController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter the OTP code')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Enter the OTP code')));
       return;
     }
 
@@ -75,9 +74,9 @@ class _CHWCreateAccountScreenState extends State<CHWCreateAccountScreen> {
 
       await _handleApprovalAndRedirect(user.uid);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ OTP verification failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('❌ OTP verification failed: $e')));
     } finally {
       setState(() => _isVerifying = false);
     }
@@ -86,10 +85,14 @@ class _CHWCreateAccountScreenState extends State<CHWCreateAccountScreen> {
   Future<void> _handleApprovalAndRedirect(String uid) async {
     final doc = await _firestore.collection('users').doc(uid).get();
     final isApproved = doc.data()?['isApproved'] ?? false;
-    
+
     if (!isApproved) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('✅ Phone verified! ⏳ Awaiting admin approval to activate CHW account')),
+        const SnackBar(
+          content: Text(
+            '✅ Phone verified! ⏳ Awaiting admin approval to activate CHW account',
+          ),
+        ),
       );
       await _auth.signOut();
       context.go('/login'); // Use GoRouter navigation
@@ -105,9 +108,9 @@ class _CHWCreateAccountScreenState extends State<CHWCreateAccountScreen> {
 
   Future<void> _resendCode() async {
     if (phoneController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter your phone number')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Enter your phone number')));
       return;
     }
 
@@ -128,18 +131,18 @@ class _CHWCreateAccountScreenState extends State<CHWCreateAccountScreen> {
             _resendToken = resendToken ?? 0;
           });
           _startCountdown();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('📩 OTP resent')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('📩 OTP resent')));
         },
         codeAutoRetrievalTimeout: (String verificationId) {
           _verificationId = verificationId;
         },
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 
@@ -173,13 +176,29 @@ class _CHWCreateAccountScreenState extends State<CHWCreateAccountScreen> {
                 children: [
                   _buildTextField('Full Name', fullNameController),
                   const SizedBox(height: 15),
-                  _buildTextField('Email', emailController, keyboardType: TextInputType.emailAddress),
+                  _buildTextField(
+                    'Email',
+                    emailController,
+                    keyboardType: TextInputType.emailAddress,
+                  ),
                   const SizedBox(height: 15),
-                  _buildTextField('Phone (+234)', phoneController, keyboardType: TextInputType.phone),
+                  _buildTextField(
+                    'Phone (+234)',
+                    phoneController,
+                    keyboardType: TextInputType.phone,
+                  ),
                   const SizedBox(height: 15),
-                  _buildTextField('Password', passwordController, obscureText: true),
+                  _buildTextField(
+                    'Password',
+                    passwordController,
+                    obscureText: true,
+                  ),
                   const SizedBox(height: 15),
-                  _buildTextField('Confirm Password', confirmPasswordController, obscureText: true),
+                  _buildTextField(
+                    'Confirm Password',
+                    confirmPasswordController,
+                    obscureText: true,
+                  ),
                   const SizedBox(height: 30),
                   // Registration button
                   ElevatedButton(
@@ -188,21 +207,27 @@ class _CHWCreateAccountScreenState extends State<CHWCreateAccountScreen> {
                       final email = emailController.text.trim();
                       final phone = phoneController.text.trim();
                       final password = passwordController.text.trim();
-                      final confirmPassword = confirmPasswordController.text.trim();
+                      final confirmPassword = confirmPasswordController.text
+                          .trim();
                       if (password != confirmPassword) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Passwords do not match')),
+                          const SnackBar(
+                            content: Text('Passwords do not match'),
+                          ),
                         );
                         return;
                       }
                       setState(() => _isLoading = true);
                       try {
-                        UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-                          email: email,
-                          password: password,
-                        );
+                        UserCredential userCredential = await _auth
+                            .createUserWithEmailAndPassword(
+                              email: email,
+                              password: password,
+                            );
                         final user = userCredential.user;
-                        if (user == null) throw Exception('User creation failed');
+                        if (user == null) {
+                          throw Exception('User creation failed');
+                        }
                         await _firestore.collection('users').doc(user.uid).set({
                           'fullName': fullName,
                           'email': email,
@@ -211,14 +236,17 @@ class _CHWCreateAccountScreenState extends State<CHWCreateAccountScreen> {
                           'isPhoneVerified': false,
                           'isApproved': false, // CHWs now need admin approval
                           'isRejected': false,
-                          'emailVerified': true, // CHWs don't need email verification 
+                          'emailVerified':
+                              true, // CHWs don't need email verification
                           'createdAt': FieldValue.serverTimestamp(),
                         });
                         // Show dialog and send email about admin approval requirement
                         await showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
-                            content: const Text('Account created! Please verify your email (check spam folder if not in inbox). Your account will be active after admin approval. You will receive an email once approved.'),
+                            content: const Text(
+                              'Account created! Please verify your email (check spam folder if not in inbox). Your account will be active after admin approval. You will receive an email once approved.',
+                            ),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.of(context).pop(),
@@ -231,19 +259,29 @@ class _CHWCreateAccountScreenState extends State<CHWCreateAccountScreen> {
                         _auth.verifyPhoneNumber(
                           phoneNumber: phone,
                           timeout: const Duration(seconds: 60),
-                          verificationCompleted: (PhoneAuthCredential credential) async {
-                            final currentUser = _auth.currentUser;
-                            if (currentUser != null) {
-                              await currentUser.linkWithCredential(credential);
-                              await _firestore.collection('users').doc(currentUser.uid).update({
-                                'isPhoneVerified': true,
-                              });
-                              await _handleApprovalAndRedirect(currentUser.uid);
-                            }
-                          },
+                          verificationCompleted:
+                              (PhoneAuthCredential credential) async {
+                                final currentUser = _auth.currentUser;
+                                if (currentUser != null) {
+                                  await currentUser.linkWithCredential(
+                                    credential,
+                                  );
+                                  await _firestore
+                                      .collection('users')
+                                      .doc(currentUser.uid)
+                                      .update({'isPhoneVerified': true});
+                                  await _handleApprovalAndRedirect(
+                                    currentUser.uid,
+                                  );
+                                }
+                              },
                           verificationFailed: (FirebaseAuthException e) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Phone verification failed: ${e.message}')),
+                              SnackBar(
+                                content: Text(
+                                  'Phone verification failed: ${e.message}',
+                                ),
+                              ),
                             );
                           },
                           codeSent: (String verificationId, int? resendToken) {
@@ -254,7 +292,9 @@ class _CHWCreateAccountScreenState extends State<CHWCreateAccountScreen> {
                             });
                             _startCountdown();
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('📩 OTP sent to your phone')),
+                              const SnackBar(
+                                content: Text('📩 OTP sent to your phone'),
+                              ),
                             );
                           },
                           codeAutoRetrievalTimeout: (String verificationId) {
@@ -276,17 +316,25 @@ class _CHWCreateAccountScreenState extends State<CHWCreateAccountScreen> {
                     Column(
                       children: [
                         const SizedBox(height: 20),
-                        _buildTextField('Enter OTP', otpController, keyboardType: TextInputType.number),
+                        _buildTextField(
+                          'Enter OTP',
+                          otpController,
+                          keyboardType: TextInputType.number,
+                        ),
                         const SizedBox(height: 10),
                         ElevatedButton(
-                          onPressed: _isVerifying ? null : _verifyOtpAndLinkPhone,
+                          onPressed: _isVerifying
+                              ? null
+                              : _verifyOtpAndLinkPhone,
                           child: const Text('Verify OTP'),
                         ),
                         TextButton(
                           onPressed: _timerSeconds == 0 ? _resendCode : null,
-                          child: Text(_timerSeconds == 0
-                              ? 'Resend OTP'
-                              : 'Resend OTP in $_timerSeconds s'),
+                          child: Text(
+                            _timerSeconds == 0
+                                ? 'Resend OTP'
+                                : 'Resend OTP in $_timerSeconds s',
+                          ),
                         ),
                       ],
                     ),
@@ -297,9 +345,7 @@ class _CHWCreateAccountScreenState extends State<CHWCreateAccountScreen> {
           if (_isLoading || _isVerifying)
             Container(
               color: Colors.black.withOpacity(0.3),
-              child: const Center(
-                child: CircularProgressIndicator(),
-              ),
+              child: const Center(child: CircularProgressIndicator()),
             ),
         ],
       ),
@@ -325,4 +371,5 @@ class _CHWCreateAccountScreenState extends State<CHWCreateAccountScreen> {
     );
   }
 }
+
 /// Allows CHWs to create an account, verify phone, and await admin approval before dashboard access.

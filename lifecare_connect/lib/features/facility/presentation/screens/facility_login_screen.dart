@@ -22,14 +22,17 @@ class _FacilityLoginScreenState extends State<FacilityLoginScreen> {
     setState(() => loading = true);
     final staffId = staffIdController.text.trim();
     final password = staffPasswordController.text.trim();
-    const facilityName = 'chana health center'; // TODO: Replace with actual selected facility
-    final collection = '${facilityName.toLowerCase().replaceAll(' ', '_')}_users';
+    const facilityName =
+        'chana health center'; // TODO: Replace with actual selected facility
+    final collection =
+        '${facilityName.toLowerCase().replaceAll(' ', '_')}_users';
     try {
-      final query = await FirebaseFirestore.instance.collection(collection)
-        .where('staffId', isEqualTo: staffId)
-        .where('status', isEqualTo: 'approved')
-        .limit(1)
-        .get();
+      final query = await FirebaseFirestore.instance
+          .collection(collection)
+          .where('staffId', isEqualTo: staffId)
+          .where('status', isEqualTo: 'approved')
+          .limit(1)
+          .get();
       if (query.docs.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Staff not found or not approved.')),
@@ -38,9 +41,9 @@ class _FacilityLoginScreenState extends State<FacilityLoginScreen> {
       }
       final staff = query.docs.first.data();
       if (staff['password'] != password) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Incorrect password.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Incorrect password.')));
         return;
       }
       // Save role and staff info to SharedPreferences if needed
@@ -50,13 +53,14 @@ class _FacilityLoginScreenState extends State<FacilityLoginScreen> {
       // Navigate to staff dashboard
       Navigator.pushNamed(context, '/facility_staff_dashboard');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Login failed: $e')));
     } finally {
       setState(() => loading = false);
     }
   }
+
   bool isAdminLogin = true;
   final staffIdController = TextEditingController();
   final staffPasswordController = TextEditingController();
@@ -88,7 +92,6 @@ class _FacilityLoginScreenState extends State<FacilityLoginScreen> {
 
     setState(() => loading = true);
 
-
     try {
       final credential = await _auth.signInWithEmailAndPassword(
         email: emailController.text.trim(),
@@ -99,9 +102,9 @@ class _FacilityLoginScreenState extends State<FacilityLoginScreen> {
         await _navigateBasedOnRole(credential.user!.uid);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Login failed: $e')));
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -131,21 +134,23 @@ class _FacilityLoginScreenState extends State<FacilityLoginScreen> {
   Future<void> resetPassword() async {
     final email = emailController.text.trim();
     if (email.isEmpty || !email.contains('@')) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a valid email')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Enter a valid email')));
       return;
     }
 
     try {
       await _auth.sendPasswordResetEmail(email: email);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password reset email sent. Check your inbox.')),
+        const SnackBar(
+          content: Text('Password reset email sent. Check your inbox.'),
+        ),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to send reset email: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to send reset email: $e')));
     }
   }
 
@@ -189,7 +194,10 @@ class _FacilityLoginScreenState extends State<FacilityLoginScreen> {
                         border: OutlineInputBorder(),
                       ),
                       keyboardType: TextInputType.emailAddress,
-                      validator: (value) => value == null || !value.contains('@') ? 'Enter a valid email' : null,
+                      validator: (value) =>
+                          value == null || !value.contains('@')
+                          ? 'Enter a valid email'
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -200,12 +208,18 @@ class _FacilityLoginScreenState extends State<FacilityLoginScreen> {
                         border: const OutlineInputBorder(),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            obscurePassword ? Icons.visibility_off : Icons.visibility,
+                            obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                           ),
-                          onPressed: () => setState(() => obscurePassword = !obscurePassword),
+                          onPressed: () => setState(
+                            () => obscurePassword = !obscurePassword,
+                          ),
                         ),
                       ),
-                      validator: (value) => value == null || value.length < 6 ? 'Enter 6+ character password' : null,
+                      validator: (value) => value == null || value.length < 6
+                          ? 'Enter 6+ character password'
+                          : null,
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton.icon(
@@ -214,7 +228,10 @@ class _FacilityLoginScreenState extends State<FacilityLoginScreen> {
                           ? const SizedBox(
                               width: 18,
                               height: 18,
-                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
                             )
                           : const Icon(Icons.login),
                       label: const Text("Login"),
@@ -228,15 +245,20 @@ class _FacilityLoginScreenState extends State<FacilityLoginScreen> {
                       child: const Text('Forgot password?'),
                     ),
                     TextButton(
-                      onPressed: loading ? null : () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const OwnerRegisterFacilityScreen(),
-                            ),
-                          );
-                        },
-                      child: const Text("Don't have an account? Register Facility"),
+                      onPressed: loading
+                          ? null
+                          : () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const OwnerRegisterFacilityScreen(),
+                                ),
+                              );
+                            },
+                      child: const Text(
+                        "Don't have an account? Register Facility",
+                      ),
                     ),
                   ],
                 ),
@@ -267,7 +289,10 @@ class _FacilityLoginScreenState extends State<FacilityLoginScreen> {
                         ? const SizedBox(
                             width: 18,
                             height: 18,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
                           )
                         : const Icon(Icons.login),
                     label: const Text("Login as Staff"),

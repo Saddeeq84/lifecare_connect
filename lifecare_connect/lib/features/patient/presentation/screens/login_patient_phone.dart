@@ -30,6 +30,7 @@ class _LoginPatientPhoneState extends State<LoginPatientPhone> {
     print('DEBUG: Sending phone number to Firebase: $phone');
     return phone;
   }
+
   final _codeController = TextEditingController();
   String? _verificationId;
   bool _codeSent = false;
@@ -50,9 +51,9 @@ class _LoginPatientPhoneState extends State<LoginPatientPhone> {
       },
       verificationFailed: (e) {
         setState(() => _loading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.message}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.message}')));
       },
       codeSent: (verificationId, _) {
         setState(() {
@@ -66,10 +67,15 @@ class _LoginPatientPhoneState extends State<LoginPatientPhone> {
   }
 
   void _signInWithCode() async {
-    if (_verificationId == null || _verificationId!.isEmpty) {
+    final verificationId = _verificationId;
+    if (verificationId == null || verificationId.isEmpty) {
       debugPrint('[LOGIN] Verification ID is null or empty.');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login failed: Verification code not sent or expired. Please try again.')),
+        SnackBar(
+          content: Text(
+            'Login failed: Verification code not sent or expired. Please try again.',
+          ),
+        ),
       );
       return;
     }
@@ -84,58 +90,99 @@ class _LoginPatientPhoneState extends State<LoginPatientPhone> {
     }
 
     final credential = PhoneAuthProvider.credential(
-      verificationId: _verificationId!,
+      verificationId: verificationId,
       smsCode: smsCode,
     );
 
     try {
-      debugPrint('[LOGIN] Attempting signInWithCredential for verificationId=$_verificationId, smsCode=$smsCode');
-      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      debugPrint(
+        '[LOGIN] Attempting signInWithCredential for verificationId=$_verificationId, smsCode=$smsCode',
+      );
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(
+        credential,
+      );
       debugPrint('[LOGIN] signInWithCredential result: $userCredential');
       final user = userCredential.user;
       if (user == null) {
         debugPrint('[LOGIN] FirebaseAuth returned null user for credential.');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login failed: No user found for this phone number. (Auth user is null)')),
+          SnackBar(
+            content: Text(
+              'Login failed: No user found for this phone number. (Auth user is null)',
+            ),
+          ),
         );
         return;
       }
-      debugPrint('[LOGIN] Authenticated user UID: ${user.uid}, phone: ${user.phoneNumber}');
+      debugPrint(
+        '[LOGIN] Authenticated user UID: ${user.uid}, phone: ${user.phoneNumber}',
+      );
+
       // Fetch user role from Firestore
-        final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-        debugPrint('[LOGIN] Firestore userDoc.exists: ${userDoc.exists}');
-        Map<String, dynamic>? userData;
-        if (!userDoc.exists) {
-          debugPrint('[LOGIN] No Firestore profile found for UID: ${user.uid}. Attempting phone lookup...');
-          // Try to find user by phone number in E.164 format
-          final phone = user.phoneNumber ?? '';
-          final phoneQuery = await FirebaseFirestore.instance.collection('users')
-              .where('phone', isEqualTo: phone)
-              .limit(1)
-              .get();
-          if (phoneQuery.docs.isNotEmpty) {
-            userData = phoneQuery.docs.first.data();
-            debugPrint('[LOGIN] Found Firestore user by phone: $userData');
-            // Optionally, migrate this user to correct UID
-            await FirebaseFirestore.instance.collection('users').doc(user.uid).set(userData);
-          } else {
-            debugPrint('[LOGIN] No Firestore profile found for phone: $phone');
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Login failed: No profile found for this user in Firestore. UID: ${user.uid}, phone: $phone. Please contact support.')),
-            );
-            return;
-          }
-        } else {
-          userData = userDoc.data();
-          if (userData == null) {
-            debugPrint('[LOGIN] Firestore user data is null for UID: ${user.uid}');
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Login failed: Firestore user data is null for UID: ${user.uid}.')),
-            );
-            return;
-          }
-          debugPrint('[LOGIN] Firestore user data: $userData');
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      debugPrint('[LOGIN] Firestore userDoc.exists: ${userDoc.exists}');
+      Map<String, dynamic>? userData;
+      if (!userDoc.exists) {
+        debugPrint(
+          '[LOGIN] No Firestore profile found for UID: ${user.uid}. Attempting phone lookup...',
+        );
+        // Try to find user by phone number in E.164 format
+        final phone = user.phoneNumber ?? '';
+        if (phone.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Login failed: No phone number found for this user. Please contact support.',
+              ),
+            ),
+          );
+          return;
         }
+        final phoneQuery = await FirebaseFirestore.instance
+            .collection('users')
+            .where('phone', isEqualTo: phone)
+            .limit(1)
+            .get();
+        if (phoneQuery.docs.isNotEmpty) {
+          userData = phoneQuery.docs.first.data();
+          debugPrint('[LOGIN] Found Firestore user by phone: $userData');
+          // Optionally, migrate this user to correct UID
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .set(userData);
+        } else {
+          debugPrint('[LOGIN] No Firestore profile found for phone: $phone');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Login failed: No profile found for this user in Firestore. UID: ${user.uid}, phone: $phone. Please contact support.',
+              ),
+            ),
+          );
+          return;
+        }
+      } else {
+        userData = userDoc.data();
+        if (userData == null) {
+          debugPrint(
+            '[LOGIN] Firestore user data is null for UID: ${user.uid}',
+          );
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Login failed: Firestore user data is null for UID: ${user.uid}. Please contact support.',
+              ),
+            ),
+          );
+          return;
+        }
+        debugPrint('[LOGIN] Firestore user data: $userData');
+      }
+
       // Defensive: fallback to 'patient' if role is missing or null
       String role = (userData['role'] ?? 'patient').toString().toLowerCase();
       if (role.isEmpty) role = 'patient';
@@ -175,13 +222,14 @@ class _LoginPatientPhoneState extends State<LoginPatientPhone> {
       } else {
         errorMsg += e.message ?? e.toString();
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMsg)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMsg)));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login failed: ${e.toString()}')),
-      );
+      debugPrint('[LOGIN] Unexpected error: $e');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Login failed: ${e.toString()}')));
     }
   }
 
@@ -195,10 +243,12 @@ class _LoginPatientPhoneState extends State<LoginPatientPhone> {
   @override
   Widget build(BuildContext context) {
     // For web reCAPTCHA container
-    final recaptchaWidget = kIsWeb ? Container(
-      key: const ValueKey('recaptcha-container'),
-      child: const SizedBox.shrink(),
-    ) : const SizedBox.shrink();
+    final recaptchaWidget = kIsWeb
+        ? Container(
+            key: const ValueKey('recaptcha-container'),
+            child: const SizedBox.shrink(),
+          )
+        : const SizedBox.shrink();
     return Scaffold(
       appBar: AppBar(
         title: const Text("Patient Phone Login"),
@@ -216,7 +266,10 @@ class _LoginPatientPhoneState extends State<LoginPatientPhone> {
             children: [
               recaptchaWidget,
               Container(
-                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 20,
+                  horizontal: 16,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.teal,
                   borderRadius: BorderRadius.circular(12),
@@ -248,7 +301,9 @@ class _LoginPatientPhoneState extends State<LoginPatientPhone> {
               TextButton(
                 onPressed: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const PatientRegisterScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => const PatientRegisterScreen(),
+                  ),
                 ),
                 child: const Text(
                   "Don't have an account? Create one",
@@ -286,7 +341,10 @@ class _LoginPatientPhoneState extends State<LoginPatientPhone> {
               ? const SizedBox(
                   height: 24,
                   width: 24,
-                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 3,
+                  ),
                 )
               : const Text("Send Verification Code"),
           style: ElevatedButton.styleFrom(

@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -19,7 +17,6 @@ class _LoginDoctorScreenState extends State<LoginDoctorScreen> {
   final passwordController = TextEditingController();
   final _auth = FirebaseAuth.instance;
 
-
   bool loading = false;
 
   @override
@@ -34,7 +31,6 @@ class _LoginDoctorScreenState extends State<LoginDoctorScreen> {
 
     setState(() => loading = true);
 
-
     try {
       await _auth.signInWithEmailAndPassword(
         email: emailController.text.trim(),
@@ -44,11 +40,10 @@ class _LoginDoctorScreenState extends State<LoginDoctorScreen> {
       if (mounted) {
         context.go('/doctor_dashboard');
       }
-
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Login failed: $e')));
     } finally {
       setState(() => loading = false);
     }
@@ -57,9 +52,9 @@ class _LoginDoctorScreenState extends State<LoginDoctorScreen> {
   Future<void> resetPassword() async {
     final email = emailController.text.trim();
     if (!email.contains('@')) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a valid email')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Enter a valid email')));
       return;
     }
 
@@ -69,9 +64,9 @@ class _LoginDoctorScreenState extends State<LoginDoctorScreen> {
         const SnackBar(content: Text('Reset email sent. Check your inbox.')),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to send reset email: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to send reset email: $e')));
     }
   }
 
@@ -96,7 +91,10 @@ class _LoginDoctorScreenState extends State<LoginDoctorScreen> {
                 Container(
                   width: double.infinity,
                   color: Colors.teal,
-                  padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 24,
+                    horizontal: 16,
+                  ),
                   child: const Text(
                     'Welcome back, Doctor!',
                     textAlign: TextAlign.center,
@@ -122,8 +120,8 @@ class _LoginDoctorScreenState extends State<LoginDoctorScreen> {
                           keyboardType: TextInputType.emailAddress,
                           validator: (value) =>
                               value == null || !value.contains('@')
-                                  ? 'Enter a valid email'
-                                  : null,
+                              ? 'Enter a valid email'
+                              : null,
                         ),
                         const SizedBox(height: 10),
                         TextFormField(
@@ -135,8 +133,8 @@ class _LoginDoctorScreenState extends State<LoginDoctorScreen> {
                           ),
                           validator: (value) =>
                               value == null || value.length < 6
-                                  ? 'Minimum 6 characters'
-                                  : null,
+                              ? 'Minimum 6 characters'
+                              : null,
                         ),
                         const SizedBox(height: 20),
                         ElevatedButton(
@@ -146,7 +144,9 @@ class _LoginDoctorScreenState extends State<LoginDoctorScreen> {
                           ),
                           onPressed: loading ? null : handleLogin,
                           child: loading
-                              ? const CircularProgressIndicator(color: Colors.white)
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
                               : const Text('Login'),
                         ),
                         const SizedBox(height: 12),
@@ -159,11 +159,14 @@ class _LoginDoctorScreenState extends State<LoginDoctorScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => const DoctorCreateAccountScreen(),
+                                builder: (_) =>
+                                    const DoctorCreateAccountScreen(),
                               ),
                             );
                           },
-                          child: const Text("Don't have an account? Create Doctor account"),
+                          child: const Text(
+                            "Don't have an account? Create Doctor account",
+                          ),
                         ),
                       ],
                     ),

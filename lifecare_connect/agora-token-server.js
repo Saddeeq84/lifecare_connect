@@ -5,8 +5,9 @@ const app = express();
 const APP_ID = process.env.AGORA_APP_ID;
 const APP_CERTIFICATE = process.env.AGORA_APP_CERTIFICATE;
 
+
 app.get('/agora-token', (req, res) => {
-  const channelName = req.query.channelName; // appointment ID from your app
+  const channelName = req.query.channelName;
   const uid = req.query.uid || 0;
   const role = RtcRole.PUBLISHER;
   const expireTime = 3600; // 1 hour
@@ -18,10 +19,11 @@ app.get('/agora-token', (req, res) => {
     return res.status(400).json({ error: 'Missing channelName' });
   }
 
+  const expireTimestamp = Math.floor(Date.now() / 1000) + expireTime;
   const token = RtcTokenBuilder.buildTokenWithUid(
-    APP_ID, APP_CERTIFICATE, channelName, uid, role, expireTime
+    APP_ID, APP_CERTIFICATE, channelName, uid, role, expireTimestamp
   );
-  res.json({ token });
+  res.json({ rtcToken: token });
 });
 
 const PORT = process.env.PORT || 3000;

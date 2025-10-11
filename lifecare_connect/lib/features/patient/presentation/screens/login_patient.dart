@@ -15,7 +15,8 @@ class LoginPatient extends StatefulWidget {
   State<LoginPatient> createState() => _LoginPatientState();
 }
 
-class _LoginPatientState extends State<LoginPatient> with SingleTickerProviderStateMixin {
+class _LoginPatientState extends State<LoginPatient>
+    with SingleTickerProviderStateMixin {
   // Removed Twilio OTP state and methods
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
@@ -43,7 +44,6 @@ class _LoginPatientState extends State<LoginPatient> with SingleTickerProviderSt
 
     setState(() => _isLoading = true);
 
-
     try {
       final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
@@ -52,14 +52,21 @@ class _LoginPatientState extends State<LoginPatient> with SingleTickerProviderSt
 
       if (credential.user != null) {
         // Check email verification for self-registered patients
-  final userDoc = await FirebaseFirestore.instance.collection('users').doc(credential.user?.uid ?? '').get();
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(credential.user?.uid ?? '')
+            .get();
         final userData = userDoc.data();
         final registeredBy = userData != null ? userData['registeredBy'] : null;
-  final emailVerified = credential.user?.emailVerified ?? false;
+        final emailVerified = credential.user?.emailVerified ?? false;
         if (registeredBy == 'self' && !emailVerified) {
           await FirebaseAuth.instance.signOut();
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Please verify your email before logging in. Check your inbox.')),
+            SnackBar(
+              content: Text(
+                'Please verify your email before logging in. Check your inbox.',
+              ),
+            ),
           );
           setState(() => _isLoading = false);
           return;
@@ -69,7 +76,10 @@ class _LoginPatientState extends State<LoginPatient> with SingleTickerProviderSt
           await _saveUserRoleAndNavigate(credential.user!.uid);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('User not found. Cannot navigate.'), backgroundColor: Colors.red),
+            const SnackBar(
+              content: Text('User not found. Cannot navigate.'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }
@@ -80,9 +90,13 @@ class _LoginPatientState extends State<LoginPatient> with SingleTickerProviderSt
       } else if (e.code == 'wrong-password') {
         message = 'Incorrect password.';
       }
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Login failed: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Login failed: $e')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -164,10 +178,7 @@ class _LoginPatientState extends State<LoginPatient> with SingleTickerProviderSt
       backgroundColor: Colors.grey.shade100,
       body: TabBarView(
         controller: _tabController,
-        children: [
-          _buildEmailLoginTab(),
-          _buildPhoneLoginShortcut(),
-        ],
+        children: [_buildEmailLoginTab(), _buildPhoneLoginShortcut()],
       ),
     );
   }
@@ -198,7 +209,9 @@ class _LoginPatientState extends State<LoginPatient> with SingleTickerProviderSt
               decoration: InputDecoration(
                 labelText: 'Password',
                 suffixIcon: IconButton(
-                  icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                  ),
                   onPressed: () {
                     setState(() {
                       _obscurePassword = !_obscurePassword;
@@ -239,12 +252,16 @@ class _LoginPatientState extends State<LoginPatient> with SingleTickerProviderSt
                 final email = _emailController.text.trim();
                 if (email.isEmpty || !email.contains('@')) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Enter a valid email to reset password.')),
+                    const SnackBar(
+                      content: Text('Enter a valid email to reset password.'),
+                    ),
                   );
                   return;
                 }
                 try {
-                  await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+                  await FirebaseAuth.instance.sendPasswordResetEmail(
+                    email: email,
+                  );
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Password reset email sent.')),
                   );

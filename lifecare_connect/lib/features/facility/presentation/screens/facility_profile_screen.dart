@@ -24,7 +24,7 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
   final _servicesController = TextEditingController();
   final _operatingHoursController = TextEditingController();
   final _emergencyContactController = TextEditingController();
-  
+
   bool _isLoading = true;
   bool _isEditing = false;
   bool _isSaving = false;
@@ -65,9 +65,9 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading profile: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading profile: $e')));
       }
     } finally {
       if (mounted) {
@@ -77,12 +77,14 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
   }
 
   void _populateFields() {
-    _facilityNameController.text = _facilityData['facilityName'] ?? _facilityData['name'] ?? '';
+    _facilityNameController.text =
+        _facilityData['facilityName'] ?? _facilityData['name'] ?? '';
     _emailController.text = _facilityData['email'] ?? '';
     _phoneController.text = _facilityData['phone'] ?? '';
     _addressController.text = _facilityData['address'] ?? '';
     _descriptionController.text = _facilityData['description'] ?? '';
-    _servicesController.text = (_facilityData['services'] as List?)?.join(', ') ?? '';
+    _servicesController.text =
+        (_facilityData['services'] as List?)?.join(', ') ?? '';
     _operatingHoursController.text = _facilityData['operatingHours'] ?? '';
     _emergencyContactController.text = _facilityData['emergencyContact'] ?? '';
   }
@@ -105,7 +107,8 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
 
       final updateData = {
         'facilityName': _facilityNameController.text.trim(),
-        'name': _facilityNameController.text.trim(), // Keep both for compatibility
+        'name': _facilityNameController.text
+            .trim(), // Keep both for compatibility
         'phone': _phoneController.text.trim(),
         'address': _addressController.text.trim(),
         'description': _descriptionController.text.trim(),
@@ -126,7 +129,7 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
           _isEditing = false;
           _facilityData.addAll(updateData);
         });
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('✅ Profile updated successfully!'),
@@ -136,9 +139,9 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error updating profile: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error updating profile: $e')));
       }
     } finally {
       if (mounted) {
@@ -178,24 +181,30 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
                 setState(() => _isEditing = false);
                 _populateFields(); // Reset fields
               },
-              child: const Text('Cancel', style: TextStyle(color: Colors.white)),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
             _isSaving
-              ? Container(
-                  padding: const EdgeInsets.all(14),
-                  child: const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ? Container(
+                    padding: const EdgeInsets.all(14),
+                    child: const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    ),
+                  )
+                : TextButton(
+                    onPressed: _saveProfile,
+                    child: const Text(
+                      'Save',
+                      style: TextStyle(color: Colors.white),
                     ),
                   ),
-                )
-              : TextButton(
-                  onPressed: _saveProfile,
-                  child: const Text('Save', style: TextStyle(color: Colors.white)),
-                ),
           ],
         ],
       ),
@@ -226,7 +235,9 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      _facilityData['facilityName'] ?? _facilityData['name'] ?? 'Facility Name',
+                      _facilityData['facilityName'] ??
+                          _facilityData['name'] ??
+                          'Facility Name',
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -235,7 +246,10 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
                     ),
                     const SizedBox(height: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.teal.shade100,
                         borderRadius: BorderRadius.circular(16),
@@ -251,13 +265,13 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // Facility Information
               _buildSectionTitle('Facility Information'),
               const SizedBox(height: 16),
-              
+
               _buildTextFormField(
                 controller: _facilityNameController,
                 label: 'Facility Name',
@@ -270,9 +284,9 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
                   return null;
                 },
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               _buildTextFormField(
                 controller: _emailController,
                 label: 'Email Address',
@@ -280,9 +294,9 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
                 enabled: false, // Email should not be editable
                 keyboardType: TextInputType.emailAddress,
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               _buildTextFormField(
                 controller: _phoneController,
                 label: 'Phone Number',
@@ -296,9 +310,9 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
                   return null;
                 },
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               _buildTextFormField(
                 controller: _addressController,
                 label: 'Address',
@@ -312,35 +326,37 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
                   return null;
                 },
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Service Information
               _buildSectionTitle('Service Information'),
               const SizedBox(height: 16),
-              
+
               _buildTextFormField(
                 controller: _descriptionController,
                 label: 'Facility Description',
                 icon: Icons.description,
                 enabled: _isEditing,
                 maxLines: 3,
-                hintText: 'Describe your facility, specializations, and services...',
+                hintText:
+                    'Describe your facility, specializations, and services...',
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               _buildTextFormField(
                 controller: _servicesController,
                 label: 'Services Offered',
                 icon: Icons.medical_services,
                 enabled: _isEditing,
                 maxLines: 2,
-                hintText: 'Emergency care, Surgery, Laboratory, Radiology, etc. (comma-separated)',
+                hintText:
+                    'Emergency care, Surgery, Laboratory, Radiology, etc. (comma-separated)',
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               _buildTextFormField(
                 controller: _operatingHoursController,
                 label: 'Operating Hours',
@@ -348,9 +364,9 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
                 enabled: _isEditing,
                 hintText: 'Mon-Fri: 8:00 AM - 6:00 PM, Sat: 9:00 AM - 2:00 PM',
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               _buildTextFormField(
                 controller: _emergencyContactController,
                 label: 'Emergency Contact',
@@ -359,9 +375,9 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
                 keyboardType: TextInputType.phone,
                 hintText: '24/7 emergency contact number',
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // Statistics Section (if not editing)
               if (!_isEditing) ...[
                 _buildSectionTitle('Facility Statistics'),
@@ -369,7 +385,7 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
                 _buildStatisticsCards(),
                 const SizedBox(height: 32),
               ],
-              
+
               // Profile Completeness
               if (!_isEditing) ...[
                 _buildSectionTitle('Profile Status'),
@@ -380,7 +396,6 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
                 const SizedBox(height: 16),
                 _buildDocumentUploadCard(context),
               ],
-
             ],
           ),
         ),
@@ -419,9 +434,7 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
         labelText: label,
         hintText: hintText,
         prefixIcon: Icon(icon, color: enabled ? Colors.teal : Colors.grey),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         filled: true,
         fillColor: enabled ? Colors.white : Colors.grey.shade100,
         disabledBorder: OutlineInputBorder(
@@ -465,7 +478,12 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -487,10 +505,7 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
           ),
           Text(
             title,
-            style: TextStyle(
-              fontSize: 12,
-              color: color,
-            ),
+            style: TextStyle(fontSize: 12, color: color),
             textAlign: TextAlign.center,
           ),
         ],
@@ -504,12 +519,13 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
       _facilityData['phone'],
       _facilityData['address'],
     ];
-    
-    final completedFields = requiredFields.where((field) => 
-      field != null && field.toString().trim().isNotEmpty).length;
-    
+
+    final completedFields = requiredFields
+        .where((field) => field != null && field.toString().trim().isNotEmpty)
+        .length;
+
     final percentage = (completedFields / requiredFields.length * 100).round();
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -558,6 +574,7 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
       ),
     );
   }
+
   Widget _buildDocumentUploadCard(BuildContext context) {
     final docUrl = _facilityData['documentUrl'] as String?;
     return Card(
@@ -574,12 +591,21 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
                   const Icon(Icons.check_circle, color: Colors.green),
                   const SizedBox(width: 8),
                   const Expanded(
-                    child: Text('Document uploaded', style: TextStyle(color: Colors.green, fontWeight: FontWeight.w500)),
+                    child: Text(
+                      'Document uploaded',
+                      style: TextStyle(
+                        color: Colors.green,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
                   TextButton(
                     onPressed: () async {
                       if (await canLaunchUrl(Uri.parse(docUrl))) {
-                        await launchUrl(Uri.parse(docUrl), mode: LaunchMode.externalApplication);
+                        await launchUrl(
+                          Uri.parse(docUrl),
+                          mode: LaunchMode.externalApplication,
+                        );
                       }
                     },
                     child: const Text('View'),
@@ -592,14 +618,22 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
                   Icon(Icons.warning, color: Colors.orange),
                   SizedBox(width: 8),
                   Expanded(
-                    child: Text('No document uploaded', style: TextStyle(color: Colors.orange, fontWeight: FontWeight.w500)),
+                    child: Text(
+                      'No document uploaded',
+                      style: TextStyle(
+                        color: Colors.orange,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
                 ],
               ),
             const SizedBox(height: 12),
             ElevatedButton.icon(
               icon: const Icon(Icons.upload_file),
-              label: Text(docUrl == null ? 'Upload Document' : 'Re-upload Document'),
+              label: Text(
+                docUrl == null ? 'Upload Document' : 'Re-upload Document',
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.teal,
                 foregroundColor: Colors.white,
@@ -615,21 +649,30 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
 
   Future<void> _pickAndUploadDocument(BuildContext context) async {
     try {
-      final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx']);
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'],
+      );
       if (result == null || result.files.isEmpty) return;
       final file = result.files.first;
       final fileBytes = file.bytes;
       final fileName = file.name;
       if (fileBytes == null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to read file.')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Failed to read file.')));
         return;
       }
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('User not logged in.')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('User not logged in.')));
         return;
       }
-      final storageRef = FirebaseStorage.instance.ref().child('facility_documents/$userId/$fileName');
+      final storageRef = FirebaseStorage.instance.ref().child(
+        'facility_documents/$userId/$fileName',
+      );
       final uploadTask = storageRef.putData(fileBytes);
       final snapshot = await uploadTask.whenComplete(() {});
       final downloadUrl = await snapshot.ref.getDownloadURL();
@@ -642,10 +685,14 @@ class _FacilityProfileScreenState extends State<FacilityProfileScreen> {
         setState(() {
           _facilityData['documentUrl'] = downloadUrl;
         });
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Document uploaded successfully.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Document uploaded successfully.')),
+        );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to upload document: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to upload document: $e')));
     }
   }
 }

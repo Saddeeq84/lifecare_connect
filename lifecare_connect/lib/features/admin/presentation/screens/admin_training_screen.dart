@@ -65,10 +65,10 @@ class _AdminTrainingScreenState extends State<AdminTrainingScreen>
   }
 
   List<TrainingMaterial> _getMaterialsByStatus(String status) {
-    return _allMaterials.where((material) => material.status == status).toList();
+    return _allMaterials
+        .where((material) => material.status == status)
+        .toList();
   }
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -100,8 +100,14 @@ class _AdminTrainingScreenState extends State<AdminTrainingScreen>
               controller: _tabController,
               children: [
                 _buildMaterialsList(_allMaterials, 'All Materials'),
-                _buildMaterialsList(_getMaterialsByStatus('draft'), 'Draft Materials'),
-                _buildMaterialsList(_getMaterialsByStatus('published'), 'Published Materials'),
+                _buildMaterialsList(
+                  _getMaterialsByStatus('draft'),
+                  'Draft Materials',
+                ),
+                _buildMaterialsList(
+                  _getMaterialsByStatus('published'),
+                  'Published Materials',
+                ),
                 _buildStatisticsTab(),
               ],
             ),
@@ -125,16 +131,16 @@ class _AdminTrainingScreenState extends State<AdminTrainingScreen>
             SizedBox(height: 16),
             Text(
               'No $title Found',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Colors.grey,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(color: Colors.grey),
             ),
             SizedBox(height: 8),
             Text(
               'Create your first training material',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
             ),
           ],
         ),
@@ -175,10 +181,7 @@ class _AdminTrainingScreenState extends State<AdminTrainingScreen>
                       SizedBox(height: 4),
                       Text(
                         material.description,
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 14,
-                        ),
+                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -223,8 +226,7 @@ class _AdminTrainingScreenState extends State<AdminTrainingScreen>
                 _buildInfoChip(material.categoryDisplayText, Colors.green),
                 _buildInfoChip(material.difficultyDisplayText, Colors.orange),
                 _buildInfoChip(material.formattedDuration, Colors.purple),
-                if (material.isRequired)
-                  _buildInfoChip('Required', Colors.red),
+                if (material.isRequired) _buildInfoChip('Required', Colors.red),
               ],
             ),
             SizedBox(height: 12),
@@ -241,17 +243,16 @@ class _AdminTrainingScreenState extends State<AdminTrainingScreen>
                   SizedBox(width: 16),
                   Icon(Icons.star, size: 16, color: Colors.amber),
                   SizedBox(width: 4),
-                  Text('${material.averageRating!.toStringAsFixed(1)} (${material.ratingCount})'),
+                  Text(
+                    '${material.averageRating!.toStringAsFixed(1)} (${material.ratingCount})',
+                  ),
                 ],
               ],
             ),
             SizedBox(height: 8),
             Text(
               'Target Roles: ${material.targetRoles.join(', ')}',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
           ],
         ),
@@ -318,26 +319,46 @@ class _AdminTrainingScreenState extends State<AdminTrainingScreen>
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
         }
-        
+
         if (snapshot.hasError) {
           return Center(child: Text('Error loading statistics'));
         }
 
         final stats = snapshot.data ?? {};
-        
+
         return Padding(
           padding: EdgeInsets.all(16),
           child: Column(
             children: [
-              _buildStatCard('Total Materials', stats['totalMaterials']?.toString() ?? '0', Icons.school),
+              _buildStatCard(
+                'Total Materials',
+                stats['totalMaterials']?.toString() ?? '0',
+                Icons.school,
+              ),
               SizedBox(height: 16),
-              _buildStatCard('Published Materials', stats['publishedMaterials']?.toString() ?? '0', Icons.publish),
+              _buildStatCard(
+                'Published Materials',
+                stats['publishedMaterials']?.toString() ?? '0',
+                Icons.publish,
+              ),
               SizedBox(height: 16),
-              _buildStatCard('Total Users', stats['totalUsers']?.toString() ?? '0', Icons.people),
+              _buildStatCard(
+                'Total Users',
+                stats['totalUsers']?.toString() ?? '0',
+                Icons.people,
+              ),
               SizedBox(height: 16),
-              _buildStatCard('Total Completions', stats['totalCompletions']?.toString() ?? '0', Icons.check_circle),
+              _buildStatCard(
+                'Total Completions',
+                stats['totalCompletions']?.toString() ?? '0',
+                Icons.check_circle,
+              ),
               SizedBox(height: 16),
-              _buildStatCard('Avg Completion Rate', '${stats['averageCompletionRate']?.toStringAsFixed(1) ?? '0'}%', Icons.trending_up),
+              _buildStatCard(
+                'Avg Completion Rate',
+                '${stats['averageCompletionRate']?.toStringAsFixed(1) ?? '0'}%',
+                Icons.trending_up,
+              ),
             ],
           ),
         );
@@ -359,17 +380,11 @@ class _AdminTrainingScreenState extends State<AdminTrainingScreen>
                 children: [
                   Text(
                     title,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
                   Text(
                     value,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -460,7 +475,9 @@ class _AdminTrainingScreenState extends State<AdminTrainingScreen>
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Delete Material'),
-        content: Text('Are you sure you want to delete "${material.title}"? This action cannot be undone.'),
+        content: Text(
+          'Are you sure you want to delete "${material.title}"? This action cannot be undone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -535,7 +552,13 @@ class _CreateMaterialDialogState extends State<CreateMaterialDialog> {
   String? _fileUrl;
   bool _isUploading = false;
 
-  final List<String> _types = ['article', 'video', 'pdf', 'interactive', 'quiz'];
+  final List<String> _types = [
+    'article',
+    'video',
+    'pdf',
+    'interactive',
+    'quiz',
+  ];
   final List<String> _categories = [
     'general-health',
     'maternal-health',
@@ -544,7 +567,7 @@ class _CreateMaterialDialogState extends State<CreateMaterialDialog> {
     'nutrition',
   ];
   final List<String> _difficulties = ['beginner', 'intermediate', 'advanced'];
-  
+
   final List<String> _roles = ['chw', 'patient', 'doctor', 'facility'];
 
   @override
@@ -580,7 +603,7 @@ class _CreateMaterialDialogState extends State<CreateMaterialDialog> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.material != null;
-    
+
     return Dialog(
       child: Container(
         width: MediaQuery.of(context).size.width * 0.9,
@@ -649,11 +672,23 @@ class _CreateMaterialDialogState extends State<CreateMaterialDialog> {
                                 labelText: 'Type',
                                 border: OutlineInputBorder(),
                               ),
-                              items: _types.map((type) => DropdownMenuItem(
-                                value: type,
-                                child: Text(type.split('-').map((word) => 
-                                  word[0].toUpperCase() + word.substring(1)).join(' ')),
-                              )).toList(),
+                              items: _types
+                                  .map(
+                                    (type) => DropdownMenuItem(
+                                      value: type,
+                                      child: Text(
+                                        type
+                                            .split('-')
+                                            .map(
+                                              (word) =>
+                                                  word[0].toUpperCase() +
+                                                  word.substring(1),
+                                            )
+                                            .join(' '),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
                               onChanged: (value) {
                                 setState(() {
                                   _selectedType = value!;
@@ -669,11 +704,23 @@ class _CreateMaterialDialogState extends State<CreateMaterialDialog> {
                                 labelText: 'Category',
                                 border: OutlineInputBorder(),
                               ),
-                              items: _categories.map((category) => DropdownMenuItem(
-                                value: category,
-                                child: Text(category.split('-').map((word) => 
-                                  word[0].toUpperCase() + word.substring(1)).join(' ')),
-                              )).toList(),
+                              items: _categories
+                                  .map(
+                                    (category) => DropdownMenuItem(
+                                      value: category,
+                                      child: Text(
+                                        category
+                                            .split('-')
+                                            .map(
+                                              (word) =>
+                                                  word[0].toUpperCase() +
+                                                  word.substring(1),
+                                            )
+                                            .join(' '),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
                               onChanged: (value) {
                                 setState(() {
                                   _selectedCategory = value!;
@@ -693,10 +740,17 @@ class _CreateMaterialDialogState extends State<CreateMaterialDialog> {
                                 labelText: 'Difficulty',
                                 border: OutlineInputBorder(),
                               ),
-                              items: _difficulties.map((difficulty) => DropdownMenuItem(
-                                value: difficulty,
-                                child: Text(difficulty[0].toUpperCase() + difficulty.substring(1)),
-                              )).toList(),
+                              items: _difficulties
+                                  .map(
+                                    (difficulty) => DropdownMenuItem(
+                                      value: difficulty,
+                                      child: Text(
+                                        difficulty[0].toUpperCase() +
+                                            difficulty.substring(1),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
                               onChanged: (value) {
                                 setState(() {
                                   _selectedDifficulty = value!;
@@ -739,30 +793,39 @@ class _CreateMaterialDialogState extends State<CreateMaterialDialog> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Target Roles:', style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text(
+                            'Target Roles:',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                           SizedBox(height: 8),
                           Wrap(
                             spacing: 8,
-                            children: _roles.map((role) => FilterChip(
-                              label: Text(role.toUpperCase()),
-                              selected: _selectedRoles.contains(role),
-                              onSelected: (selected) {
-                                setState(() {
-                                  if (selected) {
-                                    _selectedRoles.add(role);
-                                  } else {
-                                    _selectedRoles.remove(role);
-                                  }
-                                });
-                              },
-                            )).toList(),
+                            children: _roles
+                                .map(
+                                  (role) => FilterChip(
+                                    label: Text(role.toUpperCase()),
+                                    selected: _selectedRoles.contains(role),
+                                    onSelected: (selected) {
+                                      setState(() {
+                                        if (selected) {
+                                          _selectedRoles.add(role);
+                                        } else {
+                                          _selectedRoles.remove(role);
+                                        }
+                                      });
+                                    },
+                                  ),
+                                )
+                                .toList(),
                           ),
                         ],
                       ),
                       SizedBox(height: 16),
                       CheckboxListTile(
                         title: Text('Required Training'),
-                        subtitle: Text('Mark as required training for selected roles'),
+                        subtitle: Text(
+                          'Mark as required training for selected roles',
+                        ),
                         value: _isRequired,
                         onChanged: (value) {
                           setState(() {
@@ -777,17 +840,28 @@ class _CreateMaterialDialogState extends State<CreateMaterialDialog> {
                             padding: EdgeInsets.all(16),
                             child: Column(
                               children: [
-                                Text('File Upload', style: TextStyle(fontWeight: FontWeight.bold)),
+                                Text(
+                                  'File Upload',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
                                 SizedBox(height: 8),
                                 if (_selectedFile != null)
-                                  Text('Selected: ${_selectedFile!.path.split('/').last}')
+                                  Text(
+                                    'Selected: ${_selectedFile!.path.split('/').last}',
+                                  )
                                 else if (_fileUrl != null)
-                                  Text('Current file: ${_fileUrl!.split('/').last}'),
+                                  Text(
+                                    'Current file: ${_fileUrl!.split('/').last}',
+                                  ),
                                 SizedBox(height: 8),
                                 ElevatedButton.icon(
                                   onPressed: _pickFile,
                                   icon: Icon(Icons.upload_file),
-                                  label: Text(_selectedFile != null || _fileUrl != null ? 'Change File' : 'Select File'),
+                                  label: Text(
+                                    _selectedFile != null || _fileUrl != null
+                                        ? 'Change File'
+                                        : 'Select File',
+                                  ),
                                 ),
                               ],
                             ),
@@ -818,7 +892,10 @@ class _CreateMaterialDialogState extends State<CreateMaterialDialog> {
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : Text(isEditing ? 'Update' : 'Create', style: TextStyle(color: Colors.white)),
+                      : Text(
+                          isEditing ? 'Update' : 'Create',
+                          style: TextStyle(color: Colors.white),
+                        ),
                 ),
               ],
             ),
@@ -832,7 +909,16 @@ class _CreateMaterialDialogState extends State<CreateMaterialDialog> {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['pdf', 'mp4', 'mov', 'avi', 'doc', 'docx', 'ppt', 'pptx'],
+        allowedExtensions: [
+          'pdf',
+          'mp4',
+          'mov',
+          'avi',
+          'doc',
+          'docx',
+          'ppt',
+          'pptx',
+        ],
       );
 
       if (result != null) {
@@ -841,9 +927,9 @@ class _CreateMaterialDialogState extends State<CreateMaterialDialog> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to pick file: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to pick file: $e')));
     }
   }
 
@@ -868,7 +954,8 @@ class _CreateMaterialDialogState extends State<CreateMaterialDialog> {
 
       // Upload file if selected
       if (_selectedFile != null) {
-        final fileName = '${DateTime.now().millisecondsSinceEpoch}_${_selectedFile!.path.split('/').last}';
+        final fileName =
+            '${DateTime.now().millisecondsSinceEpoch}_${_selectedFile!.path.split('/').last}';
         fileUrl = await TrainingService.uploadFile(
           file: _selectedFile!,
           fileName: fileName,
@@ -876,7 +963,11 @@ class _CreateMaterialDialogState extends State<CreateMaterialDialog> {
         );
       }
 
-      final tags = _tagsController.text.split(',').map((tag) => tag.trim()).where((tag) => tag.isNotEmpty).toList();
+      final tags = _tagsController.text
+          .split(',')
+          .map((tag) => tag.trim())
+          .where((tag) => tag.isNotEmpty)
+          .toList();
       final duration = int.parse(_durationController.text);
 
       if (widget.material != null) {
@@ -885,7 +976,9 @@ class _CreateMaterialDialogState extends State<CreateMaterialDialog> {
           materialId: widget.material!.id,
           title: _titleController.text.trim(),
           description: _descriptionController.text.trim(),
-          content: _selectedType == 'article' ? _contentController.text.trim() : null,
+          content: _selectedType == 'article'
+              ? _contentController.text.trim()
+              : null,
           fileUrl: fileUrl,
           type: _selectedType,
           category: _selectedCategory,
@@ -902,7 +995,9 @@ class _CreateMaterialDialogState extends State<CreateMaterialDialog> {
         await TrainingService.createTrainingMaterial(
           title: _titleController.text.trim(),
           description: _descriptionController.text.trim(),
-          content: _selectedType == 'article' ? _contentController.text.trim() : null,
+          content: _selectedType == 'article'
+              ? _contentController.text.trim()
+              : null,
           fileUrl: fileUrl,
           type: _selectedType,
           category: _selectedCategory,
@@ -921,7 +1016,9 @@ class _CreateMaterialDialogState extends State<CreateMaterialDialog> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Training material ${widget.material != null ? 'updated' : 'created'} successfully'),
+          content: Text(
+            'Training material ${widget.material != null ? 'updated' : 'created'} successfully',
+          ),
           backgroundColor: Colors.green,
         ),
       );

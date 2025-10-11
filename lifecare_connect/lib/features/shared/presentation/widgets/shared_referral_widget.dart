@@ -8,11 +8,7 @@ class SharedReferralWidget extends StatelessWidget {
   final String role;
   final String? userId;
 
-  const SharedReferralWidget({
-    super.key,
-    required this.role,
-    this.userId,
-  });
+  const SharedReferralWidget({super.key, required this.role, this.userId});
 
   @override
   Widget build(BuildContext context) {
@@ -57,34 +53,50 @@ class SharedReferralWidget extends StatelessWidget {
             final createdAt = referral['created_at'] as Timestamp?;
             final status = referral['status'] ?? 'pending';
             final urgency = referral['urgency'] ?? 'normal';
-            
+
             return Card(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: ListTile(
                 leading: CircleAvatar(
                   backgroundColor: _getUrgencyColor(urgency).withOpacity(0.1),
-                  child: Icon(Icons.compare_arrows, color: _getUrgencyColor(urgency)),
+                  child: Icon(
+                    Icons.compare_arrows,
+                    color: _getUrgencyColor(urgency),
+                  ),
                 ),
                 title: Text(referral['patient_name'] ?? 'Unknown Patient'),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('From: ${referral['from_provider'] ?? 'Unknown Provider'}'),
-                    Text('To: ${referral['to_facility'] ?? 'Unknown Facility'}'),
-                    Text('Reason: ${referral['reason'] ?? 'No reason provided'}'),
+                    Text(
+                      'From: ${referral['from_provider'] ?? 'Unknown Provider'}',
+                    ),
+                    Text(
+                      'To: ${referral['to_facility'] ?? 'Unknown Facility'}',
+                    ),
+                    Text(
+                      'Reason: ${referral['reason'] ?? 'No reason provided'}',
+                    ),
                     if (createdAt != null)
-                      Text('Date: ${DateFormat('MMM dd, yyyy - HH:mm').format(createdAt.toDate())}'),
+                      Text(
+                        'Date: ${DateFormat('MMM dd, yyyy - HH:mm').format(createdAt.toDate())}',
+                      ),
                   ],
                 ),
                 trailing: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: _getStatusColor(status).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: _getStatusColor(status).withOpacity(0.3)),
+                        border: Border.all(
+                          color: _getStatusColor(status).withOpacity(0.3),
+                        ),
                       ),
                       child: Text(
                         status.toUpperCase(),
@@ -97,11 +109,16 @@ class SharedReferralWidget extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: _getUrgencyColor(urgency).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: _getUrgencyColor(urgency).withOpacity(0.3)),
+                        border: Border.all(
+                          color: _getUrgencyColor(urgency).withOpacity(0.3),
+                        ),
                       ),
                       child: Text(
                         urgency.toUpperCase(),

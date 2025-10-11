@@ -12,8 +12,14 @@ class MessageService {
     required String otherUserName,
   }) async {
     // Get current user info
-    final userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
-    final otherUserDoc = await FirebaseFirestore.instance.collection('users').doc(otherUserId).get();
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .get();
+    final otherUserDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(otherUserId)
+        .get();
     if (!userDoc.exists || !otherUserDoc.exists) return null;
     final userData = userDoc.data() as Map<String, dynamic>;
     final otherUserData = otherUserDoc.data() as Map<String, dynamic>;
@@ -32,6 +38,7 @@ class MessageService {
     // Fetch the conversation object
     return await getConversationById(conversationId);
   }
+
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   /// Create or get existing conversation between two users
@@ -64,27 +71,25 @@ class MessageService {
       // Create new conversation
       final conversationData = {
         'participantIds': [user1Id, user2Id],
-        'participants': [user1Id, user2Id], // Add this field for patient message screen compatibility
-        'participantNames': {
-          user1Id: user1Name,
-          user2Id: user2Name,
-        },
-        'participantRoles': {
-          user1Id: user1Role,
-          user2Id: user2Role,
-        },
+        'participants': [
+          user1Id,
+          user2Id,
+        ], // Add this field for patient message screen compatibility
+        'participantNames': {user1Id: user1Name, user2Id: user2Name},
+        'participantRoles': {user1Id: user1Role, user2Id: user2Role},
         'title': title,
         'type': type,
-        'recipientType': _getRecipientType(user1Role, user2Role), // Add recipientType field
+        'recipientType': _getRecipientType(
+          user1Role,
+          user2Role,
+        ), // Add recipientType field
         'relatedId': relatedId,
-        'unreadCounts': {
-          user1Id: 0,
-          user2Id: 0,
-        },
+        'unreadCounts': {user1Id: 0, user2Id: 0},
         'isActive': true,
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
-        'lastMessageTime': FieldValue.serverTimestamp(), // Add this for ordering
+        'lastMessageTime':
+            FieldValue.serverTimestamp(), // Add this for ordering
       };
 
       await _firestore
@@ -145,10 +150,7 @@ class MessageService {
           .add(messageData);
 
       // Update conversation with last message info
-      await _firestore
-          .collection('messages')
-          .doc(conversationId)
-          .update({
+      await _firestore.collection('messages').doc(conversationId).update({
         'lastMessageId': messageRef.id,
         'lastMessage': content,
         'lastMessageTime': FieldValue.serverTimestamp(),
@@ -169,10 +171,7 @@ class MessageService {
     required String userId,
   }) async {
     try {
-      await _firestore
-          .collection('messages')
-          .doc(messageId)
-          .update({
+      await _firestore.collection('messages').doc(messageId).update({
         'isRead': true,
         'status': 'read',
         'readAt': FieldValue.serverTimestamp(),
@@ -208,10 +207,9 @@ class MessageService {
       }
 
       // Reset unread count for this user in conversation
-      batch.update(
-        _firestore.collection('messages').doc(conversationId),
-        {'unreadCounts.$userId': 0},
-      );
+      batch.update(_firestore.collection('messages').doc(conversationId), {
+        'unreadCounts.$userId': 0,
+      });
 
       await batch.commit();
     } catch (e) {
@@ -237,9 +235,7 @@ class MessageService {
   }
 
   /// Get conversations for a user
-  static Stream<QuerySnapshot> getUserConversations({
-    required String userId,
-  }) {
+  static Stream<QuerySnapshot> getUserConversations({required String userId}) {
     return _firestore
         .collection('messages')
         .where('participantIds', arrayContains: userId)
@@ -263,13 +259,23 @@ class MessageService {
       final conversations = snapshot.docs
           .map((doc) => Conversation.fromFirestore(doc))
           .where((conversation) {
-            final otherParticipantName = conversation.getOtherParticipantName(userId);
-            return otherParticipantName.toLowerCase().contains(searchTerm.toLowerCase()) ||
-                   (conversation.title?.toLowerCase().contains(searchTerm.toLowerCase()) ?? false);
+            final otherParticipantName = conversation.getOtherParticipantName(
+              userId,
+            );
+            return otherParticipantName.toLowerCase().contains(
+                  searchTerm.toLowerCase(),
+                ) ||
+                (conversation.title?.toLowerCase().contains(
+                      searchTerm.toLowerCase(),
+                    ) ??
+                    false);
           })
           .toList();
 
-      conversations.sort((a, b) => (b.updatedAt ?? b.createdAt).compareTo(a.updatedAt ?? a.createdAt));
+      conversations.sort(
+        (a, b) =>
+            (b.updatedAt ?? b.createdAt).compareTo(a.updatedAt ?? a.createdAt),
+      );
 
       return conversations;
     } catch (e) {
@@ -301,16 +307,17 @@ class MessageService {
             final lastName = data['lastName'] ?? '';
             final fullName = '$firstName $lastName';
             final role = data['role'] ?? '';
-            
-            return doc.id != currentUserId && 
-                   (fullName.toLowerCase().contains(searchTerm.toLowerCase()) ||
+
+            return doc.id != currentUserId &&
+                (fullName.toLowerCase().contains(searchTerm.toLowerCase()) ||
                     role.toLowerCase().contains(searchTerm.toLowerCase()));
           })
           .map((doc) {
             final data = doc.data() as Map<String, dynamic>;
             return {
               'id': doc.id,
-              'name': '${data['firstName'] ?? ''} ${data['lastName'] ?? ''}'.trim(),
+              'name': '${data['firstName'] ?? ''} ${data['lastName'] ?? ''}'
+                  .trim(),
               'role': data['role'] ?? '',
               'specialization': data['specialization'],
               'facilityName': data['facilityName'],
@@ -332,10 +339,7 @@ class MessageService {
     required String userId,
   }) async {
     try {
-      await _firestore
-          .collection('messages')
-          .doc(messageId)
-          .update({
+      await _firestore.collection('messages').doc(messageId).update({
         'content': 'This message was deleted',
         'type': 'system',
         'status': 'deleted',
@@ -352,10 +356,7 @@ class MessageService {
     required String conversationId,
   }) async {
     try {
-      await _firestore
-          .collection('conversations')
-          .doc(conversationId)
-          .update({
+      await _firestore.collection('conversations').doc(conversationId).update({
         'isActive': false,
         'archivedAt': FieldValue.serverTimestamp(),
       });
@@ -365,9 +366,7 @@ class MessageService {
   }
 
   /// Get unread message count for user
-  static Future<int> getTotalUnreadCount({
-    required String userId,
-  }) async {
+  static Future<int> getTotalUnreadCount({required String userId}) async {
     try {
       final snapshot = await _firestore
           .collection('conversations')
@@ -417,10 +416,7 @@ class MessageService {
           .add(messageData);
 
       // Update conversation
-      await _firestore
-          .collection('conversations')
-          .doc(conversationId)
-          .update({
+      await _firestore.collection('conversations').doc(conversationId).update({
         'lastMessageId': messageRef.id,
         'lastMessage': content,
         'lastMessageTime': FieldValue.serverTimestamp(),
@@ -435,7 +431,9 @@ class MessageService {
   }
 
   /// Get conversation by ID
-  static Future<Conversation?> getConversationById(String conversationId) async {
+  static Future<Conversation?> getConversationById(
+    String conversationId,
+  ) async {
     try {
       final doc = await _firestore
           .collection('messages')
@@ -462,10 +460,7 @@ class MessageService {
         'lastSeen': FieldValue.serverTimestamp(),
       };
 
-      await _firestore
-          .collection('users')
-          .doc(userId)
-          .update(updateData);
+      await _firestore.collection('users').doc(userId).update(updateData);
     } catch (e) {
       throw Exception('Failed to update online status: $e');
     }
@@ -482,15 +477,22 @@ class MessageService {
   }) async {
     try {
       // Get user details
-      final senderDoc = await _firestore.collection('users').doc(senderId).get();
+      final senderDoc = await _firestore
+          .collection('users')
+          .doc(senderId)
+          .get();
       final senderData = senderDoc.data() as Map<String, dynamic>;
       final senderName = '${senderData['firstName']} ${senderData['lastName']}';
       final senderRole = senderData['role'];
 
       final receiverId = senderId == patientId ? doctorId : patientId;
-      final receiverDoc = await _firestore.collection('users').doc(receiverId).get();
+      final receiverDoc = await _firestore
+          .collection('users')
+          .doc(receiverId)
+          .get();
       final receiverData = receiverDoc.data() as Map<String, dynamic>;
-      final receiverName = '${receiverData['firstName']} ${receiverData['lastName']}';
+      final receiverName =
+          '${receiverData['firstName']} ${receiverData['lastName']}';
       final receiverRole = receiverData['role'];
 
       // Create or get consultation conversation
@@ -537,37 +539,42 @@ class MessageService {
           .collection('users')
           .doc(doctorId)
           .get();
-      
+
       if (!doctorDoc.exists) {
         print('❌ Doctor not found: $doctorId');
         return;
       }
-      
+
       final doctorData = doctorDoc.data() as Map<String, dynamic>;
-      final doctorName = '${doctorData['firstName'] ?? ''} ${doctorData['lastName'] ?? ''}'.trim();
-      
+      final doctorName =
+          '${doctorData['firstName'] ?? ''} ${doctorData['lastName'] ?? ''}'
+              .trim();
+
       // Get patient details
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser == null) {
         print('❌ No current user found');
         return;
       }
-      
+
       final patientDoc = await _firestore
           .collection('users')
           .doc(currentUser.uid)
           .get();
-      
-      final patientData = patientDoc.exists 
+
+      final patientData = patientDoc.exists
           ? patientDoc.data() as Map<String, dynamic>
           : {};
-      
+
       // Format appointment details
-      final formattedDate = "${appointmentDate.day}/${appointmentDate.month}/${appointmentDate.year}";
-      final formattedTime = "${appointmentDate.hour.toString().padLeft(2, '0')}:${appointmentDate.minute.toString().padLeft(2, '0')}";
-      
+      final formattedDate =
+          "${appointmentDate.day}/${appointmentDate.month}/${appointmentDate.year}";
+      final formattedTime =
+          "${appointmentDate.hour.toString().padLeft(2, '0')}:${appointmentDate.minute.toString().padLeft(2, '0')}";
+
       // Create notification message
-      String messageContent = "🩺 NEW APPOINTMENT REQUEST\n\n"
+      String messageContent =
+          "🩺 NEW APPOINTMENT REQUEST\n\n"
           "Hello Dr. $doctorName,\n\n"
           "You have received a new appointment request:\n\n"
           "👤 Patient: $patientName\n"
@@ -578,7 +585,7 @@ class MessageService {
           "Appointment ID: $appointmentId\n\n"
           "Best regards,\n"
           "LifeCare Connect Team";
-      
+
       // Create or get conversation
       final conversationId = await createOrGetConversation(
         user1Id: currentUser.uid,
@@ -591,7 +598,7 @@ class MessageService {
         type: 'appointment_notification',
         relatedId: appointmentId,
       );
-      
+
       // Send notification message
       await sendMessage(
         conversationId: conversationId,
@@ -605,9 +612,8 @@ class MessageService {
         type: 'appointment_booking',
         priority: 'high',
       );
-      
+
       print('✅ Doctor notification sent for appointment: $appointmentId');
-      
     } catch (e) {
       print('❌ Error sending doctor notification: $e');
     }
@@ -628,32 +634,35 @@ class MessageService {
           .collection('users')
           .doc(doctorId)
           .get();
-      
+
       if (!doctorDoc.exists) {
         print('❌ Doctor not found: $doctorId');
         return;
       }
-      
+
       final doctorData = doctorDoc.data() as Map<String, dynamic>;
-      final doctorName = '${doctorData['firstName'] ?? ''} ${doctorData['lastName'] ?? ''}'.trim();
-      
+      final doctorName =
+          '${doctorData['firstName'] ?? ''} ${doctorData['lastName'] ?? ''}'
+              .trim();
+
       // Get CHW details
-      final chwDoc = await _firestore
-          .collection('users')
-          .doc(chwId)
-          .get();
-      
-      final chwData = chwDoc.exists 
+      final chwDoc = await _firestore.collection('users').doc(chwId).get();
+
+      final chwData = chwDoc.exists
           ? chwDoc.data() as Map<String, dynamic>
           : {};
-      final chwName = '${chwData['firstName'] ?? ''} ${chwData['lastName'] ?? ''}'.trim();
-      
+      final chwName =
+          '${chwData['firstName'] ?? ''} ${chwData['lastName'] ?? ''}'.trim();
+
       // Format appointment details
-      final formattedDate = "${appointmentDate.day}/${appointmentDate.month}/${appointmentDate.year}";
-      final formattedTime = "${appointmentDate.hour.toString().padLeft(2, '0')}:${appointmentDate.minute.toString().padLeft(2, '0')}";
-      
+      final formattedDate =
+          "${appointmentDate.day}/${appointmentDate.month}/${appointmentDate.year}";
+      final formattedTime =
+          "${appointmentDate.hour.toString().padLeft(2, '0')}:${appointmentDate.minute.toString().padLeft(2, '0')}";
+
       // Create notification message
-      String messageContent = "🩺 NEW CHW APPOINTMENT REQUEST\n\n"
+      String messageContent =
+          "🩺 NEW CHW APPOINTMENT REQUEST\n\n"
           "Hello Dr. $doctorName,\n\n"
           "A Community Health Worker has booked an appointment for a patient:\n\n"
           "👥 CHW: $chwName\n"
@@ -665,7 +674,7 @@ class MessageService {
           "Appointment ID: $appointmentId\n\n"
           "Best regards,\n"
           "LifeCare Connect Team";
-      
+
       // Create or get conversation
       final conversationId = await createOrGetConversation(
         user1Id: chwId,
@@ -678,7 +687,7 @@ class MessageService {
         type: 'chw_appointment_notification',
         relatedId: appointmentId,
       );
-      
+
       // Send notification message
       await sendMessage(
         conversationId: conversationId,
@@ -692,9 +701,8 @@ class MessageService {
         type: 'chw_appointment_booking',
         priority: 'high',
       );
-      
+
       print('✅ Doctor notification sent for CHW appointment: $appointmentId');
-      
     } catch (e) {
       print('❌ Error sending CHW appointment notification: $e');
     }
@@ -710,41 +718,42 @@ class MessageService {
   }) async {
     try {
       // Get CHW details
-      final chwDoc = await _firestore
-          .collection('users')
-          .doc(chwId)
-          .get();
-      
+      final chwDoc = await _firestore.collection('users').doc(chwId).get();
+
       if (!chwDoc.exists) {
         print('❌ CHW not found: $chwId');
         return;
       }
-      
+
       final chwData = chwDoc.data() as Map<String, dynamic>;
-      final chwName = '${chwData['firstName'] ?? ''} ${chwData['lastName'] ?? ''}'.trim();
-      
+      final chwName =
+          '${chwData['firstName'] ?? ''} ${chwData['lastName'] ?? ''}'.trim();
+
       // Get patient details
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser == null) {
         print('❌ No current user found');
         return;
       }
-      
+
       final patientDoc = await _firestore
           .collection('users')
           .doc(currentUser.uid)
           .get();
-      
-      final patientData = patientDoc.exists 
+
+      final patientData = patientDoc.exists
           ? patientDoc.data() as Map<String, dynamic>
           : {};
-      
+
       // Format appointment details
-      final formattedDate = "${appointmentDate.day}/${appointmentDate.month}/${appointmentDate.year}";
-      final formattedTime = "${appointmentDate.hour.toString().padLeft(2, '0')}:${appointmentDate.minute.toString().padLeft(2, '0')}";
-      
+      final formattedDate =
+          "${appointmentDate.day}/${appointmentDate.month}/${appointmentDate.year}";
+      final formattedTime =
+          "${appointmentDate.hour.toString().padLeft(2, '0')}:${appointmentDate.minute.toString().padLeft(2, '0')}";
+
       // Create notification message
-      String messageContent = "👩‍⚕️ NEW APPOINTMENT REQUEST\n\n"
+      String messageContent =
+          "👩‍⚕️ NEW APPOINTMENT REQUEST\n\n"
           "Hello $chwName,\n\n"
           "You have received a new appointment request:\n\n"
           "👤 Patient: $patientName\n"
@@ -755,7 +764,7 @@ class MessageService {
           "Appointment ID: $appointmentId\n\n"
           "Best regards,\n"
           "LifeCare Connect Team";
-      
+
       // Create or get conversation
       final conversationId = await createOrGetConversation(
         user1Id: currentUser.uid,
@@ -768,7 +777,7 @@ class MessageService {
         type: 'appointment_notification',
         relatedId: appointmentId,
       );
-      
+
       // Send notification message
       await sendMessage(
         conversationId: conversationId,
@@ -782,9 +791,8 @@ class MessageService {
         type: 'appointment_booking',
         priority: 'high',
       );
-      
+
       print('✅ CHW notification sent for appointment: $appointmentId');
-      
     } catch (e) {
       print('❌ Error sending CHW notification: $e');
     }
@@ -805,28 +813,34 @@ class MessageService {
           .collection('users')
           .doc(referringDoctorId)
           .get();
-      
-      final referringDoctorData = referringDoctorDoc.exists 
+
+      final referringDoctorData = referringDoctorDoc.exists
           ? referringDoctorDoc.data() as Map<String, dynamic>
           : {};
-      final referringDoctorName = '${referringDoctorData['firstName'] ?? ''} ${referringDoctorData['lastName'] ?? ''}'.trim();
-      
+      final referringDoctorName =
+          '${referringDoctorData['firstName'] ?? ''} ${referringDoctorData['lastName'] ?? ''}'
+              .trim();
+
       // Get referred doctor details
       final referredDoctorDoc = await _firestore
           .collection('users')
           .doc(referredDoctorId)
           .get();
-      
+
       if (!referredDoctorDoc.exists) {
         print('❌ Referred doctor not found: $referredDoctorId');
         return;
       }
-      
-      final referredDoctorData = referredDoctorDoc.data() as Map<String, dynamic>;
-      final referredDoctorName = '${referredDoctorData['firstName'] ?? ''} ${referredDoctorData['lastName'] ?? ''}'.trim();
-      
+
+      final referredDoctorData =
+          referredDoctorDoc.data() as Map<String, dynamic>;
+      final referredDoctorName =
+          '${referredDoctorData['firstName'] ?? ''} ${referredDoctorData['lastName'] ?? ''}'
+              .trim();
+
       // Create notification message
-      String messageContent = "🔄 NEW PATIENT REFERRAL\n\n"
+      String messageContent =
+          "🔄 NEW PATIENT REFERRAL\n\n"
           "Hello Dr. $referredDoctorName,\n\n"
           "You have received a new patient referral:\n\n"
           "👤 Patient: $patientName\n"
@@ -837,7 +851,7 @@ class MessageService {
           "Referral ID: $referralId\n\n"
           "Best regards,\n"
           "LifeCare Connect Team";
-      
+
       // Create or get conversation
       final conversationId = await createOrGetConversation(
         user1Id: referringDoctorId,
@@ -850,7 +864,7 @@ class MessageService {
         type: 'referral_notification',
         relatedId: referralId,
       );
-      
+
       // Send notification message
       await sendMessage(
         conversationId: conversationId,
@@ -864,9 +878,8 @@ class MessageService {
         type: 'referral_notification',
         priority: 'high',
       );
-      
+
       print('✅ Referral notification sent: $referralId');
-      
     } catch (e) {
       print('❌ Error sending referral notification: $e');
     }
@@ -883,32 +896,33 @@ class MessageService {
   }) async {
     try {
       // Get CHW details
-      final chwDoc = await _firestore
-          .collection('users')
-          .doc(chwId)
-          .get();
-      
-      final chwData = chwDoc.exists 
+      final chwDoc = await _firestore.collection('users').doc(chwId).get();
+
+      final chwData = chwDoc.exists
           ? chwDoc.data() as Map<String, dynamic>
           : {};
-      final chwName = '${chwData['firstName'] ?? ''} ${chwData['lastName'] ?? ''}'.trim();
-      
+      final chwName =
+          '${chwData['firstName'] ?? ''} ${chwData['lastName'] ?? ''}'.trim();
+
       // Get doctor details
       final doctorDoc = await _firestore
           .collection('users')
           .doc(doctorId)
           .get();
-      
+
       if (!doctorDoc.exists) {
         print('❌ Doctor not found: $doctorId');
         return;
       }
-      
+
       final doctorData = doctorDoc.data() as Map<String, dynamic>;
-      final doctorName = '${doctorData['firstName'] ?? ''} ${doctorData['lastName'] ?? ''}'.trim();
-      
+      final doctorName =
+          '${doctorData['firstName'] ?? ''} ${doctorData['lastName'] ?? ''}'
+              .trim();
+
       // Create notification message
-      String messageContent = "🔄 NEW CHW REFERRAL\n\n"
+      String messageContent =
+          "🔄 NEW CHW REFERRAL\n\n"
           "Hello Dr. $doctorName,\n\n"
           "You have received a new patient referral from a Community Health Worker:\n\n"
           "👤 Patient: $patientName\n"
@@ -919,12 +933,17 @@ class MessageService {
           "Referral ID: $referralId\n\n"
           "Best regards,\n"
           "LifeCare Connect Team";
-      
-      // Create or get conversation
+
+      // Use a system/admin sender so CHW does not see the message
+      const String systemSenderId = 'system';
+      const String systemSenderName = 'LifeCare System';
+      const String systemSenderRole = 'system';
+
+      // Create or get a system-to-doctor conversation
       final conversationId = await createOrGetConversation(
-        user1Id: chwId,
-        user1Name: chwName,
-        user1Role: 'chw',
+        user1Id: systemSenderId,
+        user1Name: systemSenderName,
+        user1Role: systemSenderRole,
         user2Id: doctorId,
         user2Name: doctorName,
         user2Role: 'doctor',
@@ -932,13 +951,13 @@ class MessageService {
         type: 'chw_referral_notification',
         relatedId: referralId,
       );
-      
-      // Send notification message
+
+      // Send notification message (from system to doctor only)
       await sendMessage(
         conversationId: conversationId,
-        senderId: chwId,
-        senderName: chwName,
-        senderRole: 'chw',
+        senderId: systemSenderId,
+        senderName: systemSenderName,
+        senderRole: systemSenderRole,
         receiverId: doctorId,
         receiverName: doctorName,
         receiverRole: 'doctor',
@@ -946,9 +965,8 @@ class MessageService {
         type: 'chw_referral_notification',
         priority: 'high',
       );
-      
+
       print('✅ CHW referral notification sent: $referralId');
-      
     } catch (e) {
       print('❌ Error sending CHW referral notification: $e');
     }

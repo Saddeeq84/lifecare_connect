@@ -8,17 +8,17 @@ class ApproveDoctorsScreen extends StatelessWidget {
   const ApproveDoctorsScreen({super.key});
 
   Future<void> _approveDoctor(String userId) async {
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .update({'isApproved': true, 'isRejected': false});
+    await FirebaseFirestore.instance.collection('users').doc(userId).update({
+      'isApproved': true,
+      'isRejected': false,
+    });
   }
 
   Future<void> _rejectDoctor(String userId) async {
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .update({'isApproved': false, 'isRejected': true});
+    await FirebaseFirestore.instance.collection('users').doc(userId).update({
+      'isApproved': false,
+      'isRejected': true,
+    });
   }
 
   @override
@@ -95,20 +95,29 @@ class ApproveDoctorsScreen extends StatelessWidget {
                                           width: 400,
                                           height: 500,
                                           child: licenseUrl.endsWith('.pdf')
-                                              ? const Center(child: Text('PDF viewing not supported in dialog. Open in browser.'))
+                                              ? const Center(
+                                                  child: Text(
+                                                    'PDF viewing not supported in dialog. Open in browser.',
+                                                  ),
+                                                )
                                               : Image.network(licenseUrl),
                                         ),
                                         actions: [
                                           TextButton(
-                                            onPressed: () => Navigator.of(context).pop(),
+                                            onPressed: () =>
+                                                Navigator.of(context).pop(),
                                             child: const Text('Close'),
                                           ),
                                           TextButton(
                                             onPressed: () async {
                                               Navigator.of(context).pop();
-                                              await launchUrl(Uri.parse(licenseUrl));
+                                              await launchUrl(
+                                                Uri.parse(licenseUrl),
+                                              );
                                             },
-                                            child: const Text('Open in Browser'),
+                                            child: const Text(
+                                              'Open in Browser',
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -131,14 +140,18 @@ class ApproveDoctorsScreen extends StatelessWidget {
                                 context: context,
                                 builder: (context) => AlertDialog(
                                   title: const Text('Confirm Approval'),
-                                  content: Text('Are you sure you want to approve $name?'),
+                                  content: Text(
+                                    'Are you sure you want to approve $name?',
+                                  ),
                                   actions: [
                                     TextButton(
-                                      onPressed: () => Navigator.of(context).pop(false),
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(false),
                                       child: const Text('Cancel'),
                                     ),
                                     ElevatedButton(
-                                      onPressed: () => Navigator.of(context).pop(true),
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(true),
                                       child: const Text('Approve'),
                                     ),
                                   ],
@@ -163,14 +176,18 @@ class ApproveDoctorsScreen extends StatelessWidget {
                                 context: context,
                                 builder: (context) => AlertDialog(
                                   title: const Text('Confirm Rejection'),
-                                  content: Text('Are you sure you want to reject $name?'),
+                                  content: Text(
+                                    'Are you sure you want to reject $name?',
+                                  ),
                                   actions: [
                                     TextButton(
-                                      onPressed: () => Navigator.of(context).pop(false),
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(false),
                                       child: const Text('Cancel'),
                                     ),
                                     ElevatedButton(
-                                      onPressed: () => Navigator.of(context).pop(true),
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(true),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.red,
                                       ),
@@ -205,14 +222,18 @@ class ApproveDoctorsScreen extends StatelessWidget {
                             context: context,
                             builder: (context) => AlertDialog(
                               title: const Text('Confirm Approval'),
-                              content: Text('Are you sure you want to approve $name?'),
+                              content: Text(
+                                'Are you sure you want to approve $name?',
+                              ),
                               actions: [
                                 TextButton(
-                                  onPressed: () => Navigator.of(context).pop(false),
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(false),
                                   child: const Text('Cancel'),
                                 ),
                                 ElevatedButton(
-                                  onPressed: () => Navigator.of(context).pop(true),
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(true),
                                   child: const Text('Approve'),
                                 ),
                               ],
@@ -237,14 +258,18 @@ class ApproveDoctorsScreen extends StatelessWidget {
                             context: context,
                             builder: (context) => AlertDialog(
                               title: const Text('Confirm Rejection'),
-                              content: Text('Are you sure you want to reject $name?'),
+                              content: Text(
+                                'Are you sure you want to reject $name?',
+                              ),
                               actions: [
                                 TextButton(
-                                  onPressed: () => Navigator.of(context).pop(false),
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(false),
                                   child: const Text('Cancel'),
                                 ),
                                 ElevatedButton(
-                                  onPressed: () => Navigator.of(context).pop(true),
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(true),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.red,
                                   ),

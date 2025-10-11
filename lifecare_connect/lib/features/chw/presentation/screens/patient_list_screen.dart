@@ -34,7 +34,8 @@ class ChwPatientListScreen extends StatelessWidget {
 
   void _showPatientOptions(BuildContext context, DocumentSnapshot patient) {
     final patientData = patient.data() as Map<String, dynamic>;
-    final patientName = patientData['name'] ?? patientData['fullName'] ?? 'Unknown Patient';
+    final patientName =
+        patientData['name'] ?? patientData['fullName'] ?? 'Unknown Patient';
 
     showModalBottomSheet(
       context: context,
@@ -58,10 +59,7 @@ class ChwPatientListScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Patient ID: ${patient.id}',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             ),
             const Divider(height: 32),
             ListTile(
@@ -90,25 +88,30 @@ class ChwPatientListScreen extends StatelessWidget {
               onTap: () {
                 Navigator.pop(context);
                 // Navigate to health records screen
-                context.push('/chw_dashboard/patient_health_records', extra: {
-                  'patientId': patient.id,
-                  'patientName': patientName,
-                });
+                context.push(
+                  '/chw_dashboard/patient_health_records',
+                  extra: {'patientId': patient.id, 'patientName': patientName},
+                );
               },
             ),
             ListTile(
               leading: const Icon(Icons.note_add, color: Colors.teal),
               title: const Text('Add Consultation Note'),
-              subtitle: const Text('Record a new consultation for this patient'),
+              subtitle: const Text(
+                'Record a new consultation for this patient',
+              ),
               onTap: () {
                 Navigator.pop(context);
-                  context.go('/chw_anc_consultation_details', extra: {
+                context.go(
+                  '/chw_anc_consultation_details',
+                  extra: {
                     'appointmentId': 'manual',
                     'patientId': patient.id,
                     'patientName': patientName,
                     'appointmentData': {},
                     'isReadOnly': false,
-                  });
+                  },
+                );
               },
             ),
             const SizedBox(height: 16),

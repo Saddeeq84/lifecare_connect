@@ -40,7 +40,9 @@ class _DailyHealthTipsScreenState extends State<DailyHealthTipsScreen> {
           .orderBy('created_at', descending: false)
           .get();
 
-      final loadedTips = tipsSnapshot.docs.map((doc) => doc['text'] as String).toList();
+      final loadedTips = tipsSnapshot.docs
+          .map((doc) => doc['text'] as String)
+          .toList();
 
       final bookmarksSnapshot = await FirebaseFirestore.instance
           .collection('users')
@@ -48,14 +50,18 @@ class _DailyHealthTipsScreenState extends State<DailyHealthTipsScreen> {
           .collection('bookmarked_tips')
           .get();
 
-      final bookmarks = bookmarksSnapshot.docs.map((doc) => doc['index'] as int).toSet();
+      final bookmarks = bookmarksSnapshot.docs
+          .map((doc) => doc['index'] as int)
+          .toSet();
 
       final settingsSnapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(user!.uid)
           .get();
 
-      final enabled = settingsSnapshot.data()?['settings']?['daily_tip_notifications'] ?? false;
+      final enabled =
+          settingsSnapshot.data()?['settings']?['daily_tip_notifications'] ??
+          false;
 
       setState(() {
         tips = loadedTips;
@@ -74,7 +80,7 @@ class _DailyHealthTipsScreenState extends State<DailyHealthTipsScreen> {
   Future<void> _toggleBookmark(int index, String text) async {
     final docRef = FirebaseFirestore.instance
         .collection('users')
-  .doc(user?.uid ?? '')
+        .doc(user?.uid ?? '')
         .collection('bookmarked_tips')
         .doc(index.toString());
 
@@ -105,17 +111,23 @@ class _DailyHealthTipsScreenState extends State<DailyHealthTipsScreen> {
     });
 
     if (user?.uid != null) {
-      await FirebaseFirestore.instance.collection('users').doc(user!.uid).set(
-        {'settings': {'daily_tip_notifications': value}},
-        SetOptions(merge: true),
+      await FirebaseFirestore.instance.collection('users').doc(user!.uid).set({
+        'settings': {'daily_tip_notifications': value},
+      }, SetOptions(merge: true));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            value ? "Notifications enabled" : "Notifications disabled",
+          ),
+          duration: const Duration(seconds: 1),
+        ),
       );
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(value ? "Notifications enabled" : "Notifications disabled"),
-        duration: const Duration(seconds: 1),
-      ));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('User not found. Cannot save health tips.'), backgroundColor: Colors.red),
+        const SnackBar(
+          content: Text('User not found. Cannot save health tips.'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -125,11 +137,15 @@ class _DailyHealthTipsScreenState extends State<DailyHealthTipsScreen> {
     if (isLoading) return const Center(child: CircularProgressIndicator());
 
     if (error != null) {
-      return Center(child: Text(error!, style: const TextStyle(color: Colors.red)));
+      return Center(
+        child: Text(error!, style: const TextStyle(color: Colors.red)),
+      );
     }
 
     if (tips.isEmpty) {
-      return const Center(child: Text("No health tips available at the moment."));
+      return const Center(
+        child: Text("No health tips available at the moment."),
+      );
     }
 
     final tipOfTheDay = tips[DateTime.now().day % tips.length];
@@ -141,7 +157,10 @@ class _DailyHealthTipsScreenState extends State<DailyHealthTipsScreen> {
         Card(
           color: Colors.green.shade100,
           child: ListTile(
-            leading: Icon(Icons.wb_sunny_outlined, color: Colors.green.shade800),
+            leading: Icon(
+              Icons.wb_sunny_outlined,
+              color: Colors.green.shade800,
+            ),
             title: const Text('Tip of the Day'),
             subtitle: Text(tipOfTheDay),
           ),
@@ -151,8 +170,13 @@ class _DailyHealthTipsScreenState extends State<DailyHealthTipsScreen> {
         // 🔔 Notification Toggle
         SwitchListTile(
           title: const Text("Daily Tip Notifications"),
-          subtitle: const Text("Receive a daily notification for new health tips."),
-          secondary: const Icon(Icons.notifications_active_outlined, color: Colors.green),
+          subtitle: const Text(
+            "Receive a daily notification for new health tips.",
+          ),
+          secondary: const Icon(
+            Icons.notifications_active_outlined,
+            color: Colors.green,
+          ),
           value: notificationsEnabled,
           onChanged: _toggleNotification,
         ),
@@ -168,7 +192,10 @@ class _DailyHealthTipsScreenState extends State<DailyHealthTipsScreen> {
 
           return Card(
             child: ListTile(
-              leading: Icon(Icons.lightbulb_outline, color: Colors.green.shade700),
+              leading: Icon(
+                Icons.lightbulb_outline,
+                color: Colors.green.shade700,
+              ),
               title: Text('Tip #${index + 1}'),
               subtitle: Text(tip),
               trailing: IconButton(

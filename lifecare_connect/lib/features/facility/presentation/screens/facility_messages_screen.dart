@@ -41,8 +41,12 @@ void showUserSelectionDialog(BuildContext context, String role) {
                       }
                       final users = snapshot.data!.docs.where((doc) {
                         final data = doc.data() as Map<String, dynamic>;
-                        final name = (data['fullName'] ?? data['name'] ?? '').toString().toLowerCase();
-                        final email = (data['email'] ?? '').toString().toLowerCase();
+                        final name = (data['fullName'] ?? data['name'] ?? '')
+                            .toString()
+                            .toLowerCase();
+                        final email = (data['email'] ?? '')
+                            .toString()
+                            .toLowerCase();
                         final query = searchController.text.toLowerCase();
                         return name.contains(query) || email.contains(query);
                       }).toList();
@@ -54,9 +58,11 @@ void showUserSelectionDialog(BuildContext context, String role) {
                         child: ListView.builder(
                           itemCount: users.length,
                           itemBuilder: (context, index) {
-                            final user = users[index].data() as Map<String, dynamic>;
+                            final user =
+                                users[index].data() as Map<String, dynamic>;
                             final userId = users[index].id;
-                            final userName = user['fullName'] ?? user['name'] ?? 'Unknown';
+                            final userName =
+                                user['fullName'] ?? user['name'] ?? 'Unknown';
                             final userEmail = user['email'] ?? '';
                             return ListTile(
                               leading: CircleAvatar(child: Text(userName[0])),
@@ -64,66 +70,79 @@ void showUserSelectionDialog(BuildContext context, String role) {
                               subtitle: Text(userEmail),
                               onTap: () async {
                                 Navigator.pop(context);
-                                final facilityId = FirebaseAuth.instance.currentUser?.uid ?? '';
+                                final facilityId =
+                                    FirebaseAuth.instance.currentUser?.uid ??
+                                    '';
                                 final facilityName = 'Facility';
                                 if (role == 'patient') {
                                   // Create conversation in 'conversations' with correct patient info
-                                  final conversationDoc = await FirebaseFirestore.instance.collection('conversations').add({
-                                    'participants': [facilityId, userId],
-                                    'type': 'patient_facility',
-                                    'patientId': userId,
-                                    'patientName': userName,
-                                    'facilityId': facilityId,
-                                    'facilityName': facilityName,
-                                    'lastMessage': '',
-                                    'lastMessageTime': FieldValue.serverTimestamp(),
-                                  });
+                                  final conversationDoc =
+                                      await FirebaseFirestore.instance
+                                          .collection('conversations')
+                                          .add({
+                                            'participants': [
+                                              facilityId,
+                                              userId,
+                                            ],
+                                            'type': 'patient_facility',
+                                            'patientId': userId,
+                                            'patientName': userName,
+                                            'facilityId': facilityId,
+                                            'facilityName': facilityName,
+                                            'lastMessage': '',
+                                            'lastMessageTime':
+                                                FieldValue.serverTimestamp(),
+                                          });
                                   if (context.mounted) {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => FacilityConversationScreen(
-                                          conversationId: conversationDoc.id,
-                                          conversationData: {
-                                            'participantNames': {
-                                              facilityId: facilityName,
-                                              userId: userName,
-                                            },
-                                            'type': 'patient_facility',
-                                            'patientName': userName,
-                                          },
-                                          currentUserId: facilityId,
-                                        ),
+                                        builder: (context) =>
+                                            FacilityConversationScreen(
+                                              conversationId:
+                                                  conversationDoc.id,
+                                              conversationData: {
+                                                'participantNames': {
+                                                  facilityId: facilityName,
+                                                  userId: userName,
+                                                },
+                                                'type': 'patient_facility',
+                                                'patientName': userName,
+                                              },
+                                              currentUserId: facilityId,
+                                            ),
                                       ),
                                     );
                                   }
                                 } else {
                                   // ...existing code for doctor/chw...
-                                  final conversationId = await MessageService.createOrGetConversation(
-                                    user1Id: facilityId,
-                                    user1Name: facilityName,
-                                    user1Role: 'facility',
-                                    user2Id: userId,
-                                    user2Name: userName,
-                                    user2Role: role,
-                                    title: 'Private Chat',
-                                    type: 'direct',
-                                  );
+                                  final conversationId =
+                                      await MessageService.createOrGetConversation(
+                                        user1Id: facilityId,
+                                        user1Name: facilityName,
+                                        user1Role: 'facility',
+                                        user2Id: userId,
+                                        user2Name: userName,
+                                        user2Role: role,
+                                        title: 'Private Chat',
+                                        type: 'direct',
+                                      );
                                   if (context.mounted) {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => FacilityConversationScreen(
-                                          conversationId: conversationId,
-                                          conversationData: {
-                                            'participantNames': {
-                                              facilityId: facilityName,
-                                              userId: userName,
-                                            },
-                                            'type': 'direct',
-                                          },
-                                          currentUserId: facilityId,
-                                        ),
+                                        builder: (context) =>
+                                            FacilityConversationScreen(
+                                              conversationId: conversationId,
+                                              conversationData: {
+                                                'participantNames': {
+                                                  facilityId: facilityName,
+                                                  userId: userName,
+                                                },
+                                                'type': 'direct',
+                                              },
+                                              currentUserId: facilityId,
+                                            ),
                                       ),
                                     );
                                   }
@@ -158,7 +177,8 @@ class FacilityMessagesScreen extends StatefulWidget {
   State<FacilityMessagesScreen> createState() => _FacilityMessagesScreenState();
 }
 
-class _FacilityMessagesScreenState extends State<FacilityMessagesScreen> with TickerProviderStateMixin {
+class _FacilityMessagesScreenState extends State<FacilityMessagesScreen>
+    with TickerProviderStateMixin {
   late TabController _tabController;
   final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
@@ -237,7 +257,7 @@ class _FacilityMessagesScreenState extends State<FacilityMessagesScreen> with Ti
               ],
             ),
           ),
-          
+
           // Tab Bar
           Container(
             color: Colors.purple.shade700,
@@ -255,7 +275,7 @@ class _FacilityMessagesScreenState extends State<FacilityMessagesScreen> with Ti
               ],
             ),
           ),
-          
+
           // Tab Views
           Expanded(
             child: TabBarView(
@@ -273,7 +293,12 @@ class _FacilityMessagesScreenState extends State<FacilityMessagesScreen> with Ti
     );
   }
 
-  Widget _buildQuickActionCard(String title, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildQuickActionCard(
+    String title,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return Card(
       elevation: 2,
       child: InkWell(
@@ -307,7 +332,9 @@ class _FacilityMessagesScreenState extends State<FacilityMessagesScreen> with Ti
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('New Message'),
-        content: const Text('Select a tab to compose a new message to the specific group.'),
+        content: const Text(
+          'Select a tab to compose a new message to the specific group.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -322,7 +349,7 @@ class _FacilityMessagesScreenState extends State<FacilityMessagesScreen> with Ti
 // Facility Broadcast Messages Tab
 class FacilityBroadcastMessagesTab extends StatelessWidget {
   final String currentUserId;
-  
+
   const FacilityBroadcastMessagesTab({super.key, required this.currentUserId});
 
   @override
@@ -330,7 +357,10 @@ class FacilityBroadcastMessagesTab extends StatelessWidget {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('messages')
-          .where('type', whereIn: ['broadcast', 'broadcast_message', 'personal_message'])
+          .where(
+            'type',
+            whereIn: ['broadcast', 'broadcast_message', 'personal_message'],
+          )
           .orderBy('createdAt', descending: true)
           .snapshots(),
       builder: (context, snapshot) {
@@ -365,7 +395,8 @@ class FacilityBroadcastMessagesTab extends StatelessWidget {
           final data = doc.data() as Map<String, dynamic>;
           final receiverId = data['receiverId'];
           final participants = data['participants'] as List<dynamic>?;
-          return receiverId == currentUserId || (participants != null && participants.contains(currentUserId));
+          return receiverId == currentUserId ||
+              (participants != null && participants.contains(currentUserId));
         }).toList();
 
         if (filteredDocs.isEmpty) {
@@ -446,13 +477,16 @@ class FacilityBroadcastMessagesTab extends StatelessWidget {
     if (message.isEmpty && data['content'] == null && data['content'] != null) {
       message = data['content'];
     }
-    String userName = data['recipientNames'] != null && data['recipientNames'][userId] != null
+    String userName =
+        data['recipientNames'] != null && data['recipientNames'][userId] != null
         ? data['recipientNames'][userId]
         : '';
     if (userName.isNotEmpty) {
       message = message.replaceAll('{name}', userName);
     }
-    return message.isNotEmpty ? message : (data['content'] ?? 'No message content');
+    return message.isNotEmpty
+        ? message
+        : (data['content'] ?? 'No message content');
   }
 
   String _formatTimestamp(Timestamp? timestamp) {
@@ -472,7 +506,11 @@ class FacilityBroadcastMessagesTab extends StatelessWidget {
     }
   }
 
-  void _openMessage(BuildContext context, String messageId, Map<String, dynamic> data) {
+  void _openMessage(
+    BuildContext context,
+    String messageId,
+    Map<String, dynamic> data,
+  ) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -488,7 +526,8 @@ class FacilityBroadcastMessagesTab extends StatelessWidget {
   String _getPersonalizedSubject(Map<String, dynamic> data, String userId) {
     // If subject contains a placeholder for name, replace it
     String subject = data['subject'] ?? 'No Subject';
-    String userName = data['recipientNames'] != null && data['recipientNames'][userId] != null
+    String userName =
+        data['recipientNames'] != null && data['recipientNames'][userId] != null
         ? data['recipientNames'][userId]
         : '';
     if (userName.isNotEmpty) {
@@ -496,13 +535,12 @@ class FacilityBroadcastMessagesTab extends StatelessWidget {
     }
     return subject;
   }
-
 }
 
 // Facility Doctor Messages Tab
 class FacilityDoctorMessagesTab extends StatelessWidget {
   final String currentUserId;
-  
+
   const FacilityDoctorMessagesTab({super.key, required this.currentUserId});
 
   @override
@@ -553,7 +591,7 @@ class FacilityDoctorMessagesTab extends StatelessWidget {
           itemBuilder: (context, index) {
             final doc = snapshot.data!.docs[index];
             final data = doc.data() as Map<String, dynamic>;
-            
+
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
               elevation: 2,
@@ -591,7 +629,10 @@ class FacilityDoctorMessagesTab extends StatelessWidget {
                         backgroundColor: Colors.red,
                         child: Text(
                           '${data['unreadCount']}',
-                          style: const TextStyle(color: Colors.white, fontSize: 12),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
                         ),
                       )
                     : null,
@@ -626,7 +667,11 @@ class FacilityDoctorMessagesTab extends StatelessWidget {
     showUserSelectionDialog(context, 'doctor');
   }
 
-  void _openConversation(BuildContext context, String conversationId, Map<String, dynamic> data) {
+  void _openConversation(
+    BuildContext context,
+    String conversationId,
+    Map<String, dynamic> data,
+  ) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -643,7 +688,7 @@ class FacilityDoctorMessagesTab extends StatelessWidget {
 // Facility CHW Messages Tab
 class FacilityCHWMessagesTab extends StatelessWidget {
   final String currentUserId;
-  
+
   const FacilityCHWMessagesTab({super.key, required this.currentUserId});
 
   @override
@@ -665,7 +710,11 @@ class FacilityCHWMessagesTab extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.health_and_safety, size: 64, color: Colors.grey),
+                const Icon(
+                  Icons.health_and_safety,
+                  size: 64,
+                  color: Colors.grey,
+                ),
                 const SizedBox(height: 16),
                 const Text(
                   'No CHW conversations yet',
@@ -694,14 +743,17 @@ class FacilityCHWMessagesTab extends StatelessWidget {
           itemBuilder: (context, index) {
             final doc = snapshot.data!.docs[index];
             final data = doc.data() as Map<String, dynamic>;
-            
+
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
               elevation: 2,
               child: ListTile(
                 leading: CircleAvatar(
                   backgroundColor: Colors.teal.shade100,
-                  child: const Icon(Icons.health_and_safety, color: Colors.teal),
+                  child: const Icon(
+                    Icons.health_and_safety,
+                    color: Colors.teal,
+                  ),
                 ),
                 title: Text(
                   data['chwName'] ?? 'CHW',
@@ -732,7 +784,10 @@ class FacilityCHWMessagesTab extends StatelessWidget {
                         backgroundColor: Colors.red,
                         child: Text(
                           '${data['unreadCount']}',
-                          style: const TextStyle(color: Colors.white, fontSize: 12),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
                         ),
                       )
                     : null,
@@ -767,7 +822,11 @@ class FacilityCHWMessagesTab extends StatelessWidget {
     showUserSelectionDialog(context, 'chw');
   }
 
-  void _openConversation(BuildContext context, String conversationId, Map<String, dynamic> data) {
+  void _openConversation(
+    BuildContext context,
+    String conversationId,
+    Map<String, dynamic> data,
+  ) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -784,7 +843,7 @@ class FacilityCHWMessagesTab extends StatelessWidget {
 // Facility Patient Messages Tab
 class FacilityPatientMessagesTab extends StatelessWidget {
   final String currentUserId;
-  
+
   const FacilityPatientMessagesTab({super.key, required this.currentUserId});
 
   @override
@@ -835,7 +894,7 @@ class FacilityPatientMessagesTab extends StatelessWidget {
           itemBuilder: (context, index) {
             final doc = snapshot.data!.docs[index];
             final data = doc.data() as Map<String, dynamic>;
-            
+
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
               elevation: 2,
@@ -873,7 +932,10 @@ class FacilityPatientMessagesTab extends StatelessWidget {
                         backgroundColor: Colors.red,
                         child: Text(
                           '${data['unreadCount']}',
-                          style: const TextStyle(color: Colors.white, fontSize: 12),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
                         ),
                       )
                     : null,
@@ -907,7 +969,12 @@ class FacilityPatientMessagesTab extends StatelessWidget {
   void _showPatientSelectionDialog(BuildContext context) {
     showUserSelectionDialog(context, 'patient');
   }
-  void _openConversation(BuildContext context, String conversationId, Map<String, dynamic> data) {
+
+  void _openConversation(
+    BuildContext context,
+    String conversationId,
+    Map<String, dynamic> data,
+  ) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -935,10 +1002,12 @@ class FacilityMessageDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<FacilityMessageDetailScreen> createState() => _FacilityMessageDetailScreenState();
+  State<FacilityMessageDetailScreen> createState() =>
+      _FacilityMessageDetailScreenState();
 }
 
-class _FacilityMessageDetailScreenState extends State<FacilityMessageDetailScreen> {
+class _FacilityMessageDetailScreenState
+    extends State<FacilityMessageDetailScreen> {
   final TextEditingController _replyController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
@@ -977,7 +1046,10 @@ class _FacilityMessageDetailScreenState extends State<FacilityMessageDetailScree
                             children: [
                               CircleAvatar(
                                 backgroundColor: Colors.orange.shade100,
-                                child: const Icon(Icons.admin_panel_settings, color: Colors.orange),
+                                child: const Icon(
+                                  Icons.admin_panel_settings,
+                                  color: Colors.orange,
+                                ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
@@ -986,10 +1058,14 @@ class _FacilityMessageDetailScreenState extends State<FacilityMessageDetailScree
                                   children: [
                                     const Text(
                                       'Admin',
-                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                     Text(
-                                      _formatTimestamp(widget.messageData['timestamp']),
+                                      _formatTimestamp(
+                                        widget.messageData['timestamp'],
+                                      ),
                                       style: TextStyle(
                                         color: Colors.grey.shade600,
                                         fontSize: 12,
@@ -1011,8 +1087,9 @@ class _FacilityMessageDetailScreenState extends State<FacilityMessageDetailScree
                           const SizedBox(height: 12),
                           Text(
                             (widget.messageData['message'] ?? '').isNotEmpty
-                              ? widget.messageData['message']
-                              : (widget.messageData['content'] ?? 'No message content'),
+                                ? widget.messageData['message']
+                                : (widget.messageData['content'] ??
+                                      'No message content'),
                             style: const TextStyle(fontSize: 16),
                           ),
                         ],
@@ -1020,7 +1097,7 @@ class _FacilityMessageDetailScreenState extends State<FacilityMessageDetailScree
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Replies Section
                   StreamBuilder<QuerySnapshot>(
                     stream: FirebaseFirestore.instance
@@ -1046,7 +1123,8 @@ class _FacilityMessageDetailScreenState extends State<FacilityMessageDetailScree
                           ),
                           const SizedBox(height: 8),
                           ...snapshot.data!.docs.map((doc) {
-                            final replyData = doc.data() as Map<String, dynamic>;
+                            final replyData =
+                                doc.data() as Map<String, dynamic>;
                             return Card(
                               margin: const EdgeInsets.only(bottom: 8),
                               child: Padding(
@@ -1058,17 +1136,26 @@ class _FacilityMessageDetailScreenState extends State<FacilityMessageDetailScree
                                       children: [
                                         CircleAvatar(
                                           radius: 12,
-                                          backgroundColor: Colors.purple.shade100,
-                                          child: const Icon(Icons.business, size: 16, color: Colors.purple),
+                                          backgroundColor:
+                                              Colors.purple.shade100,
+                                          child: const Icon(
+                                            Icons.business,
+                                            size: 16,
+                                            color: Colors.purple,
+                                          ),
                                         ),
                                         const SizedBox(width: 8),
                                         Text(
                                           replyData['senderName'] ?? 'Facility',
-                                          style: const TextStyle(fontWeight: FontWeight.w500),
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                          ),
                                         ),
                                         const Spacer(),
                                         Text(
-                                          _formatTimestamp(replyData['timestamp']),
+                                          _formatTimestamp(
+                                            replyData['timestamp'],
+                                          ),
                                           style: TextStyle(
                                             color: Colors.grey.shade600,
                                             fontSize: 12,
@@ -1091,7 +1178,7 @@ class _FacilityMessageDetailScreenState extends State<FacilityMessageDetailScree
               ),
             ),
           ),
-          
+
           // Reply Input
           Container(
             padding: const EdgeInsets.all(16),
@@ -1146,14 +1233,15 @@ class _FacilityMessageDetailScreenState extends State<FacilityMessageDetailScree
         .doc(widget.messageId)
         .collection('replies')
         .add({
-      'message': _replyController.text.trim(),
-      'senderId': widget.currentUserId,
-      'senderName': 'Facility User', // You might want to get this from user profile
-      'timestamp': FieldValue.serverTimestamp(),
-    });
+          'message': _replyController.text.trim(),
+          'senderId': widget.currentUserId,
+          'senderName':
+              'Facility User', // You might want to get this from user profile
+          'timestamp': FieldValue.serverTimestamp(),
+        });
 
     _replyController.clear();
-    
+
     // Scroll to bottom to show new reply
     Future.delayed(const Duration(milliseconds: 100), () {
       _scrollController.animateTo(
@@ -1179,10 +1267,12 @@ class FacilityConversationScreen extends StatefulWidget {
   });
 
   @override
-  State<FacilityConversationScreen> createState() => _FacilityConversationScreenState();
+  State<FacilityConversationScreen> createState() =>
+      _FacilityConversationScreenState();
 }
 
-class _FacilityConversationScreenState extends State<FacilityConversationScreen> {
+class _FacilityConversationScreenState
+    extends State<FacilityConversationScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
@@ -1232,18 +1322,26 @@ class _FacilityConversationScreenState extends State<FacilityConversationScreen>
                   itemBuilder: (context, index) {
                     final doc = snapshot.data!.docs[index];
                     final data = doc.data() as Map<String, dynamic>;
-                    final isCurrentUser = data['senderId'] == widget.currentUserId;
-                    
+                    final isCurrentUser =
+                        data['senderId'] == widget.currentUserId;
+
                     return Align(
-                      alignment: isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
+                      alignment: isCurrentUser
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
                       child: Container(
                         margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         constraints: BoxConstraints(
                           maxWidth: MediaQuery.of(context).size.width * 0.7,
                         ),
                         decoration: BoxDecoration(
-                          color: isCurrentUser ? Colors.purple : Colors.grey.shade200,
+                          color: isCurrentUser
+                              ? Colors.purple
+                              : Colors.grey.shade200,
                           borderRadius: BorderRadius.circular(18),
                         ),
                         child: Column(
@@ -1253,7 +1351,9 @@ class _FacilityConversationScreenState extends State<FacilityConversationScreen>
                             Text(
                               data['message'] ?? '',
                               style: TextStyle(
-                                color: isCurrentUser ? Colors.white : Colors.black87,
+                                color: isCurrentUser
+                                    ? Colors.white
+                                    : Colors.black87,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -1261,7 +1361,9 @@ class _FacilityConversationScreenState extends State<FacilityConversationScreen>
                               _formatTimestamp(data['timestamp']),
                               style: TextStyle(
                                 fontSize: 10,
-                                color: isCurrentUser ? Colors.white70 : Colors.grey.shade600,
+                                color: isCurrentUser
+                                    ? Colors.white70
+                                    : Colors.grey.shade600,
                               ),
                             ),
                           ],
@@ -1273,7 +1375,7 @@ class _FacilityConversationScreenState extends State<FacilityConversationScreen>
               },
             ),
           ),
-          
+
           // Message Input
           Container(
             padding: const EdgeInsets.all(16),
@@ -1332,7 +1434,7 @@ class _FacilityConversationScreenState extends State<FacilityConversationScreen>
     if (timestamp == null) return '';
     final date = timestamp.toDate();
     final now = DateTime.now();
-    
+
     if (now.difference(date).inDays == 0) {
       return '${date.hour}:${date.minute.toString().padLeft(2, '0')}';
     } else {
@@ -1352,19 +1454,19 @@ class _FacilityConversationScreenState extends State<FacilityConversationScreen>
         .doc(widget.conversationId)
         .collection('messages')
         .add({
-      'message': message,
-      'senderId': widget.currentUserId,
-      'timestamp': FieldValue.serverTimestamp(),
-    });
+          'message': message,
+          'senderId': widget.currentUserId,
+          'timestamp': FieldValue.serverTimestamp(),
+        });
 
     // Update conversation metadata
     FirebaseFirestore.instance
         .collection('conversations')
         .doc(widget.conversationId)
         .update({
-      'lastMessage': message,
-      'lastMessageTime': FieldValue.serverTimestamp(),
-    });
+          'lastMessage': message,
+          'lastMessageTime': FieldValue.serverTimestamp(),
+        });
 
     // Auto-scroll to bottom
     Future.delayed(const Duration(milliseconds: 100), () {

@@ -7,6 +7,7 @@ import '../../features/admin/presentation/screens/admin_register_facility_screen
 import '../../features/admin/presentation/screens/admin_training_upload_screen.dart';
 import '../../features/admin/presentation/screens/admin_reports_analytics_screen.dart';
 import '../../features/admin/presentation/screens/admin_analytics_screen.dart';
+import '../../features/admin/presentation/screens/admin_finance_screen.dart'; // Import AdminFinanceScreen
 // ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors
 
 import 'package:flutter/material.dart';
@@ -21,6 +22,7 @@ import '../../features/auth/presentation/screens/privacy_screen.dart';
 import '../../features/admin/presentation/screens/admin_dashboard.dart';
 import '../../features/doctor/presentation/screens/doctor_patient_list_screen.dart';
 import '../../features/doctor/presentation/screens/doctor_referrals_screen.dart';
+import '../../features/doctor/presentation/screens/doctor_create_referral_screen.dart';
 import '../../features/doctor/presentation/screens/doctor_analytics_screen.dart';
 import '../../features/doctor/presentation/screens/doctor_consultation_screen.dart';
 import '../../features/doctor/presentation/screens/doctor_clinical_resources_screen.dart';
@@ -48,10 +50,11 @@ import '../../features/chw/presentation/screens/chw_profile_screen.dart';
 import '../../features/chw/presentation/screens/chw_edit_profile_screen.dart';
 import '../../features/chw/presentation/screens/chw_profile_edit_screen.dart';
 import '../../features/chw/presentation/screens/chw_appointments_screen.dart';
+import '../../features/patient/presentation/screens/comprehensive_book_appointment_screen.dart';
 
 class AppRouter {
   static GoRouter get router => _router;
-  
+
   static final _router = GoRouter(
     initialLocation: '/login',
     redirect: _redirect,
@@ -104,6 +107,13 @@ class AppRouter {
             path: 'referrals',
             name: 'doctor-referrals',
             builder: (context, state) => const DoctorReferralsScreen(),
+            routes: [
+              GoRoute(
+                path: 'create_referral',
+                name: 'doctor-create-referral',
+                builder: (context, state) => const DoctorCreateReferralScreen(),
+              ),
+            ],
           ),
           GoRoute(
             path: 'analytics',
@@ -121,7 +131,7 @@ class AppRouter {
       GoRoute(
         path: '/doctor_resources',
         name: 'doctor-resources',
-       builder: (context, state) => const DoctorClinicalResourcesScreen(),
+        builder: (context, state) => const DoctorClinicalResourcesScreen(),
       ),
       GoRoute(
         path: '/chw_anc_consultation_details',
@@ -129,7 +139,9 @@ class AppRouter {
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
           // Merge appointmentType into appointmentData if present
-          final appointmentData = Map<String, dynamic>.from(extra?['appointmentData'] ?? {});
+          final appointmentData = Map<String, dynamic>.from(
+            extra?['appointmentData'] ?? {},
+          );
           if (extra?['appointmentType'] != null) {
             appointmentData['appointmentType'] = extra?['appointmentType'];
           }
@@ -144,69 +156,73 @@ class AppRouter {
       GoRoute(
         path: '/clinical_documentation',
         name: 'clinical-documentation',
-          builder: (context, state) {
-            // ...existing code or new screen logic...
-            return Container(); // Placeholder for the new screen logic
-          },
+        builder: (context, state) {
+          // ...existing code or new screen logic...
+          return Container(); // Placeholder for the new screen logic
+        },
       ),
       // Auth Routes
       GoRoute(
         path: '/login',
         name: 'login',
-        builder: (context, state) => const LoginScreen(), // Make sure LoginScreen is a class in login_screen.dart
+        builder: (context, state) =>
+            const LoginScreen(), // Make sure LoginScreen is a class in login_screen.dart
       ),
-      
+
       // Admin Routes
       GoRoute(
         path: '/admin_dashboard',
         name: 'admin-dashboard',
         builder: (context, state) => const AdminDashboard(),
         routes: [
-              GoRoute(
-                path: 'approvals',
-                name: 'admin-approvals',
-                builder: (context, state) => const ApprovalsScreen(),
-              ),
-              GoRoute(
-                path: 'register_facility',
-                name: 'admin-register-facility',
-                builder: (context, state) => const AdminRegisterFacilityScreen(),
-              ),
-              GoRoute(
-                path: 'upload_training',
-                name: 'admin-upload-training',
-                builder: (context, state) => const AdminTrainingUploadScreen(),
-              ),
-              GoRoute(
-                path: 'messages',
-                name: 'admin-messages',
-                builder: (context, state) => const MessagesScreen(),
-              ),
-              GoRoute(
-                path: 'reports_analytics',
-                name: 'admin-reports-analytics',
-                builder: (context, state) => const AdminReportsAnalyticsScreen(),
-              ),
-              GoRoute(
-                path: 'analytics',
-                name: 'admin-analytics',
-                builder: (context, state) => const AdminAnalyticsScreen(),
-              ),
-              GoRoute(
-                path: 'training',
-                name: 'admin-training',
-                builder: (context, state) => const AdminTrainingScreen(),
-              ),
-              GoRoute(
-                path: 'settings',
-                name: 'admin-settings',
-                builder: (context, state) => const AdminSettingsScreen(),
-              ),
+          GoRoute(
+            path: 'approvals',
+            name: 'admin-approvals',
+            builder: (context, state) => const ApprovalsScreen(),
+          ),
+          GoRoute(
+            path: 'register_facility',
+            name: 'admin-register-facility',
+            builder: (context, state) => const AdminRegisterFacilityScreen(),
+          ),
+          GoRoute(
+            path: 'upload_training',
+            name: 'admin-upload-training',
+            builder: (context, state) => const AdminTrainingUploadScreen(),
+          ),
+          GoRoute(
+            path: 'messages',
+            name: 'admin-messages',
+            builder: (context, state) => const MessagesScreen(),
+          ),
+          GoRoute(
+            path: 'reports_analytics',
+            name: 'admin-reports-analytics',
+            builder: (context, state) => const AdminReportsAnalyticsScreen(),
+          ),
+          GoRoute(
+            path: 'analytics',
+            name: 'admin-analytics',
+            builder: (context, state) => const AdminAnalyticsScreen(),
+          ),
+          GoRoute(
+            path: 'training',
+            name: 'admin-training',
+            builder: (context, state) => const AdminTrainingScreen(),
+          ),
+          GoRoute(
+            path: 'settings',
+            name: 'admin-settings',
+            builder: (context, state) => const AdminSettingsScreen(),
+          ),
+            GoRoute(
+              path: 'finance',
+              name: 'admin-finance',
+              builder: (context, state) => const AdminFinanceScreen(),
+            ),
         ],
       ),
-      
 
-      
       // CHW Routes
       GoRoute(
         path: '/chw_dashboard',
@@ -221,7 +237,8 @@ class AppRouter {
           GoRoute(
             path: 'register_patient',
             name: 'chw-register-patient',
-            builder: (context, state) => const PatientRegistrationScreen(isCHW: true),
+            builder: (context, state) =>
+                const PatientRegistrationScreen(isCHW: true),
           ),
           GoRoute(
             path: 'registration',
@@ -266,12 +283,15 @@ class AppRouter {
                 path: 'chat/:conversationId',
                 name: 'chw-chat',
                 builder: (context, state) {
-                  final conversationId = state.pathParameters['conversationId']!;
+                  final conversationId =
+                      state.pathParameters['conversationId']!;
                   final extra = state.extra as Map<String, dynamic>?;
                   return ChatScreen(
                     conversationId: conversationId,
-                    otherParticipantName: extra?['otherParticipantName'] ?? 'Unknown',
-                    otherParticipantRole: extra?['otherParticipantRole'] ?? 'USER',
+                    otherParticipantName:
+                        extra?['otherParticipantName'] ?? 'Unknown',
+                    otherParticipantRole:
+                        extra?['otherParticipantRole'] ?? 'USER',
                   );
                 },
               ),
@@ -311,14 +331,14 @@ class AppRouter {
             name: 'chw-edit-profile',
             builder: (context, state) => const CHWProfileEditScreen(),
           ),
-        GoRoute(
-          path: 'consultations',
-          name: 'chw-consultations',
-          builder: (context, state) => const CHWConsultationScreen(),
-        ),
+          GoRoute(
+            path: 'consultations',
+            name: 'chw-consultations',
+            builder: (context, state) => const CHWConsultationScreen(),
+          ),
         ],
       ),
-      
+
       // Patient Routes
       GoRoute(
         path: '/patient_dashboard',
@@ -354,12 +374,15 @@ class AppRouter {
                 path: 'chat/:conversationId',
                 name: 'patient-chat',
                 builder: (context, state) {
-                  final conversationId = state.pathParameters['conversationId']!;
+                  final conversationId =
+                      state.pathParameters['conversationId']!;
                   final extra = state.extra as Map<String, dynamic>?;
                   return ChatScreen(
                     conversationId: conversationId,
-                    otherParticipantName: extra?['otherParticipantName'] ?? 'Unknown',
-                    otherParticipantRole: extra?['otherParticipantRole'] ?? 'USER',
+                    otherParticipantName:
+                        extra?['otherParticipantName'] ?? 'Unknown',
+                    otherParticipantRole:
+                        extra?['otherParticipantRole'] ?? 'USER',
                   );
                 },
               ),
@@ -378,11 +401,25 @@ class AppRouter {
           GoRoute(
             path: 'training',
             name: 'patient-training',
-            builder: (context, state) => const TrainingMaterialsScreen(userRole: 'patient'),
+            builder: (context, state) =>
+                const TrainingMaterialsScreen(userRole: 'patient'),
           ),
         ],
       ),
-      
+
+      // Book Appointment Route (for patient referrals)
+      GoRoute(
+        path: '/book_appointment',
+        name: 'book-appointment',
+        builder: (context, state) {
+          final args = state.extra as Map<String, dynamic>? ?? {};
+          return ComprehensiveBookAppointmentScreen(
+            preSelectedProvider: args['preSelectedProvider'],
+            fromReferral: args['fromReferral'] ?? false,
+          );
+        },
+      ),
+
       // Facility Routes
       GoRoute(
         path: '/facility_dashboard',
@@ -406,7 +443,7 @@ class AppRouter {
           ),
         ],
       ),
-      
+
       // Shared Routes
       GoRoute(
         path: '/training-materials',
@@ -422,7 +459,7 @@ class AppRouter {
       // Removed: GoRoute for CHWConsultationScreen (screen does not exist)
     ],
   );
-  
+
   static String? _redirect(context, state) {
     final user = FirebaseAuth.instance.currentUser;
     final isLoggedIn = user != null;
@@ -447,7 +484,7 @@ class AppRouter {
 
     return null; // No redirect needed
   }
-  
+
   /// Helper method to determine route based on user role
   static String _getRouteForUserRole(User user) {
     // Simple email-based routing (for immediate resolution)
@@ -458,14 +495,19 @@ class AppRouter {
     String route = '/login';
 
     // Facility check is always first and case-insensitive
-    if (email.contains('facility') || email.contains('hospital') || 
-        email.contains('clinic') || email.startsWith('facility@')) {
+    if (email.contains('facility') ||
+        email.contains('hospital') ||
+        email.contains('clinic') ||
+        email.startsWith('facility@')) {
       detectedRole = 'facility';
       route = '/facility_dashboard';
-    } else if (email == 'admin@lifecare.com' || email == 'admin@yourdomain.com') {
+    } else if (email == 'admin@lifecare.com' ||
+        email == 'admin@yourdomain.com') {
       detectedRole = 'admin';
       route = '/admin_dashboard';
-    } else if (email.contains('doctor') || email.contains('dr.') || email.startsWith('doctor@')) {
+    } else if (email.contains('doctor') ||
+        email.contains('dr.') ||
+        email.startsWith('doctor@')) {
       detectedRole = 'doctor';
       route = '/doctor_dashboard';
     } else if (email.contains('chw') || email.startsWith('chw@')) {

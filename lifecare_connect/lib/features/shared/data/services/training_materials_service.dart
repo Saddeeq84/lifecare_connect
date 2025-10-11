@@ -23,7 +23,8 @@ class TrainingMaterial {
   final bool isActive;
   final int downloadCount;
   final List<String> tags;
-  final String syncStatus; // 'synced', 'pending_download', 'downloaded', 'offline_only'
+  final String
+  syncStatus; // 'synced', 'pending_download', 'downloaded', 'offline_only'
 
   TrainingMaterial({
     required this.id,
@@ -53,7 +54,8 @@ class TrainingMaterial {
       targetRole: data['targetRole'] ?? '',
       fileName: data['fileName'] ?? '',
       fileSize: data['fileSize'] ?? 0,
-      uploadedAt: (data['uploadedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      uploadedAt:
+          (data['uploadedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       uploadedBy: data['uploadedBy'] ?? '',
       version: data['version'] ?? 1,
       isActive: data['isActive'] ?? true,
@@ -93,7 +95,9 @@ class TrainingMaterial {
       targetRole: json['targetRole'] ?? '',
       fileName: json['fileName'] ?? '',
       fileSize: json['fileSize'] ?? 0,
-      uploadedAt: DateTime.parse(json['uploadedAt'] ?? DateTime.now().toIso8601String()),
+      uploadedAt: DateTime.parse(
+        json['uploadedAt'] ?? DateTime.now().toIso8601String(),
+      ),
       uploadedBy: json['uploadedBy'] ?? '',
       version: json['version'] ?? 1,
       isActive: json['isActive'] ?? true,
@@ -107,7 +111,7 @@ class TrainingMaterial {
 class TrainingMaterialsService {
   static const String _materialsKey = 'training_materials_cache';
   static const String _downloadedFilesKey = 'downloaded_files';
-  
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final Connectivity _connectivity = Connectivity();
 
@@ -116,7 +120,9 @@ class TrainingMaterialsService {
     try {
       // Check connectivity
       final connectivityResult = await _connectivity.checkConnectivity();
-      bool isOnline = connectivityResult.isNotEmpty && !connectivityResult.contains(ConnectivityResult.none);
+      bool isOnline =
+          connectivityResult.isNotEmpty &&
+          !connectivityResult.contains(ConnectivityResult.none);
 
       if (isOnline) {
         // Fetch from Firebase and update cache
@@ -160,17 +166,19 @@ class TrainingMaterialsService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final cachedData = prefs.getString(_materialsKey);
-      
+
       if (cachedData != null) {
         final List<dynamic> jsonList = json.decode(cachedData);
         List<TrainingMaterial> allMaterials = jsonList
             .map((json) => TrainingMaterial.fromJson(json))
             .toList();
-        
+
         // Filter by role
-        return allMaterials.where((material) => material.targetRole == role).toList();
+        return allMaterials
+            .where((material) => material.targetRole == role)
+            .toList();
       }
-      
+
       return [];
     } catch (e) {
       print('Error loading from cache: $e');
@@ -182,7 +190,7 @@ class TrainingMaterialsService {
   Future<void> _cacheNaterials(List<TrainingMaterial> materials) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       // Get existing cache
       List<TrainingMaterial> existingMaterials = [];
       final cachedData = prefs.getString(_materialsKey);
@@ -195,15 +203,17 @@ class TrainingMaterialsService {
 
       // Merge new materials with existing ones
       Map<String, TrainingMaterial> materialMap = {
-        for (var material in existingMaterials) material.id: material
+        for (var material in existingMaterials) material.id: material,
       };
-      
+
       for (var material in materials) {
         materialMap[material.id] = material;
       }
 
       // Save updated cache
-      final jsonList = materialMap.values.map((material) => material.toJson()).toList();
+      final jsonList = materialMap.values
+          .map((material) => material.toJson())
+          .toList();
       await prefs.setString(_materialsKey, json.encode(jsonList));
     } catch (e) {
       print('Error caching materials: $e');
@@ -214,7 +224,8 @@ class TrainingMaterialsService {
   Future<String?> downloadMaterialFile(TrainingMaterial material) async {
     try {
       final directory = await getApplicationDocumentsDirectory();
-      final filePath = '${directory.path}/training_materials/${material.targetRole}/${material.fileName}';
+      final filePath =
+          '${directory.path}/training_materials/${material.targetRole}/${material.fileName}';
       final file = File(filePath);
 
       // Create directory if it doesn't exist
@@ -224,13 +235,13 @@ class TrainingMaterialsService {
       final response = await http.get(Uri.parse(material.url));
       if (response.statusCode == 200) {
         await file.writeAsBytes(response.bodyBytes);
-        
+
         // Update download tracking
         await _trackDownload(material.id, filePath);
-        
+
         return filePath;
       }
-      
+
       return null;
     } catch (e) {
       print('Error downloading file: $e');
@@ -243,13 +254,13 @@ class TrainingMaterialsService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final downloadedFiles = prefs.getStringList(_downloadedFilesKey) ?? [];
-      
+
       final downloadInfo = json.encode({
         'materialId': materialId,
         'localPath': localPath,
         'downloadedAt': DateTime.now().toIso8601String(),
       });
-      
+
       downloadedFiles.add(downloadInfo);
       await prefs.setStringList(_downloadedFilesKey, downloadedFiles);
     } catch (e) {
@@ -262,7 +273,7 @@ class TrainingMaterialsService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final downloadedFiles = prefs.getStringList(_downloadedFilesKey) ?? [];
-      
+
       for (String downloadInfo in downloadedFiles) {
         final info = json.decode(downloadInfo);
         if (info['materialId'] == materialId) {
@@ -272,7 +283,7 @@ class TrainingMaterialsService {
           }
         }
       }
-      
+
       return null;
     } catch (e) {
       print('Error checking local file: $e');
@@ -284,17 +295,19 @@ class TrainingMaterialsService {
   Future<void> syncWhenOnline() async {
     try {
       final connectivityResult = await _connectivity.checkConnectivity();
-      if (connectivityResult.isEmpty || connectivityResult.contains(ConnectivityResult.none)) return;
+      if (connectivityResult.isEmpty ||
+          connectivityResult.contains(ConnectivityResult.none)) {
+        return;
+      }
 
       // Implement sync logic for any pending uploads or updates
       print('Syncing training materials...');
-      
+
       // This would handle any offline-created materials or updates
       // For now, just refresh the cache
       await _fetchFromFirebaseAndCache('chw');
       await _fetchFromFirebaseAndCache('doctor');
       await _fetchFromFirebaseAndCache('patient');
-      
     } catch (e) {
       print('Error during sync: $e');
     }
@@ -306,7 +319,7 @@ class TrainingMaterialsService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_materialsKey);
       await prefs.remove(_downloadedFilesKey);
-      
+
       // Also clear downloaded files
       final directory = await getApplicationDocumentsDirectory();
       final trainingDir = Directory('${directory.path}/training_materials');
@@ -323,10 +336,10 @@ class TrainingMaterialsService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final downloadedFiles = prefs.getStringList(_downloadedFilesKey) ?? [];
-      
+
       int totalSize = 0;
       int fileCount = 0;
-      
+
       for (String downloadInfo in downloadedFiles) {
         final info = json.decode(downloadInfo);
         final localPath = info['localPath'];
@@ -336,7 +349,7 @@ class TrainingMaterialsService {
           fileCount++;
         }
       }
-      
+
       return {
         'totalSize': totalSize,
         'fileCount': fileCount,

@@ -63,13 +63,13 @@ class _MessagesScreenState extends State<MessagesScreen> {
 
   Future<void> _checkAdminRole() async {
     if (_currentUserId == null) return;
-    
+
     try {
       final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(_currentUserId)
           .get();
-      
+
       if (userDoc.exists) {
         final userData = userDoc.data() as Map<String, dynamic>;
         final role = userData['role'] ?? '';
@@ -84,13 +84,12 @@ class _MessagesScreenState extends State<MessagesScreen> {
 
   void _loadConversations() {
     if (_currentUserId == null) return;
-    
+
     setState(() {
       _isLoading = true;
     });
 
-    MessageService.getUserConversations(userId: _currentUserId!)
-        .listen(
+    MessageService.getUserConversations(userId: _currentUserId!).listen(
       (snapshot) {
         final conversations = snapshot.docs
             .map((doc) => Conversation.fromFirestore(doc))
@@ -120,10 +119,20 @@ class _MessagesScreenState extends State<MessagesScreen> {
         _filteredConversations = _conversations;
       } else {
         _filteredConversations = _conversations.where((conversation) {
-          final otherParticipantName = conversation.getOtherParticipantName(_currentUserId!);
-          return otherParticipantName.toLowerCase().contains(query.toLowerCase()) ||
-                 (conversation.title?.toLowerCase().contains(query.toLowerCase()) ?? false) ||
-                 (conversation.lastMessage?.toLowerCase().contains(query.toLowerCase()) ?? false);
+          final otherParticipantName = conversation.getOtherParticipantName(
+            _currentUserId!,
+          );
+          return otherParticipantName.toLowerCase().contains(
+                query.toLowerCase(),
+              ) ||
+              (conversation.title?.toLowerCase().contains(
+                    query.toLowerCase(),
+                  ) ??
+                  false) ||
+              (conversation.lastMessage?.toLowerCase().contains(
+                    query.toLowerCase(),
+                  ) ??
+                  false);
         }).toList();
       }
     });
@@ -135,8 +144,12 @@ class _MessagesScreenState extends State<MessagesScreen> {
       MaterialPageRoute(
         builder: (context) => ChatScreen(
           conversationId: conversation.id,
-          otherParticipantName: conversation.getOtherParticipantName(_currentUserId!),
-          otherParticipantRole: conversation.getOtherParticipantRole(_currentUserId!),
+          otherParticipantName: conversation.getOtherParticipantName(
+            _currentUserId!,
+          ),
+          otherParticipantRole: conversation.getOtherParticipantRole(
+            _currentUserId!,
+          ),
         ),
       ),
     );
@@ -145,27 +158,21 @@ class _MessagesScreenState extends State<MessagesScreen> {
   void _startNewConversation() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => NewConversationScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => NewConversationScreen()),
     );
   }
 
   void _composeMessage() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => ComposeMessageScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => ComposeMessageScreen()),
     );
   }
 
   void _sendBroadcastMessage() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => BroadcastMessageScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => BroadcastMessageScreen()),
     );
   }
 
@@ -191,10 +198,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
             ),
             const Text(
               'Messaging Options',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
             ListTile(
@@ -220,7 +224,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   color: const Color(0xFF4285F4).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.person_search, color: Color(0xFF4285F4)),
+                child: const Icon(
+                  Icons.person_search,
+                  color: Color(0xFF4285F4),
+                ),
               ),
               title: const Text('Compose Message'),
               subtitle: const Text('Send message to specific user'),
@@ -254,8 +261,12 @@ class _MessagesScreenState extends State<MessagesScreen> {
   }
 
   Widget _buildConversationTile(Conversation conversation) {
-    final otherParticipantName = conversation.getOtherParticipantName(_currentUserId!);
-    final otherParticipantRole = conversation.getOtherParticipantRole(_currentUserId!);
+    final otherParticipantName = conversation.getOtherParticipantName(
+      _currentUserId!,
+    );
+    final otherParticipantRole = conversation.getOtherParticipantRole(
+      _currentUserId!,
+    );
     final unreadCount = conversation.getUnreadCount(_currentUserId!);
     final hasUnread = unreadCount > 0;
 
@@ -263,11 +274,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
       leading: CircleAvatar(
         backgroundColor: _getRoleColor(otherParticipantRole),
         child: Text(
-          otherParticipantName.isNotEmpty ? otherParticipantName[0].toUpperCase() : '?',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
+          otherParticipantName.isNotEmpty
+              ? otherParticipantName[0].toUpperCase()
+              : '?',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
       ),
       title: Row(
@@ -390,7 +400,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final messageDate = DateTime(dateTime.year, dateTime.month, dateTime.day);
-    
+
     if (messageDate == today) {
       return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
     } else if (messageDate == today.subtract(Duration(days: 1))) {
@@ -475,55 +485,59 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
               ),
               onChanged: _filterConversations,
             ),
           ),
-          
+
           // Conversations list
           Expanded(
             child: _isLoading
                 ? Center(child: CircularProgressIndicator())
                 : _filteredConversations.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.chat_bubble_outline,
-                              size: 64,
-                              color: Colors.grey,
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              _searchController.text.isNotEmpty
-                                  ? 'No conversations found'
-                                  : 'No messages yet',
-                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                    color: Colors.grey,
-                                  ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              _searchController.text.isNotEmpty
-                                  ? 'Try a different search term'
-                                  : 'Start a conversation with your healthcare team',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Colors.grey,
-                                  ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.chat_bubble_outline,
+                          size: 64,
+                          color: Colors.grey,
                         ),
-                      )
-                    : ListView.separated(
-                        itemCount: _filteredConversations.length,
-                        separatorBuilder: (context, index) => Divider(height: 1),
-                        itemBuilder: (context, index) {
-                          return _buildConversationTile(_filteredConversations[index]);
-                        },
-                      ),
+                        SizedBox(height: 16),
+                        Text(
+                          _searchController.text.isNotEmpty
+                              ? 'No conversations found'
+                              : 'No messages yet',
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(color: Colors.grey),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          _searchController.text.isNotEmpty
+                              ? 'Try a different search term'
+                              : 'Start a conversation with your healthcare team',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.separated(
+                    itemCount: _filteredConversations.length,
+                    separatorBuilder: (context, index) => Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      return _buildConversationTile(
+                        _filteredConversations[index],
+                      );
+                    },
+                  ),
           ),
         ],
       ),
@@ -578,21 +592,31 @@ class ConversationSearchDelegate extends SearchDelegate<Conversation?> {
   @override
   Widget buildSuggestions(BuildContext context) {
     final filteredConversations = conversations.where((conversation) {
-      final otherParticipantName = conversation.getOtherParticipantName(currentUserId);
+      final otherParticipantName = conversation.getOtherParticipantName(
+        currentUserId,
+      );
       return otherParticipantName.toLowerCase().contains(query.toLowerCase()) ||
-             (conversation.title?.toLowerCase().contains(query.toLowerCase()) ?? false) ||
-             (conversation.lastMessage?.toLowerCase().contains(query.toLowerCase()) ?? false);
+          (conversation.title?.toLowerCase().contains(query.toLowerCase()) ??
+              false) ||
+          (conversation.lastMessage?.toLowerCase().contains(
+                query.toLowerCase(),
+              ) ??
+              false);
     }).toList();
 
     return ListView.builder(
       itemCount: filteredConversations.length,
       itemBuilder: (context, index) {
         final conversation = filteredConversations[index];
-        final otherParticipantName = conversation.getOtherParticipantName(currentUserId);
-        
+        final otherParticipantName = conversation.getOtherParticipantName(
+          currentUserId,
+        );
+
         return ListTile(
           leading: CircleAvatar(
-            child: Text(otherParticipantName.isNotEmpty ? otherParticipantName[0] : '?'),
+            child: Text(
+              otherParticipantName.isNotEmpty ? otherParticipantName[0] : '?',
+            ),
           ),
           title: Text(conversation.title ?? otherParticipantName),
           subtitle: Text(conversation.lastMessage ?? 'No messages yet'),

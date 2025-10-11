@@ -1,4 +1,3 @@
-
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:file_picker/file_picker.dart' as file_picker;
@@ -36,11 +35,15 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
         return 'application/octet-stream';
     }
   }
+
   // firebase_auth 6.x does not support fetchSignInMethodsForEmail; always return empty list so registration proceeds.
-  Future<List<String>> fetchSignInMethodsForEmailWithErrorHandling(String email) async {
-  // NOTE: When firebase_auth supports fetchSignInMethodsForEmail again, restore real check here.
+  Future<List<String>> fetchSignInMethodsForEmailWithErrorHandling(
+    String email,
+  ) async {
+    // NOTE: When firebase_auth supports fetchSignInMethodsForEmail again, restore real check here.
     return [];
   }
+
   Uint8List? licenseFileBytes;
   final _formKey = GlobalKey<FormState>();
 
@@ -122,11 +125,11 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
   String? licenseFileName;
   String? licenseFileExtension;
   Future<void> pickLicenseFile() async {
-  // Use file_picker for all supported file types
+    // Use file_picker for all supported file types
     final result = await file_picker.FilePicker.platform.pickFiles(
       type: file_picker.FileType.custom,
       allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
-  withData: kIsWeb, // get bytes for web uploads
+      withData: kIsWeb, // get bytes for web uploads
     );
     if (result != null && result.files.single.path != null) {
       setState(() {
@@ -152,30 +155,45 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
     if (picked != null) {
       setState(() {
         selectedDOB = picked;
-        dobController.text = '${picked.day.toString().padLeft(2, '0')}/'
+        dobController.text =
+            '${picked.day.toString().padLeft(2, '0')}/'
             '${picked.month.toString().padLeft(2, '0')}/'
             '${picked.year}';
       });
     }
   }
 
-
-  Future<String?> uploadFile(File file, String folderName, {Uint8List? fileBytes, String? fileNameOverride}) async {
+  Future<String?> uploadFile(
+    File file,
+    String folderName, {
+    Uint8List? fileBytes,
+    String? fileNameOverride,
+  }) async {
     try {
-      final fileName = fileNameOverride ?? (kIsWeb ? 'web_upload_${DateTime.now().millisecondsSinceEpoch}' : '${DateTime.now().millisecondsSinceEpoch}${file.path.split('/').last}');
+      final fileName =
+          fileNameOverride ??
+          (kIsWeb
+              ? 'web_upload_${DateTime.now().millisecondsSinceEpoch}'
+              : '${DateTime.now().millisecondsSinceEpoch}${file.path.split('/').last}');
       final ref = FirebaseStorage.instance.ref('$folderName/$fileName');
       if (kIsWeb) {
         if (fileBytes == null) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('File upload error: No file bytes provided for web upload.')),
+              const SnackBar(
+                content: Text(
+                  'File upload error: No file bytes provided for web upload.',
+                ),
+              ),
             );
           }
           return null;
         }
         // On web, upload using bytes only
-        final uploadTask = await ref.putData(fileBytes,
-            SettableMetadata(contentType: _getContentType(fileName)));
+        final uploadTask = await ref.putData(
+          fileBytes,
+          SettableMetadata(contentType: _getContentType(fileName)),
+        );
         return await uploadTask.ref.getDownloadURL();
       } else {
         // On mobile/desktop, upload using File
@@ -184,16 +202,15 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('File upload error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('File upload error: $e')));
       }
       return null;
     }
   }
 
   Future<void> handleRegister() async {
-
     if (!_formKey.currentState!.validate()) {
       setState(() => loading = false);
       return;
@@ -205,7 +222,9 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
         licenseFileError = 'You must upload your license to register.';
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('License upload is required to register.')),
+        const SnackBar(
+          content: Text('License upload is required to register.'),
+        ),
       );
       return;
     } else {
@@ -214,16 +233,18 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
       });
     }
 
-  // Remove fetchSignInMethodsForEmailWithErrorHandling, rely on FirebaseAuth error
+    // Remove fetchSignInMethodsForEmailWithErrorHandling, rely on FirebaseAuth error
 
     if (passwordController.text != confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Passwords do not match')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Passwords do not match')));
       return;
     }
 
-    if (selectedSpecialization == null || selectedGender == null || selectedDOB == null) {
+    if (selectedSpecialization == null ||
+        selectedGender == null ||
+        selectedDOB == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill all personal information')),
       );
@@ -235,10 +256,10 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
     UserCredential? userCred;
     try {
       // 1. Create user first
-      userCred = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
-              email: emailController.text.trim(),
-              password: passwordController.text.trim());
+      userCred = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
 
       final uid = userCred.user?.uid;
       if (uid == null) throw Exception("User creation failed");
@@ -323,7 +344,9 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Account created! Registration requires admin approval before your account is active.'),
+            content: Text(
+              'Account created! Registration requires admin approval before your account is active.',
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -331,7 +354,9 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Registration Submitted'),
-            content: const Text('Your registration was successful and is pending admin approval. Your account will not be active until approved by an admin. You will receive an email when your account is approved.'),
+            content: const Text(
+              'Your registration was successful and is pending admin approval. Your account will not be active until approved by an admin. You will receive an email when your account is approved.',
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -363,13 +388,19 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
       if (e.code == 'email-already-in-use') {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('This email is already in use. Please use a different email.')),
+            const SnackBar(
+              content: Text(
+                'This email is already in use. Please use a different email.',
+              ),
+            ),
           );
         }
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('❌ Registration failed: ${e.message ?? e.code}')),
+            SnackBar(
+              content: Text('❌ Registration failed: ${e.message ?? e.code}'),
+            ),
           );
         }
       }
@@ -379,7 +410,9 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Registration successful! Your account requires admin approval before it is active.'),
+              content: Text(
+                'Registration successful! Your account requires admin approval before it is active.',
+              ),
               backgroundColor: Colors.green,
             ),
           );
@@ -387,7 +420,9 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
             context: context,
             builder: (context) => AlertDialog(
               title: const Text('Registration Submitted'),
-              content: const Text('Your registration was successful and is pending admin approval. Your account will not be active until approved by an admin. You will receive an email when your account is approved.'),
+              content: const Text(
+                'Your registration was successful and is pending admin approval. Your account will not be active until approved by an admin. You will receive an email when your account is approved.',
+              ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
@@ -456,8 +491,9 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
                 child: CircleAvatar(
                   radius: 50,
                   backgroundColor: Colors.grey.shade300,
-                  backgroundImage:
-                      profileImage != null ? FileImage(profileImage!) : null,
+                  backgroundImage: profileImage != null
+                      ? FileImage(profileImage!)
+                      : null,
                   child: profileImage == null
                       ? const Icon(Icons.camera_alt, size: 40)
                       : null,
@@ -489,23 +525,30 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
                 controller: passwordController,
                 obscureText: true,
                 decoration: const InputDecoration(labelText: 'Password'),
-                validator: (val) =>
-                    val != null && val.length >= 6 ? null : 'Minimum 6 characters',
+                validator: (val) => val != null && val.length >= 6
+                    ? null
+                    : 'Minimum 6 characters',
               ),
               const SizedBox(height: 10),
               TextFormField(
                 controller: confirmPasswordController,
                 obscureText: true,
-                decoration: const InputDecoration(labelText: 'Confirm Password'),
-                validator: (val) =>
-                    val != passwordController.text ? 'Passwords do not match' : null,
+                decoration: const InputDecoration(
+                  labelText: 'Confirm Password',
+                ),
+                validator: (val) => val != passwordController.text
+                    ? 'Passwords do not match'
+                    : null,
               ),
               const SizedBox(height: 10),
               DropdownButtonFormField<String>(
                 decoration: const InputDecoration(labelText: 'Specialization'),
                 initialValue: selectedSpecialization,
                 items: specializations
-                    .map((spec) => DropdownMenuItem(value: spec, child: Text(spec)))
+                    .map(
+                      (spec) =>
+                          DropdownMenuItem(value: spec, child: Text(spec)),
+                    )
                     .toList(),
                 onChanged: (val) {
                   setState(() {
@@ -524,9 +567,11 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
                       labelText: 'Please specify your specialization',
                       border: OutlineInputBorder(),
                     ),
-                    onChanged: (val) => setState(() => otherSpecialization = val),
+                    onChanged: (val) =>
+                        setState(() => otherSpecialization = val),
                     validator: (val) {
-                      if (selectedSpecialization == 'Other' && (val == null || val.trim().isEmpty)) {
+                      if (selectedSpecialization == 'Other' &&
+                          (val == null || val.trim().isEmpty)) {
                         return 'Please specify your specialization';
                       }
                       return null;
@@ -552,7 +597,8 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
                   suffixIcon: Icon(Icons.calendar_today),
                 ),
                 onTap: pickDOB,
-                validator: (val) => val == null || val.isEmpty ? 'Select Date of Birth' : null,
+                validator: (val) =>
+                    val == null || val.isEmpty ? 'Select Date of Birth' : null,
               ),
               const SizedBox(height: 20),
               Column(
@@ -562,14 +608,13 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
                     onPressed: pickLicenseFile,
                     icon: const Icon(Icons.upload_file),
                     label: Text(
-                      licenseFile == null
-                          ? 'Upload License'
-                          : 'Change License',
+                      licenseFile == null ? 'Upload License' : 'Change License',
                       style: const TextStyle(fontSize: 16),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          licenseFile == null ? Colors.grey : Colors.teal.shade600,
+                      backgroundColor: licenseFile == null
+                          ? Colors.grey
+                          : Colors.teal.shade600,
                       foregroundColor: Colors.white,
                       minimumSize: const Size.fromHeight(48),
                     ),
@@ -592,7 +637,9 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
                       padding: const EdgeInsets.only(top: 8.0),
                       child: Row(
                         children: [
-                          if (licenseFileExtension == 'jpg' || licenseFileExtension == 'jpeg' || licenseFileExtension == 'png')
+                          if (licenseFileExtension == 'jpg' ||
+                              licenseFileExtension == 'jpeg' ||
+                              licenseFileExtension == 'png')
                             kIsWeb && licenseFileBytes != null
                                 ? Image.memory(
                                     licenseFileBytes!,
@@ -607,13 +654,20 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
                                     fit: BoxFit.cover,
                                   ),
                           if (licenseFileExtension == 'pdf')
-                            const Icon(Icons.picture_as_pdf, color: Colors.red, size: 40),
+                            const Icon(
+                              Icons.picture_as_pdf,
+                              color: Colors.red,
+                              size: 40,
+                            ),
                           const SizedBox(width: 10),
                           Flexible(
                             child: Text(
                               licenseFileName!,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
                         ],
@@ -630,14 +684,18 @@ class _DoctorCreateAccountScreenState extends State<DoctorCreateAccountScreen> {
                           context: context,
                           builder: (context) => AlertDialog(
                             title: const Text('Confirm Submission'),
-                            content: const Text('Are you sure you want to register this account?'),
+                            content: const Text(
+                              'Are you sure you want to register this account?',
+                            ),
                             actions: [
                               TextButton(
-                                onPressed: () => Navigator.of(context).pop(false),
+                                onPressed: () =>
+                                    Navigator.of(context).pop(false),
                                 child: const Text('Cancel'),
                               ),
                               ElevatedButton(
-                                onPressed: () => Navigator.of(context).pop(true),
+                                onPressed: () =>
+                                    Navigator.of(context).pop(true),
                                 child: const Text('Yes, Register'),
                               ),
                             ],
