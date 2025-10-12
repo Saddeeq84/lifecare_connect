@@ -1,11 +1,9 @@
-const cors = require('cors');
-app.use(cors());
-
-
 const express = require('express');
+const cors = require('cors');
 const { RtcTokenBuilder, RtcRole } = require('agora-access-token');
 
 const app = express();
+app.use(cors());
 
 // Alias for /rtcToken for compatibility with web client
 app.get('/rtcToken', (req, res) => {
