@@ -102,10 +102,19 @@
       // Get channelName and uid from URL, fallback to defaults if missing
       CHANNEL = getQueryParam('channelName') || 'test_lifecare';
       UID = getQueryParam('uid') || null;
+      // Ensure UID is always a valid number and not null/undefined
+      if (UID) {
+        UID = parseInt(UID, 10);
+        if (isNaN(UID)) UID = null;
+      }
+      // If UID is not provided or invalid, generate a random integer UID
+      if (!UID) {
+        UID = Math.floor(Math.random() * 1000000) + 1; // Agora UID must be > 0
+      }
 
-      // Fetch token from token server
+      // Fetch token from deployed token server
       try {
-        const tokenUrl = `/agora-token?channelName=${encodeURIComponent(CHANNEL)}${UID ? `&uid=${encodeURIComponent(UID)}` : ''}`;
+        const tokenUrl = `https://lifecaremobileapp.onrender.com/rtcToken?channelName=${encodeURIComponent(CHANNEL)}${UID ? `&uid=${encodeURIComponent(UID)}` : ''}`;
         const resp = await fetch(tokenUrl);
         if (!resp.ok) throw new Error('Failed to fetch token');
         const data = await resp.json();
@@ -123,7 +132,7 @@
       // Token renewal: listen for token-privilege-will-expire and token-privilege-did-expire
       client.on('token-privilege-will-expire', async function () {
         try {
-          const tokenUrl = `/agora-token?channelName=${encodeURIComponent(CHANNEL)}${UID ? `&uid=${encodeURIComponent(UID)}` : ''}`;
+          const tokenUrl = `https://lifecaremobileapp.onrender.com/rtcToken?channelName=${encodeURIComponent(CHANNEL)}${UID ? `&uid=${encodeURIComponent(UID)}` : ''}`;
           const resp = await fetch(tokenUrl);
           if (!resp.ok) throw new Error('Failed to fetch token');
           const data = await resp.json();
