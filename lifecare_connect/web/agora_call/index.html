@@ -114,7 +114,7 @@
 
       // Fetch token from deployed token server
       try {
-        const tokenUrl = `https://lifecaremobileapp.onrender.com/rtcToken?channelName=${encodeURIComponent(CHANNEL)}${UID ? `&uid=${encodeURIComponent(UID)}` : ''}`;
+        const tokenUrl = `https://agora-token-server-inpi.onrender.com/rtcToken?channelName=${encodeURIComponent(CHANNEL)}${UID ? `&uid=${encodeURIComponent(UID)}` : ''}`;
         const resp = await fetch(tokenUrl);
         if (!resp.ok) throw new Error('Failed to fetch token');
         const data = await resp.json();
@@ -132,7 +132,7 @@
       // Token renewal: listen for token-privilege-will-expire and token-privilege-did-expire
       client.on('token-privilege-will-expire', async function () {
         try {
-          const tokenUrl = `https://lifecaremobileapp.onrender.com/rtcToken?channelName=${encodeURIComponent(CHANNEL)}${UID ? `&uid=${encodeURIComponent(UID)}` : ''}`;
+          const tokenUrl = `https://agora-token-server-inpi.onrender.com/rtcToken?channelName=${encodeURIComponent(CHANNEL)}${UID ? `&uid=${encodeURIComponent(UID)}` : ''}`;
           const resp = await fetch(tokenUrl);
           if (!resp.ok) throw new Error('Failed to fetch token');
           const data = await resp.json();
