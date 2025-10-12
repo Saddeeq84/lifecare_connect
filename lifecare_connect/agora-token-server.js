@@ -1,11 +1,12 @@
-// Debug endpoint to check server time
-app.get('/servertime', (req, res) => {
-  res.json({ serverTime: new Date().toISOString(), unix: Math.floor(Date.now() / 1000) });
-});
 const express = require('express');
 const { RtcTokenBuilder, RtcRole } = require('agora-access-token');
 
 const app = express();
+
+// Debug endpoint to check server time
+app.get('/servertime', (req, res) => {
+  res.json({ serverTime: new Date().toISOString(), unix: Math.floor(Date.now() / 1000) });
+});
 const APP_ID = process.env.AGORA_APP_ID;
 const APP_CERTIFICATE = process.env.AGORA_APP_CERTIFICATE;
 
