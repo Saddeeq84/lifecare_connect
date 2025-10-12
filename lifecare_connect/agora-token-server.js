@@ -1,4 +1,10 @@
 
+
+const express = require('express');
+const { RtcTokenBuilder, RtcRole } = require('agora-access-token');
+
+const app = express();
+
 // Alias for /rtcToken for compatibility with web client
 app.get('/rtcToken', (req, res) => {
   const channelName = req.query.channelName;
@@ -19,10 +25,6 @@ app.get('/rtcToken', (req, res) => {
   );
   res.json({ token });
 });
-const express = require('express');
-const { RtcTokenBuilder, RtcRole } = require('agora-access-token');
-
-const app = express();
 
 // Debug endpoint to check server time
 app.get('/servertime', (req, res) => {
