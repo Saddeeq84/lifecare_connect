@@ -1,3 +1,23 @@
+// Alias for /rtcToken for compatibility with web client
+app.get('/rtcToken', (req, res) => {
+  const channelName = req.query.channelName;
+  const uid = req.query.uid || 0;
+  const role = RtcRole.PUBLISHER;
+  const expireTime = 3600; // 1 hour
+
+  if (!APP_ID || !APP_CERTIFICATE) {
+    return res.status(500).json({ error: 'Agora credentials not set' });
+  }
+  if (!channelName) {
+    return res.status(400).json({ error: 'Missing channelName' });
+  }
+
+  const expireTimestamp = Math.floor(Date.now() / 1000) + expireTime;
+  const token = RtcTokenBuilder.buildTokenWithUid(
+    APP_ID, APP_CERTIFICATE, channelName, uid, role, expireTimestamp
+  );
+  res.json({ token });
+});
 const express = require('express');
 const { RtcTokenBuilder, RtcRole } = require('agora-access-token');
 
