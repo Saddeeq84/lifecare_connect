@@ -1,3 +1,4 @@
+
 // Alias for /rtcToken for compatibility with web client
 app.get('/rtcToken', (req, res) => {
   const channelName = req.query.channelName;
