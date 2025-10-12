@@ -32,7 +32,7 @@ class DefaultFirebaseOptions {
   }
 
   static FirebaseOptions get web => FirebaseOptions(
-    apiKey: dotenv.env['FIREBASE_API_KEY'] ?? '',
+    apiKey: 'AIzaSyAAJqnlBCZJUQ6bGdfbiuVJHVflW4SuHhg',
     appId: '1:815876091951:web:fd346056ca8453611616da',
     messagingSenderId: '815876091951',
     projectId: 'lifecare-connect',

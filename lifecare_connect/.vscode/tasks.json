@@ -13,6 +13,19 @@
 				"$dart"
 			],
 			"group": "build"
+		},
+		{
+			"label": "Flutter Build Web",
+			"type": "shell",
+			"command": "flutter",
+			"args": [
+				"build",
+				"web"
+			],
+			"problemMatcher": [
+				"$dart"
+			],
+			"group": "build"
 		}
 	]
 }

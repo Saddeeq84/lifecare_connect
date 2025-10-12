@@ -1,3 +1,5 @@
+exports.paystackInitialize = require('./paystack_initialize').paystackInitialize;
+exports.paystackVerify = require('./paystack_verify').paystackVerify;
 exports.sendStaffSetupPasswordEmail = require('./send_staff_setup_password').sendStaffSetupPasswordEmail;
 const functions = require('firebase-functions');
 const sgMail = require('@sendgrid/mail');

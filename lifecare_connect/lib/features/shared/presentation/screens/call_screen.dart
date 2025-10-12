@@ -69,9 +69,11 @@ class _CallScreenState extends State<CallScreen> {
 		final response = await http.get(url);
 		if (response.statusCode == 200) {
 			final data = json.decode(response.body);
+			final token = data['token'] ?? data['rtcToken'];
 			setState(() {
-				_token = data['token'] ?? data['rtcToken'];
+				_token = token;
 			});
+			return token;
 		} else {
 			throw Exception('Failed to fetch token: ${response.body}');
 		}

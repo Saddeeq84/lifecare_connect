@@ -29,7 +29,7 @@ app.get('/rtcToken', (req, res) => {
   const token = RtcTokenBuilder.buildTokenWithUid(
     APP_ID, APP_CERTIFICATE, channelName, uid, role, privilegeExpireTime
   );
-  return res.json({ 'rtcToken': token });
+  return res.json({ token });
 });
 
 const PORT = process.env.PORT || 5000;

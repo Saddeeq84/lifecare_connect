@@ -120,6 +120,25 @@
       client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
       client.on('user-published', handleUserPublished);
       client.on('user-unpublished', handleUserUnpublished);
+      // Token renewal: listen for token-privilege-will-expire and token-privilege-did-expire
+      client.on('token-privilege-will-expire', async function () {
+        try {
+          const tokenUrl = `/agora-token?channelName=${encodeURIComponent(CHANNEL)}${UID ? `&uid=${encodeURIComponent(UID)}` : ''}`;
+          const resp = await fetch(tokenUrl);
+          if (!resp.ok) throw new Error('Failed to fetch token');
+          const data = await resp.json();
+          const newToken = data.token;
+          if (!newToken) throw new Error('No token received');
+          await client.renewToken(newToken);
+          TOKEN = newToken;
+          console.log('Agora token renewed successfully');
+        } catch (err) {
+          alert('Failed to renew Agora token. Please rejoin the call.');
+        }
+      });
+      client.on('token-privilege-did-expire', function () {
+        alert('Agora token expired. Please rejoin the call.');
+      });
       await client.join(APP_ID, CHANNEL, TOKEN, UID);
       localTracks = await AgoraRTC.createMicrophoneAndCameraTracks();
       addVideoBox('local', 'You');

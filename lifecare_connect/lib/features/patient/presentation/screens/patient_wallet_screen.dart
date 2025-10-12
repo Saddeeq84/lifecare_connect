@@ -4,7 +4,7 @@ import 'package:lifecare_connect/features/shared/data/services/wallet_service.da
 // import 'dart:html' as html; // Not needed for inline payment
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'dart:html' as html;
+import 'package:lifecare_connect/utils/web_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PatientWalletScreen extends StatefulWidget {
@@ -15,6 +15,7 @@ class PatientWalletScreen extends StatefulWidget {
 }
 
 class _PatientWalletScreenState extends State<PatientWalletScreen> {
+  bool get _isLoggedIn => WalletService.currentUserId.isNotEmpty;
   String? _lastPaymentRef;
   double? _lastPaymentAmount;
   double? _balance;
@@ -32,19 +33,29 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
   Future<void> _loadWallet() async {
     setState(() { _loading = true; _error = null; });
     try {
+      debugPrint('Loading wallet for user...');
       final bal = await WalletService.getBalance();
+      debugPrint('Wallet balance: $bal');
       final txs = await WalletService.getTransactions();
+      debugPrint('Wallet transactions: $txs');
       setState(() {
         _balance = bal;
         _transactions = txs;
         _loading = false;
       });
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('Error loading wallet: $e\n$st');
       setState(() { _error = e.toString(); _loading = false; });
     }
   }
 
   Future<void> _fundWallet() async {
+    if (!_isLoggedIn) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please log in to fund your wallet.'), backgroundColor: Colors.red),
+      );
+      return;
+    }
     // Show dialog to enter amount
     final controller = TextEditingController();
     final amount = await showDialog<double>(
@@ -76,27 +87,39 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
     _lastPaymentRef = ref;
     _lastPaymentAmount = amount;
     try {
-      final url = Uri.parse('https://api.paystack.co/transaction/initialize');
+      // Call your backend endpoint instead of Paystack directly
+      final url = Uri.parse('https://us-central1-lifecare-connect.cloudfunctions.net/paystackInitialize');
       final headers = {
-        'Authorization': 'Bearer ${dotenv.env['PAYSTACK_SECRET_KEY']}',
         'Content-Type': 'application/json',
       };
       final body = jsonEncode({
         'email': email,
         'amount': (amount * 100).toInt(),
         'reference': ref,
-        // Optionally add 'callback_url': 'https://your-callback-url.com',
       });
       final response = await http.post(url, headers: headers, body: body);
       final data = jsonDecode(response.body);
       if (response.statusCode == 200 && data['status'] == true) {
         final authUrl = data['data']['authorization_url'];
-        html.window.open(authUrl, '_blank');
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Complete payment in the new tab. After success, contact support to credit your wallet.'), backgroundColor: Colors.orange),
-          );
-        }
+        openWebTab(authUrl);
+        // Show dialog to prompt user to confirm after payment
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Complete Payment'),
+            content: const Text('After completing the payment in the new tab, click the button below to verify and credit your wallet.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('I have paid'),
+              ),
+            ],
+          ),
+        );
+        // Automatically verify and credit wallet
+        await _verifyPayment();
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -122,36 +145,47 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
     }
     final ref = _lastPaymentRef!;
     final amount = _lastPaymentAmount!;
-    final url = Uri.parse('https://api.paystack.co/transaction/verify/$ref');
+    final url = Uri.parse('https://us-central1-lifecare-connect.cloudfunctions.net/paystackVerify');
     final headers = {
-      'Authorization': 'Bearer ${dotenv.env['PAYSTACK_SECRET_KEY']}',
       'Content-Type': 'application/json',
     };
+    final body = jsonEncode({'reference': ref});
     try {
-      final response = await http.get(url, headers: headers);
+      final response = await http.post(url, headers: headers, body: body);
       final data = jsonDecode(response.body);
       if (response.statusCode == 200 && data['status'] == true && data['data']['status'] == 'success') {
         // Optionally check amount, currency, etc.
-        await WalletService.fundWallet(amount);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Payment verified and wallet credited!'), backgroundColor: Colors.green),
-          );
+        try {
+          debugPrint('Funding wallet with amount: $amount');
+          await WalletService.fundWallet(amount);
+          debugPrint('Wallet funded successfully.');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Payment verified and wallet credited!'), backgroundColor: Colors.green),
+            );
+          }
+          await _loadWallet();
+          _lastPaymentRef = null;
+          _lastPaymentAmount = null;
+        } catch (e, st) {
+          debugPrint('Error funding wallet: $e\n$st');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error crediting wallet: $e'), backgroundColor: Colors.red),
+            );
+          }
         }
-        _loadWallet();
-        _lastPaymentRef = null;
-        _lastPaymentAmount = null;
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Payment not successful: ${data['data']?['gateway_response'] ?? data['message']}'), backgroundColor: Colors.red),
+            SnackBar(content: Text('Payment not successful: \\${data['data']?['gateway_response'] ?? data['message']}'), backgroundColor: Colors.red),
           );
         }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Verification error: ${e.toString()}'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Verification error: \\${e.toString()}'), backgroundColor: Colors.red),
         );
       }
     }
@@ -201,7 +235,7 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
                             const SizedBox(height: 12),
                             ElevatedButton.icon(
                               icon: const Icon(Icons.add_circle),
-                              label: const Text('Fund Wallet (Test)'),
+                              label: const Text('Fund Wallet'),
                               style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
                               onPressed: _fundWallet,
                             ),
