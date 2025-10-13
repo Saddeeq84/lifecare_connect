@@ -346,7 +346,10 @@ class CHWConsultationScreen extends StatelessWidget {
                                 ? patientId
                                 : chwUid;
                             if (kIsWeb) {
-                              openWebCallPage();
+                              openWebCallPage(
+                                channelName: channelName,
+                                isVideo: true,
+                              );
                             } else {
                               _showCallConfirmationDialog(context, () {
                                 Navigator.of(context).push(
@@ -371,7 +374,10 @@ class CHWConsultationScreen extends StatelessWidget {
                                 ? patientId
                                 : chwUid;
                             if (kIsWeb) {
-                              openWebCallPage();
+                              openWebCallPage(
+                                channelName: channelName,
+                                isVideo: false,
+                              );
                             } else {
                               _showCallConfirmationDialog(context, () {
                                 Navigator.of(context).push(

@@ -459,7 +459,10 @@ extension on _AppointmentsList {
                     tooltip: 'Video Call',
                     onPressed: () {
                       if (kIsWeb) {
-                        openWebCallPage();
+                        openWebCallPage(
+                          channelName: data['id'] ?? data['appointmentId'] ?? '',
+                          isVideo: true,
+                        );
                       } else {
                         _showCallConfirmationDialog(context, true);
                       }
@@ -470,7 +473,10 @@ extension on _AppointmentsList {
                     tooltip: 'Audio Call',
                     onPressed: () {
                       if (kIsWeb) {
-                        openWebCallPage();
+                        openWebCallPage(
+                          channelName: data['id'] ?? data['appointmentId'] ?? '',
+                          isVideo: false,
+                        );
                       } else {
                         _showCallConfirmationDialog(context, false);
                       }

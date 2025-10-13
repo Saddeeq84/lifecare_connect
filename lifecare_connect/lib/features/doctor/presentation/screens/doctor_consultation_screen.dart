@@ -267,7 +267,10 @@ class _PendingConsultationTab extends StatelessWidget {
                                         onTap: () {
                                           Navigator.pop(context);
                                           if (kIsWeb) {
-                                            openWebCallPage();
+                                            openWebCallPage(
+                                              channelName: appointment['id'] ?? appointment['appointmentId'] ?? '',
+                                              isVideo: true,
+                                            );
                                           } else {
                                             _showCallConfirmationDialog(
                                               context,
@@ -302,7 +305,10 @@ class _PendingConsultationTab extends StatelessWidget {
                                         onTap: () {
                                           Navigator.pop(context);
                                           if (kIsWeb) {
-                                            openWebCallPage();
+                                            openWebCallPage(
+                                              channelName: appointment['id'] ?? appointment['appointmentId'] ?? '',
+                                              isVideo: false,
+                                            );
                                           } else {
                                             _showCallConfirmationDialog(
                                               context,

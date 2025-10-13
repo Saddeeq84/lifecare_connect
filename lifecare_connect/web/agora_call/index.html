@@ -75,8 +75,9 @@
     </div>
     <div class="controls-row">
       <button class="btn" id="mute-btn" onclick="toggleMicrophone()">🎤 Mute</button>
+      <button class="btn" id="camera-btn" onclick="toggleCamera()" style="display:none;">📹 Camera Off</button>
       <button class="btn end-call" onclick="endCall()">📞 End Call</button>
-      <button class="btn" onclick="leaveCall()">� Leave Call</button>
+      <button class="btn" onclick="leaveCall()">🚪 Leave Call</button>
     </div>
   </div>
   <div id="video-container"></div>
@@ -98,10 +99,12 @@
     let client, localTracks = [], joined = false;
     let remoteUsers = {};
     
-    // Call timer and microphone state
+    // Call timer and microphone/camera state
     let callStartTime = null;
     let callTimer = null;
     let isMuted = false;
+    let isVideoEnabled = true;
+    let isVideoCall = true; // Will be determined from URL params
     const MAX_CALL_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
 
     // Helper to get URL query params
@@ -166,6 +169,40 @@
       }
     }
 
+    // Camera toggle function (only for video calls)
+    async function toggleCamera() {
+      if (!isVideoCall || !localTracks[1]) return;
+
+      try {
+        const cameraBtn = document.getElementById('camera-btn');
+        if (isVideoEnabled) {
+          // Turn off camera
+          await localTracks[1].setEnabled(false);
+          cameraBtn.textContent = '📹 Camera On';
+          cameraBtn.classList.add('muted');
+          isVideoEnabled = false;
+          
+          // Show audio icon in local video box
+          const localVideoBox = document.getElementById('video-local');
+          if (localVideoBox) {
+            localVideoBox.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:80px;">📹</div>';
+          }
+        } else {
+          // Turn on camera
+          await localTracks[1].setEnabled(true);
+          cameraBtn.textContent = '📹 Camera Off';
+          cameraBtn.classList.remove('muted');
+          isVideoEnabled = true;
+          
+          // Restore video display
+          localTracks[1].play('video-local');
+        }
+      } catch (error) {
+        console.error('Error toggling camera:', error);
+        alert('Failed to toggle camera. Please try again.');
+      }
+    }
+
     async function proceedToCall() {
       document.getElementById('entry-dialog').style.display = 'none';
       document.getElementById('controls').style.display = 'block';
@@ -189,6 +226,24 @@
       // Get channelName and uid from URL, fallback to defaults if missing
       CHANNEL = getQueryParam('channelName') || 'test_lifecare';
       UID = getQueryParam('uid') || null;
+      
+      // Determine if this is a video call or audio-only call
+      const callType = getQueryParam('type') || 'video'; // 'video' or 'audio'
+      isVideoCall = callType === 'video';
+      isVideoEnabled = isVideoCall;
+      
+      // Show/hide camera button based on call type
+      const cameraBtn = document.getElementById('camera-btn');
+      if (isVideoCall) {
+        cameraBtn.style.display = 'inline-block';
+      } else {
+        cameraBtn.style.display = 'none';
+      }
+      
+      // Update header text based on call type
+      const header = document.querySelector('.header h1');
+      header.textContent = isVideoCall ? 'LifeCare Video Call' : 'LifeCare Audio Call';
+      
       // Ensure UID is always a valid number and not null/undefined
       if (UID) {
         UID = parseInt(UID, 10);
@@ -236,10 +291,21 @@
         alert('Agora token expired. Please rejoin the call.');
       });
       await client.join(APP_ID, CHANNEL, TOKEN, UID);
-      localTracks = await AgoraRTC.createMicrophoneAndCameraTracks();
-      addVideoBox('local', 'You');
-      localTracks[1].play('video-local');
-      await client.publish(localTracks);
+      
+      // Create tracks based on call type
+      if (isVideoCall) {
+        localTracks = await AgoraRTC.createMicrophoneAndCameraTracks();
+        addVideoBox('local', 'You');
+        localTracks[1].play('video-local'); // video track
+        await client.publish(localTracks);
+      } else {
+        // Audio-only call
+        const audioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+        localTracks = [audioTrack];
+        addAudioBox('local', 'You');
+        await client.publish([audioTrack]);
+      }
+      
       joined = true;
       
       // Start call timer
@@ -263,6 +329,33 @@
       }
     }
 
+    function addAudioBox(uid, label) {
+      let box = document.getElementById('audio-' + uid);
+      if (!box) {
+        box = document.createElement('div');
+        box.className = 'video-box'; // Reuse video-box styling
+        box.id = 'audio-' + uid;
+        box.style.display = 'flex';
+        box.style.alignItems = 'center';
+        box.style.justifyContent = 'center';
+        box.style.flexDirection = 'column';
+        
+        // Add audio icon
+        let audioIcon = document.createElement('div');
+        audioIcon.style.fontSize = '80px';
+        audioIcon.textContent = '🎤';
+        box.appendChild(audioIcon);
+        
+        // Add label
+        let tag = document.createElement('div');
+        tag.className = 'video-label';
+        tag.innerText = label;
+        box.appendChild(tag);
+        
+        document.getElementById('video-container').appendChild(box);
+      }
+    }
+
     async function handleUserPublished(user, mediaType) {
       await client.subscribe(user, mediaType);
       if (mediaType === 'video') {
@@ -271,14 +364,20 @@
       }
       if (mediaType === 'audio') {
         user.audioTrack.play();
+        // For audio-only calls, show audio box if video box doesn't exist
+        if (!isVideoCall && !document.getElementById('video-' + user.uid)) {
+          addAudioBox(user.uid, 'Participant');
+        }
       }
       remoteUsers[user.uid] = user;
     }
 
     function handleUserUnpublished(user) {
       delete remoteUsers[user.uid];
-      let box = document.getElementById('video-' + user.uid);
-      if (box) box.remove();
+      let videoBox = document.getElementById('video-' + user.uid);
+      let audioBox = document.getElementById('audio-' + user.uid);
+      if (videoBox) videoBox.remove();
+      if (audioBox) audioBox.remove();
     }
 
     async function leaveCall() {
@@ -296,11 +395,18 @@
       document.getElementById('controls').style.display = 'none';
       joined = false;
       
-      // Reset microphone state
+      // Reset microphone and camera state
       isMuted = false;
       const muteBtn = document.getElementById('mute-btn');
       muteBtn.textContent = '🎤 Mute';
       muteBtn.classList.remove('muted');
+      
+      if (isVideoCall) {
+        isVideoEnabled = true;
+        const cameraBtn = document.getElementById('camera-btn');
+        cameraBtn.textContent = '📹 Camera Off';
+        cameraBtn.classList.remove('muted');
+      }
       
       // Optionally, show dialog again or redirect
       document.getElementById('entry-dialog').style.display = 'flex';

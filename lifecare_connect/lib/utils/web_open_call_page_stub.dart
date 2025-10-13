@@ -1,2 +1,2 @@
 // Stub for non-web platforms
-void openWebCallPage() {}
+void openWebCallPage({String? channelName, String? uid, bool isVideo = true}) {}
