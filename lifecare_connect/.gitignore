@@ -15,6 +15,12 @@ ios/Runner/GoogleService-Info.plist
 **/secrets.dart
 firebase_options.dart
 
+# Local environment configuration (NEVER commit these!)
+web/env-config.local.js
+**/local-config.*
+**/*.local.js
+**/*.env.local
+
 # Miscellaneous
 *.class
 *.log
