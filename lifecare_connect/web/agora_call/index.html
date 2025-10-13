@@ -204,9 +204,17 @@
     }
 
     async function proceedToCall() {
-      document.getElementById('entry-dialog').style.display = 'none';
-      document.getElementById('controls').style.display = 'block';
-      await joinCall();
+      try {
+        document.getElementById('entry-dialog').style.display = 'none';
+        document.getElementById('controls').style.display = 'block';
+        await joinCall();
+      } catch (error) {
+        console.error('Error proceeding to call:', error);
+        alert('Failed to start call: ' + error.message);
+        // Show dialog again on error
+        document.getElementById('entry-dialog').style.display = 'flex';
+        document.getElementById('controls').style.display = 'none';
+      }
     }
 
     function cancelCall() {
@@ -268,6 +276,11 @@
         return;
       }
 
+      // Check if AgoraRTC is available
+      if (typeof AgoraRTC === 'undefined') {
+        throw new Error('Agora SDK not loaded. Please refresh the page and try again.');
+      }
+      
       client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
       client.on('user-published', handleUserPublished);
       client.on('user-unpublished', handleUserUnpublished);
@@ -290,34 +303,48 @@
       client.on('token-privilege-did-expire', function () {
         alert('Agora token expired. Please rejoin the call.');
       });
-      await client.join(APP_ID, CHANNEL, TOKEN, UID);
-      
-      // Create tracks based on call type
-      if (isVideoCall) {
-        localTracks = await AgoraRTC.createMicrophoneAndCameraTracks();
-        addVideoBox('local', 'You');
-        localTracks[1].play('video-local'); // video track
-        await client.publish(localTracks);
-      } else {
-        // Audio-only call
-        const audioTrack = await AgoraRTC.createMicrophoneAudioTrack();
-        localTracks = [audioTrack];
-        addAudioBox('local', 'You');
-        await client.publish([audioTrack]);
+      try {
+        await client.join(APP_ID, CHANNEL, TOKEN, UID);
+        console.log('Successfully joined channel:', CHANNEL);
+        
+        // Create tracks based on call type
+        if (isVideoCall) {
+          console.log('Creating video and audio tracks...');
+          localTracks = await AgoraRTC.createMicrophoneAndCameraTracks();
+          console.log('Tracks created:', localTracks);
+          addVideoBox('local', 'You');
+          console.log('Playing video track on video-local element...');
+          localTracks[1].play('video-local'); // video track
+          console.log('Publishing tracks...');
+          await client.publish(localTracks);
+          console.log('Tracks published successfully');
+        } else {
+          // Audio-only call
+          console.log('Creating audio track only...');
+          const audioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+          localTracks = [audioTrack];
+          addAudioBox('local', 'You');
+          console.log('Publishing audio track...');
+          await client.publish([audioTrack]);
+          console.log('Audio track published successfully');
+        }
+        
+        joined = true;
+        
+        // Start call timer
+        startCallTimer();
+      } catch (error) {
+        console.error('Error during call setup:', error);
+        alert('Failed to start call: ' + error.message + '. Please check your microphone/camera permissions and try again.');
       }
-      
-      joined = true;
-      
-      // Start call timer
-      startCallTimer();
     }
 
     function addVideoBox(uid, label) {
-      let box = document.getElementById('video-' + uid);
+      let box = document.getElementById('video-box-' + uid);
       if (!box) {
         box = document.createElement('div');
         box.className = 'video-box';
-        box.id = 'video-' + uid;
+        box.id = 'video-box-' + uid;
         let video = document.createElement('div');
         video.id = 'video-' + uid;
         box.appendChild(video);
@@ -365,7 +392,7 @@
       if (mediaType === 'audio') {
         user.audioTrack.play();
         // For audio-only calls, show audio box if video box doesn't exist
-        if (!isVideoCall && !document.getElementById('video-' + user.uid)) {
+        if (!isVideoCall && !document.getElementById('video-box-' + user.uid)) {
           addAudioBox(user.uid, 'Participant');
         }
       }
@@ -374,7 +401,7 @@
 
     function handleUserUnpublished(user) {
       delete remoteUsers[user.uid];
-      let videoBox = document.getElementById('video-' + user.uid);
+      let videoBox = document.getElementById('video-box-' + user.uid);
       let audioBox = document.getElementById('audio-' + user.uid);
       if (videoBox) videoBox.remove();
       if (audioBox) audioBox.remove();
