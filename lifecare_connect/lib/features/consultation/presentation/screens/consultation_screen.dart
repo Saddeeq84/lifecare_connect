@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 
@@ -27,6 +28,14 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
   String? _error;
   String? _token;
   final List<int> _remoteUids = [];
+  
+  // Call timer and microphone state
+  DateTime? _callStartTime;
+  Timer? _callTimer;
+  String _callDuration = '00:00:00';
+  bool _isMuted = false;
+  bool _isVideoMuted = false;
+  static const int _maxCallDurationMinutes = 60;
 
   @override
   void initState() {
@@ -99,6 +108,7 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
           setState(() {
             _joined = true;
           });
+          _startCallTimer();
         },
         onUserJoined: (RtcConnection connection, int remoteUid, int elapsed) {
           setState(() {
@@ -120,15 +130,97 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
             _joined = false;
             _remoteUids.clear();
           });
+          _stopCallTimer();
         },
       ),
     );
+  }
+
+  void _startCallTimer() {
+    _callStartTime = DateTime.now();
+    _callTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_callStartTime != null) {
+        final elapsed = DateTime.now().difference(_callStartTime!);
+        final hours = elapsed.inHours;
+        final minutes = elapsed.inMinutes % 60;
+        final seconds = elapsed.inSeconds % 60;
+        
+        setState(() {
+          _callDuration = '${hours.toString().padLeft(2, '0')}:'
+                        '${minutes.toString().padLeft(2, '0')}:'
+                        '${seconds.toString().padLeft(2, '0')}';
+        });
+
+        // Auto-end call after 1 hour
+        if (elapsed.inMinutes >= _maxCallDurationMinutes) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Call duration limit (1 hour) reached. Ending call.'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+          _leaveCall();
+        }
+      }
+    });
+  }
+
+  void _stopCallTimer() {
+    _callTimer?.cancel();
+    _callTimer = null;
+    _callStartTime = null;
+    setState(() {
+      _callDuration = '00:00:00';
+    });
+  }
+
+  Future<void> _toggleMicrophone() async {
+    try {
+      await _engine?.muteLocalAudioStream(_isMuted);
+      setState(() {
+        _isMuted = !_isMuted;
+      });
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to toggle microphone: $error'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _toggleCamera() async {
+    try {
+      await _engine?.muteLocalVideoStream(_isVideoMuted);
+      setState(() {
+        _isVideoMuted = !_isVideoMuted;
+      });
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to toggle camera: $error'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _leaveCall() async {
+    _stopCallTimer();
+    await _engine?.leaveChannel();
+    if (mounted) Navigator.of(context).pop();
   }
 
   // ...existing code...
 
   @override
   void dispose() {
+    _stopCallTimer();
     _engine?.leaveChannel();
     _engine?.release();
     super.dispose();
@@ -182,6 +274,29 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
       appBar: AppBar(
         title: const Text('Consultation'),
         backgroundColor: Colors.teal,
+        bottom: _joined ? PreferredSize(
+          preferredSize: const Size.fromHeight(48),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            color: Colors.black87,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.access_time, color: Colors.white, size: 18),
+                const SizedBox(width: 8),
+                Text(
+                  _callDuration,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'monospace',
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ) : null,
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -197,33 +312,25 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
               children: [
                 FloatingActionButton(
                   heroTag: 'mic',
-                  onPressed: () async {
-                    // Toggle mute state (no direct getter, so just toggle and rely on UI feedback)
-                    await _engine?.muteLocalAudioStream(true);
-                    setState(() {});
-                  },
-                  tooltip: 'Mute Microphone',
-                  child: const Icon(Icons.mic),
+                  backgroundColor: _isMuted ? Colors.red : Colors.teal,
+                  onPressed: _toggleMicrophone,
+                  tooltip: _isMuted ? 'Unmute Microphone' : 'Mute Microphone',
+                  child: Icon(_isMuted ? Icons.mic_off : Icons.mic),
                 ),
                 const SizedBox(width: 12),
                 if (widget.isVideo)
                   FloatingActionButton(
                     heroTag: 'camera',
-                    onPressed: () async {
-                      await _engine?.muteLocalVideoStream(true);
-                      setState(() {});
-                    },
-                    tooltip: 'Mute Camera',
-                    child: const Icon(Icons.videocam),
+                    backgroundColor: _isVideoMuted ? Colors.red : Colors.teal,
+                    onPressed: _toggleCamera,
+                    tooltip: _isVideoMuted ? 'Turn On Camera' : 'Turn Off Camera',
+                    child: Icon(_isVideoMuted ? Icons.videocam_off : Icons.videocam),
                   ),
                 const SizedBox(width: 12),
                 FloatingActionButton(
                   heroTag: 'leave',
                   backgroundColor: Colors.red,
-                  onPressed: () async {
-                    await _engine?.leaveChannel();
-                    if (mounted) Navigator.of(context).pop();
-                  },
+                  onPressed: _leaveCall,
                   tooltip: 'Leave Call',
                   child: const Icon(Icons.call_end),
                 ),

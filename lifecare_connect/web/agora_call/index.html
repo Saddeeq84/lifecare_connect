@@ -37,12 +37,28 @@
     video { width: 100%; height: 320px; background: #000; display: block; }
     #controls { margin: 32px auto 0 auto; text-align: center; }
     .btn {
-      padding: 12px 32px; margin: 0 12px; font-size: 1.1em; border-radius: 6px; border: none; background: #2563eb; color: #fff; cursor: pointer; transition: background 0.2s;
+      padding: 12px 32px; margin: 0 8px; font-size: 1.1em; border-radius: 6px; border: none; background: #2563eb; color: #fff; cursor: pointer; transition: background 0.2s;
     }
     .btn:hover { background: #1e40af; }
+    .btn.muted { background: #dc2626; }
+    .btn.muted:hover { background: #b91c1c; }
+    
+    .call-info {
+      margin: 20px auto; text-align: center; font-size: 1.1em;
+    }
+    .call-timer {
+      background: #1e293b; color: #fff; padding: 8px 16px; border-radius: 20px; 
+      display: inline-block; font-weight: bold; font-family: 'Courier New', monospace;
+      margin-bottom: 16px;
+    }
+    .controls-row {
+      display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 8px;
+    }
+    
     @media (max-width: 700px) {
       #video-container { grid-template-columns: 1fr; }
       .header h1 { font-size: 1.3em; }
+      .controls-row { flex-direction: column; }
     }
   </style>
 </head>
@@ -52,7 +68,13 @@
     <p style="margin: 8px 0 0 0; font-size:1.1em; color:#e0e7ff;">Secure, high-quality video calls for your consultation</p>
   </div>
   <div id="controls" style="display:none;">
-    <button class="btn" onclick="leaveCall()">Leave Call</button>
+    <div class="call-info">
+      <div class="call-timer" id="call-timer">00:00:00</div>
+    </div>
+    <div class="controls-row">
+      <button class="btn" id="mute-btn" onclick="toggleMicrophone()">🎤 Mute</button>
+      <button class="btn" onclick="leaveCall()">📞 Leave Call</button>
+    </div>
   </div>
   <div id="video-container"></div>
   <div id="entry-dialog" class="dialog-backdrop">
@@ -72,11 +94,73 @@
     let UID = null;
     let client, localTracks = [], joined = false;
     let remoteUsers = {};
+    
+    // Call timer and microphone state
+    let callStartTime = null;
+    let callTimer = null;
+    let isMuted = false;
+    const MAX_CALL_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
 
     // Helper to get URL query params
     function getQueryParam(name) {
       const url = new URL(window.location.href);
       return url.searchParams.get(name);
+    }
+
+    // Call timer functions
+    function startCallTimer() {
+      callStartTime = Date.now();
+      callTimer = setInterval(updateCallTimer, 1000);
+    }
+
+    function updateCallTimer() {
+      if (!callStartTime) return;
+      
+      const elapsed = Date.now() - callStartTime;
+      const hours = Math.floor(elapsed / (1000 * 60 * 60));
+      const minutes = Math.floor((elapsed % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((elapsed % (1000 * 60)) / 1000);
+
+      const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      document.getElementById('call-timer').textContent = timeString;
+
+      // Auto-end call after 1 hour
+      if (elapsed >= MAX_CALL_DURATION) {
+        alert('Call duration limit (1 hour) reached. Ending call.');
+        leaveCall();
+      }
+    }
+
+    function stopCallTimer() {
+      if (callTimer) {
+        clearInterval(callTimer);
+        callTimer = null;
+        callStartTime = null;
+      }
+      document.getElementById('call-timer').textContent = '00:00:00';
+    }
+
+    // Microphone toggle function
+    async function toggleMicrophone() {
+      if (!localTracks[0]) return;
+
+      try {
+        const muteBtn = document.getElementById('mute-btn');
+        if (isMuted) {
+          await localTracks[0].setEnabled(true);
+          muteBtn.textContent = '🎤 Mute';
+          muteBtn.classList.remove('muted');
+          isMuted = false;
+        } else {
+          await localTracks[0].setEnabled(false);
+          muteBtn.textContent = '🔇 Unmute';
+          muteBtn.classList.add('muted');
+          isMuted = true;
+        }
+      } catch (error) {
+        console.error('Error toggling microphone:', error);
+        alert('Failed to toggle microphone. Please try again.');
+      }
     }
 
     async function proceedToCall() {
@@ -154,6 +238,9 @@
       localTracks[1].play('video-local');
       await client.publish(localTracks);
       joined = true;
+      
+      // Start call timer
+      startCallTimer();
     }
 
     function addVideoBox(uid, label) {
@@ -193,6 +280,11 @@
 
     async function leaveCall() {
       if (!joined) return;
+      
+      // Stop call timer
+      stopCallTimer();
+      
+      // Clean up tracks and leave
       for (let track of localTracks) {
         track.close();
       }
@@ -200,6 +292,13 @@
       document.getElementById('video-container').innerHTML = '';
       document.getElementById('controls').style.display = 'none';
       joined = false;
+      
+      // Reset microphone state
+      isMuted = false;
+      const muteBtn = document.getElementById('mute-btn');
+      muteBtn.textContent = '🎤 Mute';
+      muteBtn.classList.remove('muted');
+      
       // Optionally, show dialog again or redirect
       document.getElementById('entry-dialog').style.display = 'flex';
     }
