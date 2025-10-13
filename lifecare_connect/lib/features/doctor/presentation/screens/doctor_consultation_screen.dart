@@ -270,6 +270,9 @@ class _PendingConsultationTab extends StatelessWidget {
                                             openWebCallPage(
                                               channelName: appointment['id'] ?? appointment['appointmentId'] ?? '',
                                               isVideo: true,
+                                              userName: FirebaseAuth.instance.currentUser?.displayName ?? 'Doctor',
+                                              userRole: 'doctor',
+                                              uid: FirebaseAuth.instance.currentUser?.uid,
                                             );
                                           } else {
                                             _showCallConfirmationDialog(
@@ -308,6 +311,9 @@ class _PendingConsultationTab extends StatelessWidget {
                                             openWebCallPage(
                                               channelName: appointment['id'] ?? appointment['appointmentId'] ?? '',
                                               isVideo: false,
+                                              userName: FirebaseAuth.instance.currentUser?.displayName ?? 'Doctor',
+                                              userRole: 'doctor',
+                                              uid: FirebaseAuth.instance.currentUser?.uid,
                                             );
                                           } else {
                                             _showCallConfirmationDialog(

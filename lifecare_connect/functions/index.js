@@ -112,10 +112,19 @@ const APP_ID = functions.config().agora.app_id;
 const APP_CERTIFICATE = functions.config().agora.app_certificate;
 
 exports.agoraToken = functions.https.onRequest((req, res) => {
+  // Enable CORS
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(204).send('');
+  }
+
   const channelName = req.query.channelName;
   const uid = req.query.uid || 0;
   const role = RtcRole.PUBLISHER;
-  const expireTime = 3600; // 1 hour
+  const expireTimeInSeconds = 3600; // 1 hour
 
   if (!APP_ID || !APP_CERTIFICATE) {
     return res.status(500).json({ error: 'Agora credentials not set' });
@@ -124,8 +133,22 @@ exports.agoraToken = functions.https.onRequest((req, res) => {
     return res.status(400).json({ error: 'Missing channelName' });
   }
 
-  const token = RtcTokenBuilder.buildTokenWithUid(
-    APP_ID, APP_CERTIFICATE, channelName, uid, role, expireTime
-  );
-  res.json({ token });
+  // Calculate the actual expiration timestamp
+  const currentTimestamp = Math.floor(Date.now() / 1000);
+  const expireTimestamp = currentTimestamp + expireTimeInSeconds;
+
+  try {
+    const token = RtcTokenBuilder.buildTokenWithUid(
+      APP_ID, APP_CERTIFICATE, channelName, uid, role, expireTimestamp
+    );
+    
+    res.json({ 
+      token,
+      expireTime: expireTimestamp,
+      currentTime: currentTimestamp 
+    });
+  } catch (error) {
+    console.error('Error generating Agora token:', error);
+    res.status(500).json({ error: 'Failed to generate token', details: error.message });
+  }
 });

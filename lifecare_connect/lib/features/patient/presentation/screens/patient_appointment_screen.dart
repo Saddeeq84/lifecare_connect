@@ -462,6 +462,9 @@ extension on _AppointmentsList {
                         openWebCallPage(
                           channelName: data['id'] ?? data['appointmentId'] ?? '',
                           isVideo: true,
+                          userName: FirebaseAuth.instance.currentUser?.displayName ?? 'Patient',
+                          userRole: 'patient',
+                          uid: FirebaseAuth.instance.currentUser?.uid,
                         );
                       } else {
                         _showCallConfirmationDialog(context, true);
@@ -476,6 +479,9 @@ extension on _AppointmentsList {
                         openWebCallPage(
                           channelName: data['id'] ?? data['appointmentId'] ?? '',
                           isVideo: false,
+                          userName: FirebaseAuth.instance.currentUser?.displayName ?? 'Patient',
+                          userRole: 'patient',
+                          uid: FirebaseAuth.instance.currentUser?.uid,
                         );
                       } else {
                         _showCallConfirmationDialog(context, false);

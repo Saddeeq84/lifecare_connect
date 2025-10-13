@@ -1,7 +1,13 @@
 // Implementation for web
 import 'dart:html' as html;
 
-void openWebCallPage({String? channelName, String? uid, bool isVideo = true}) {
+void openWebCallPage({
+  String? channelName, 
+  String? uid, 
+  bool isVideo = true,
+  String? userName,
+  String? userRole,
+}) {
   String url = '/agora_call/index.html';
   List<String> params = [];
   
@@ -15,6 +21,15 @@ void openWebCallPage({String? channelName, String? uid, bool isVideo = true}) {
   
   // Add call type parameter
   params.add('type=${isVideo ? 'video' : 'audio'}');
+  
+  // Add user information
+  if (userName != null && userName.isNotEmpty) {
+    params.add('userName=${Uri.encodeComponent(userName)}');
+  }
+  
+  if (userRole != null && userRole.isNotEmpty) {
+    params.add('userRole=${Uri.encodeComponent(userRole)}');
+  }
   
   if (params.isNotEmpty) {
     url += '?${params.join('&')}';

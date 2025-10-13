@@ -349,6 +349,9 @@ class CHWConsultationScreen extends StatelessWidget {
                               openWebCallPage(
                                 channelName: channelName,
                                 isVideo: true,
+                                userName: FirebaseAuth.instance.currentUser?.displayName ?? 'CHW',
+                                userRole: 'chw',
+                                uid: FirebaseAuth.instance.currentUser?.uid,
                               );
                             } else {
                               _showCallConfirmationDialog(context, () {
@@ -377,6 +380,9 @@ class CHWConsultationScreen extends StatelessWidget {
                               openWebCallPage(
                                 channelName: channelName,
                                 isVideo: false,
+                                userName: FirebaseAuth.instance.currentUser?.displayName ?? 'CHW',
+                                userRole: 'chw',
+                                uid: FirebaseAuth.instance.currentUser?.uid,
                               );
                             } else {
                               _showCallConfirmationDialog(context, () {

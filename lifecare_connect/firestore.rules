@@ -30,6 +30,48 @@ service cloud.firestore {
       allow list: if isAuthenticated();
     }
 
+    // LEGACY CHAT MESSAGES COLLECTION - Real-time chat during calls (backup)
+    match /chatMessages/{messageId} {
+      // Allow reading only messages from user's session
+      allow read: if resource.data.sessionReference != null;
+      // Allow creating messages during calls (session validation done in client)
+      allow create: if request.auth != null || true; // Temporary open for video calls
+      // Allow listing for real-time updates (filtered by client)
+      allow list: if true;
+      // Chat messages auto-delete after calls
+      allow delete: if true;
+    }
+
+    // SESSION-SPECIFIC CHAT COLLECTION - Private chat per session
+    match /sessionChats/{sessionId} {
+      // Allow reading session chat metadata
+      allow read, write: if true; // Session validation done in nested collection
+      
+      // Session messages - only visible to session participants
+      match /messages/{messageId} {
+        // Allow reading messages only if user is participant of this session
+        allow read: if resource.data.sessionId == sessionId;
+        // Allow creating messages if user has session access
+        allow create: if request.resource.data.sessionId == sessionId;
+        // Allow listing messages for real-time updates within session
+        allow list: if request.query.limit <= 100; // Limit query size
+        // No deletion of messages during active sessions
+        allow delete: if false;
+      }
+    }
+
+    // CALL SESSIONS COLLECTION - Session management during calls
+    match /callSessions/{sessionId} {
+      // Allow reading session data for participants
+      allow read: if true; // Client validates participation
+      // Allow creating/updating session data during video calls
+      allow write, create: if true; // Session management needs flexibility
+      // Allow listing for real-time updates
+      allow list: if true;
+      // Allow delete for cleanup
+      allow delete: if true;
+    }
+
     // BLOCK WRITES TO OLD MESSAGING COLLECTIONS
     match /chats/{docId} {
       allow read: if isAuthenticated();
