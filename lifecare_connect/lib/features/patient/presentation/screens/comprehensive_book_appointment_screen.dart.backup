@@ -1,0 +1,1112 @@
+// ignore_for_file: use_build_context_synchronously, avoid_print
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:intl/intl.dart';
+import 'dart:io';
+import '../../../shared/data/services/wallet_service.dart';
+import 'package:cloud_functions/cloud_functions.dart';
+
+class ComprehensiveBookAppointmentScreen extends StatefulWidget {
+  final Map<String, dynamic>? preSelectedProvider;
+  final bool fromReferral;
+
+  const ComprehensiveBookAppointmentScreen({
+    Key? key,
+    this.preSelectedProvider,
+    this.fromReferral = false,
+  }) : super(key: key);
+
+  @override
+  State<ComprehensiveBookAppointmentScreen> createState() => _ComprehensiveBookAppointmentScreenState();
+}
+
+class _ComprehensiveBookAppointmentScreenState extends State<ComprehensiveBookAppointmentScreen> {
+  // Form key
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  // Main Reason for Appointment (single-select)
+  final List<String> _mainReasons = [
+    'Fever or Chills',
+    'Cough or Breathing Difficulty',
+    'Chest Pain or Palpitations',
+    'Stomach Pain, Diarrhea or Constipation',
+    'Urinary Problems (pain, frequency, blood in urine)',
+    'Skin Rash, Itching or Swelling',
+    'Headache, Seizures or Weakness',
+    'Joint or Muscle Pain',
+    'Mental Health Concern (e.g., Anxiety, Depression, Stress)',
+    "Pregnancy or Women's Health Concern",
+    "Child's Health Concern",
+    'Eye or Vision Issues',
+    'Ear, Nose or Throat Issues',
+    'Cancer-related Concerns',
+    'Other',
+  ];
+  String? _selectedMainReason;
+  String _otherMainReason = '';
+  final _symptomsController = TextEditingController();
+  final _medicationsTakenController = TextEditingController();
+  final _triggersController = TextEditingController();
+  final _durationController = TextEditingController();
+  final _allergiesController = TextEditingController();
+  final _medicalHistoryController = TextEditingController();
+  final _emergencyContactController = TextEditingController();
+  final _additionalNotesController = TextEditingController();
+
+  // State Variables
+  int _currentPage = 0;
+  bool _isLoading = false;
+  List<Map<String, dynamic>> _providers = [];
+  Map<String, dynamic>? _selectedProvider;
+  DateTime? _selectedDate;
+  TimeOfDay? _selectedTime;
+  String? _selectedAppointmentType;
+  String? _selectedUrgency;
+  String? _selectedSeverity;
+  String? _selectedConsultationChannel;
+  final List<String> _consultationChannels = [
+    'Video call',
+    'Audio call',
+    'Messaging chat',
+    'Physical',
+  ];
+  final List<String> _appointmentTypes = [
+    'General Consultation',
+    'Follow-up Visit',
+    'ANC (Antenatal Care)',
+    'PNC (Postnatal Care)',
+    'Emergency Consultation',
+    'Specialist Referral',
+    'Health Screening',
+    'Vaccination',
+    'Mental Health Consultation',
+  ];
+  final List<String> _urgencyLevels = [
+    'Low - Not urgent',
+    'Normal - Regular appointment',
+    'High - Need attention soon',
+    'Urgent - Need immediate care',
+  ];
+  final List<String> _severityScale = [
+    'None - Follow-up/routine check',
+    '1 - Mild discomfort',
+    '2 - Noticeable but tolerable',
+    '3 - Moderate discomfort',
+    '4 - Significant discomfort',
+    '5 - Severe pain/discomfort',
+  ];
+  // File upload state
+  final List<File> _uploadedFiles = [];
+  final List<String> _uploadedFileNames = [];
+  // Page controller
+  final PageController _pageController = PageController();
+  // Lock flags for provider and appointment type (for referral booking)
+  bool _providerLocked = false;
+  bool _appointmentTypeLocked = false;
+  int? _freeAppointmentsLeft;
+  bool _freeDialogShown = false;
+  double? _calculatedFee;
+  String? _paymentStatus;
+  String? _paymentMethod;
+  String _currency = 'NGN';
+
+  void _loadFreeAppointmentsLeft() {
+    // TODO: Implement free appointments logic
+    setState(() {
+      _freeAppointmentsLeft = 0;
+    });
+  }
+
+  void _loadProviders() async {
+    setState(() {
+      _isLoading = true;
+    });
+    
+    try {
+      // TODO: Implement provider loading logic
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('health_providers')
+          .get();
+      
+      setState(() {
+        _providers = querySnapshot.docs.map((doc) => {
+          'id': doc.id,
+          ...doc.data(),
+        }).toList();
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading providers: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _pickFiles() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        allowMultiple: true,
+        type: FileType.any,
+      );
+      
+      if (result != null) {
+        setState(() {
+          for (var file in result.files) {
+            if (file.path != null) {
+              _uploadedFiles.add(File(file.path!));
+              _uploadedFileNames.add(file.name);
+            }
+          }
+        });
+      }
+    } catch (e) {
+      print('Error picking files: $e');
+    }
+  }
+
+  void _removeFile(int index) {
+    setState(() {
+      if (index >= 0 && index < _uploadedFiles.length) {
+        _uploadedFiles.removeAt(index);
+        _uploadedFileNames.removeAt(index);
+      }
+    });
+  }
+
+  void _selectDate() async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
+  void _selectTime() async {
+    TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedTime = picked;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.preSelectedProvider != null) {
+      _selectedProvider = widget.preSelectedProvider;
+      _providerLocked = true;
+      if (widget.fromReferral) {
+        _selectedAppointmentType = 'Specialist Referral';
+        _appointmentTypeLocked = true;
+      } else {
+        _appointmentTypeLocked = false;
+      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _pageController.animateToPage(
+          1,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+        setState(() => _currentPage = 1);
+      });
+    } else {
+      _providerLocked = false;
+      _appointmentTypeLocked = false;
+      _loadProviders();
+    }
+    _loadFreeAppointmentsLeft();
+  }
+
+  @override
+  void dispose() {
+    _symptomsController.dispose();
+    _medicationsTakenController.dispose();
+    _triggersController.dispose();
+    _durationController.dispose();
+    _allergiesController.dispose();
+    _medicalHistoryController.dispose();
+    _emergencyContactController.dispose();
+    _additionalNotesController.dispose();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  // All other methods and widget build logic should be placed here, inside the State class.
+  // ...existing methods (such as _loadProviders, _loadFreeAppointmentsLeft, _pickFiles, _removeFile, _selectDate, _selectTime, _submitAppointment, build, etc.)
+
+
+  // TEMP: Comment out missing method calls to allow compilation
+  // void _loadProviders() {}
+  // void _loadFreeAppointmentsLeft() {}
+
+  @override
+  Widget build(BuildContext context) {
+    // Minimal placeholder UI to allow compilation
+    return Scaffold(
+      appBar: AppBar(title: const Text('Book Appointment')),
+      body: const Center(child: Text('Comprehensive Book Appointment Screen (under construction)')),
+    );
+  }
+// ...existing code...
+  }
+
+  Widget _buildProviderSelectionPage() {
+    // If provider is locked (from referral), show only the selected provider, not the list
+    if (_providerLocked && _selectedProvider != null) {
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Selected Healthcare Provider',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.teal,
+              ),
+            ),
+            const SizedBox(height: 8),
+            _buildReviewCard(
+              title: _selectedProvider!['name'],
+              icon: Icons.person,
+              children: [
+                _buildReviewRow('Type', _selectedProvider!['type']),
+                _buildReviewRow('Specialization', _selectedProvider!['specialization']),
+                _buildReviewRow('Location', _selectedProvider!['location']),
+              ],
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'This provider was selected for you as part of a referral. You cannot change the provider for this booking.',
+              style: TextStyle(color: Colors.orange, fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
+      );
+    }
+    // Otherwise, show the normal provider selection UI
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Select Doctor or CHW',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.teal,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Choose from available doctors and community health workers for your appointment',
+            style: TextStyle(color: Colors.grey),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.blue.shade200),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info, color: Colors.blue.shade600, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'For facility services (labs, scans, pharmacy), please use the Service Request option',
+                    style: TextStyle(
+                      color: Colors.blue.shade700,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          if (_isLoading)
+            const Center(
+              child: Column(
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Loading healthcare providers...')
+                ],
+              ),
+            )
+          else if (_providers.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.orange.shade200),
+              ),
+              child: Column(
+                children: [
+                  Icon(Icons.info, size: 48, color: Colors.orange.shade700),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No Providers Available',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange.shade700,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'No healthcare providers are currently available for booking. Please try again later.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.orange.shade600),
+                  ),
+                ],
+              ),
+            )
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _providers.length,
+              itemBuilder: (context, index) {
+                final provider = _providers[index];
+                final isSelected = _selectedProvider?['id'] == provider['id'];
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected ? Colors.teal : Colors.grey.shade300,
+                      width: isSelected ? 2 : 1,
+                    ),
+                    color: isSelected ? Colors.teal.shade50 : Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.shade200,
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () {
+                      setState(() {
+                        _selectedProvider = provider;
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          // Provider Avatar
+                          Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.teal.shade100,
+                              border: Border.all(
+                                color: isSelected ? Colors.teal : Colors.grey.shade300,
+                                width: 2,
+                              ),
+                            ),
+                            child: provider['image'] != null 
+                                ? ClipOval(
+                                    child: Image.network(
+                                      provider['image'],
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) => 
+                                          _buildProviderIcon(provider['type']),
+                                    ),
+                                  )
+                                : _buildProviderIcon(provider['type']),
+                          ),
+                          
+                          const SizedBox(width: 16),
+                          
+                          // Provider Information
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  provider['name'],
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: isSelected ? Colors.teal.shade800 : Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: _getProviderTypeColor(provider['type']),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    provider['type'],
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  provider['specialization'],
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey.shade700,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(Icons.location_on, 
+                                         size: 14, 
+                                         color: Colors.grey.shade600),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: Text(
+                                        provider['location'],
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.star, 
+                                         size: 14, 
+                                         color: Colors.amber),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      provider['rating'].toString(),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey.shade600,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                      decoration: BoxDecoration(
+                                        color: Colors.green.shade100,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        provider['availability'],
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.green.shade700,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Selection Indicator
+                          if (isSelected)
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: const BoxDecoration(
+                                color: Colors.teal,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPreConsultationChecklistPage() {
+    return Form(
+      key: _formKey,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Pre-Consultation Checklist',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.teal,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Please provide detailed information to help your healthcare provider prepare for your consultation',
+              style: TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 24),
+            
+            // Main Reason for Appointment (single-select)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Main Reason for Appointment *',
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Select the main symptom or reason for consultation (Choose the most relevant one).',
+                  style: TextStyle(color: Colors.grey),
+                ),
+                const SizedBox(height: 8),
+                ..._mainReasons.map((reason) {
+                  if (reason == 'Other') {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        RadioListTile<String>(
+                          title: const Text('Other (please specify):'),
+                          value: 'Other',
+                          groupValue: _selectedMainReason,
+                          onChanged: (val) {
+                            setState(() {
+                              _selectedMainReason = val;
+                              _otherMainReason = '';
+                            });
+                          },
+                        ),
+                        if (_selectedMainReason == 'Other')
+                          Padding(
+                            padding: const EdgeInsets.only(left: 32.0, bottom: 8),
+                            child: TextFormField(
+                              decoration: const InputDecoration(
+                                labelText: 'Please specify',
+                                border: OutlineInputBorder(),
+                              ),
+                              onChanged: (val) => setState(() => _otherMainReason = val),
+                              validator: (val) {
+                                if (_selectedMainReason == 'Other' && (val == null || val.trim().isEmpty)) {
+                                  return 'Please specify your main reason';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                      ],
+                    );
+                  }
+                  return RadioListTile<String>(
+                    title: Text(reason),
+                    value: reason,
+                    groupValue: _selectedMainReason,
+                    onChanged: (val) {
+                      setState(() {
+                        _selectedMainReason = val;
+                        if (val != 'Other') _otherMainReason = '';
+                      });
+                    },
+                  );
+                }),
+                if (_selectedMainReason == null)
+                  const Padding(
+                    padding: EdgeInsets.only(left: 8.0, top: 4),
+                    child: Text('Please select a main reason', style: TextStyle(color: Colors.red, fontSize: 12)),
+                  ),
+                const SizedBox(height: 16),
+              ],
+            ),
+            
+            // Symptoms
+            _buildTextFormField(
+              controller: _symptomsController,
+              label: 'Current Symptoms',
+              hint: 'List all symptoms you are experiencing',
+              maxLines: 3,
+            ),
+            
+            // Duration
+            _buildTextFormField(
+              controller: _durationController,
+              label: 'Duration of Symptoms',
+              hint: 'How long have you been experiencing these symptoms?',
+            ),
+            
+            // Severity
+            _buildDropdownField(
+              label: 'Severity Level',
+              value: _selectedSeverity,
+              items: _severityScale,
+              onChanged: (value) => setState(() => _selectedSeverity = value),
+            ),
+            
+            // Medications Taken
+            _buildTextFormField(
+              controller: _medicationsTakenController,
+              label: 'Current Medications',
+              hint: 'List any medications you are currently taking or have taken recently',
+              maxLines: 2,
+            ),
+            
+            // Triggers
+            _buildTextFormField(
+              controller: _triggersController,
+              label: 'Triggers / What Makes it Worse',
+              hint: 'Any activities, foods, or situations that worsen your condition',
+              maxLines: 2,
+            ),
+            
+            // Allergies
+            _buildTextFormField(
+              controller: _allergiesController,
+              label: 'Known Allergies',
+              hint: 'List any allergies to medications, foods, or other substances',
+              maxLines: 2,
+            ),
+            
+            // Medical History
+            _buildTextFormField(
+              controller: _medicalHistoryController,
+              label: 'Relevant Medical History',
+              hint: 'Previous surgeries, chronic conditions, family history',
+              maxLines: 3,
+            ),
+            
+            // Emergency Contact
+            _buildTextFormField(
+              controller: _emergencyContactController,
+              label: 'Emergency Contact',
+              hint: 'Name and phone number of emergency contact',
+            ),
+            
+            // Additional Notes
+            _buildTextFormField(
+              controller: _additionalNotesController,
+              label: 'Additional Notes',
+              hint: 'Any other information you think might be helpful',
+              maxLines: 3,
+            ),
+            
+            const SizedBox(height: 24),
+            
+            // File Upload Section
+            const Text(
+              'Upload Lab Results or Medical Documents',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Upload any relevant lab results, X-rays, or medical documents (PDF, JPG, PNG)',
+              style: TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 16),
+            
+            ElevatedButton.icon(
+              onPressed: _pickFiles,
+              icon: const Icon(Icons.cloud_upload),
+              label: const Text('Upload Files'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.teal.shade100,
+                foregroundColor: Colors.teal.shade700,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+              ),
+            ),
+            
+            if (_uploadedFileNames.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              const Text(
+                'Uploaded Files:',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              ...List.generate(_uploadedFileNames.length, (index) {
+                return Card(
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.attach_file,
+                      color: Colors.teal.shade700,
+                    ),
+                    title: Text(_uploadedFileNames[index]),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () => _removeFile(index),
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateTimeSelectionPage() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Select Date & Time',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.teal,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Choose your preferred appointment date and time',
+            style: TextStyle(color: Colors.grey),
+          ),
+          const SizedBox(height: 24),
+          
+          // Appointment Type
+          _buildDropdownField(
+            label: 'Appointment Type',
+            value: _selectedAppointmentType,
+            items: _appointmentTypes,
+            onChanged: _appointmentTypeLocked
+                ? (String? _) {}
+                : (String? value) => setState(() => _selectedAppointmentType = value),
+            required: true,
+          ),
+          
+          // Urgency Level
+          _buildDropdownField(
+            label: 'Urgency Level',
+            value: _selectedUrgency,
+            items: _urgencyLevels,
+            onChanged: (value) => setState(() => _selectedUrgency = value),
+            required: true,
+          ),
+          
+          // Consultation Channel
+          _buildDropdownField(
+            label: 'Consultation Channel',
+            value: _selectedConsultationChannel,
+            items: _consultationChannels,
+            onChanged: (value) => setState(() => _selectedConsultationChannel = value),
+            required: true,
+          ),
+          
+          const SizedBox(height: 24),
+          
+          // Date Selection
+          Card(
+            child: ListTile(
+              leading: Icon(
+                Icons.calendar_today,
+                color: Colors.teal.shade700,
+              ),
+              title: const Text('Appointment Date'),
+              subtitle: Text(
+                _selectedDate != null
+                    ? DateFormat('EEEE, MMMM d, yyyy').format(_selectedDate!)
+                    : 'Tap to select date',
+              ),
+              trailing: const Icon(Icons.arrow_forward_ios),
+              onTap: _selectDate,
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Time Selection
+          Card(
+            child: ListTile(
+              leading: Icon(
+                Icons.access_time,
+                color: Colors.teal.shade700,
+              ),
+              title: const Text('Appointment Time'),
+              subtitle: Text(
+                _selectedTime != null
+                    ? _selectedTime!.format(context)
+                    : 'Tap to select time',
+              ),
+              trailing: const Icon(Icons.arrow_forward_ios),
+              onTap: _selectTime,
+            ),
+          ),
+          
+          const SizedBox(height: 24),
+          
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReviewAndSubmitPage() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Review Your Appointment',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.teal,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Please review all information before submitting your appointment request',
+            style: TextStyle(color: Colors.grey),
+          ),
+          const SizedBox(height: 24),
+          
+          // Provider Information
+          if (_selectedProvider != null)
+            _buildReviewCard(
+              title: 'Healthcare Provider',
+              icon: Icons.person,
+              children: [
+                _buildReviewRow('Name', _selectedProvider!['name']),
+                _buildReviewRow('Type', _selectedProvider!['type']),
+                _buildReviewRow('Specialization', _selectedProvider!['specialization']),
+                _buildReviewRow('Location', _selectedProvider!['location']),
+              ],
+            ),
+          
+          // Important Notice
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.amber.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.amber.shade200),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.info,
+                      color: Colors.amber.shade700,
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Important Notice',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  '• Your appointment request will be reviewed by the selected healthcare provider\n'
+                  '• You will receive a notification once your appointment is approved or if any changes are needed\n'
+                  '• All information provided will be saved to your health records\n'
+                  '• This information will be available to your healthcare provider before the consultation',
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextFormField({
+    required TextEditingController controller,
+    required String label,
+    String? hint,
+    int maxLines = 1,
+    bool required = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: TextFormField(
+        controller: controller,
+        maxLines: maxLines,
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          border: const OutlineInputBorder(),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.teal.shade700),
+          ),
+        ),
+        validator: required
+            ? (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'This field is required';
+                }
+                return null;
+              }
+            : null,
+      ),
+    );
+  }
+
+  Widget _buildDropdownField({
+    required String label,
+    required String? value,
+    required List<String> items,
+    required Function(String?) onChanged,
+    bool required = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: DropdownButtonFormField<String>(
+        initialValue: value,
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.teal.shade700),
+          ),
+        ),
+        items: items.map((item) {
+          return DropdownMenuItem<String>(
+            value: item,
+            child: Text(item),
+          );
+        }).toList(),
+        onChanged: onChanged as ValueChanged<String?>?,
+        validator: required
+            ? (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please select an option';
+                }
+                return null;
+              }
+            : null,
+      ),
+    );
+  }
+
+  Widget _buildReviewCard({
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+  }) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: Colors.teal.shade700),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ...children,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReviewRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              '$label:',
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colors.grey,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(value),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProviderIcon(String type) {
+    IconData iconData;
+    Color iconColor = Colors.teal.shade700;
+    
+    switch (type) {
+      case 'Doctor':
+        iconData = Icons.local_hospital;
+        break;
+      case 'Community Health Worker':
+        iconData = Icons.health_and_safety;
+        break;
+      default:
+        iconData = Icons.person;
+    }
+    
+    return Icon(iconData, color: iconColor, size: 28);
+  }
+
+  Color _getProviderTypeColor(String type) {
+    switch (type) {
+      case 'Doctor':
+        return Colors.blue.shade600;
+      case 'Community Health Worker':
+        return Colors.green.shade600;
+      default:
+        return Colors.teal.shade600;
+    }
+  }
+}

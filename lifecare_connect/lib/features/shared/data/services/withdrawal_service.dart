@@ -1,6 +1,28 @@
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class WithdrawalService {
+
+  /// Payout to provider's bank account using Cloud Function
+  static Future<Map<String, dynamic>> payoutWithdrawal({
+    required String withdrawalId,
+    required String userId,
+    required double amount,
+    required String accountNumber,
+    required String bankCode,
+    required String accountName,
+  }) async {
+    final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable('paystackTransfer');
+    final result = await callable.call({
+      'withdrawalId': withdrawalId,
+      'userId': userId,
+      'amount': amount,
+      'accountNumber': accountNumber,
+      'bankCode': bankCode,
+      'accountName': accountName,
+    });
+    return Map<String, dynamic>.from(result.data);
+  }
   static final _firestore = FirebaseFirestore.instance;
 
   /// Request a withdrawal for a user (provider/admin)

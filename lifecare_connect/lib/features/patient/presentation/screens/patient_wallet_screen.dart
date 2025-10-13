@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:lifecare_connect/features/shared/data/services/wallet_service.dart';
 // import 'dart:html' as html; // Not needed for inline payment
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:lifecare_connect/utils/web_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class PatientWalletScreen extends StatefulWidget {
   const PatientWalletScreen({super.key});
@@ -82,7 +82,7 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
       ),
     );
     if (amount == null) return;
-    final email = 'user@email.com'; // TODO: Use real user email
+    final email = FirebaseAuth.instance.currentUser?.email ?? 'noemail@example.com';
     final ref = DateTime.now().millisecondsSinceEpoch.toString();
     _lastPaymentRef = ref;
     _lastPaymentAmount = amount;

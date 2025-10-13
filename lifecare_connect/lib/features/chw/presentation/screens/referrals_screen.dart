@@ -3,8 +3,6 @@
 import 'package:flutter/material.dart';
 import '../../../shared/presentation/widgets/shared_referral_widget.dart';
 import '../../../shared/presentation/widgets/make_referral_form.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class ReferralScreen extends StatelessWidget {
   const ReferralScreen({super.key});

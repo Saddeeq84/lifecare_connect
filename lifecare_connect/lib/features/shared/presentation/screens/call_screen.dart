@@ -10,12 +10,12 @@ class CallScreen extends StatefulWidget {
 	final String tokenServerUrl;
 
 	const CallScreen({
-		Key? key,
+		super.key,
 		required this.channelName,
 		required this.uid,
 		required this.tokenServerUrl,
 		this.isVideo = true,
-	}) : super(key: key);
+	});
 
 	@override
 	State<CallScreen> createState() => _CallScreenState();

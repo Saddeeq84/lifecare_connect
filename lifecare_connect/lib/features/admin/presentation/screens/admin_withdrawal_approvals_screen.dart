@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:lifecare_connect/features/shared/data/services/withdrawal_service.dart';
 
 class AdminWithdrawalApprovalsScreen extends StatefulWidget {
-  const AdminWithdrawalApprovalsScreen({Key? key}) : super(key: key);
+  const AdminWithdrawalApprovalsScreen({super.key});
 
   @override
   State<AdminWithdrawalApprovalsScreen> createState() => _AdminWithdrawalApprovalsScreenState();
@@ -28,7 +29,27 @@ class _AdminWithdrawalApprovalsScreenState extends State<AdminWithdrawalApproval
   }
 
   Future<void> _approve(String id) async {
+    final wd = _pending.firstWhere((w) => w['id'] == id);
+    // Mark as approved in Firestore
     await _firestore.collection('withdrawals').doc(id).update({'status': 'approved', 'approvedAt': FieldValue.serverTimestamp()});
+    // Trigger payout
+    try {
+      final payoutResult = await WithdrawalService.payoutWithdrawal(
+        withdrawalId: id,
+        userId: wd['userId'],
+        amount: wd['amount'] is int ? (wd['amount'] as int).toDouble() : wd['amount'],
+        accountNumber: wd['accountNumber'],
+        bankCode: wd['bankCode'] ?? '',
+        accountName: wd['accountName'],
+      );
+      if (payoutResult['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payout successful')));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Payout failed: \\${payoutResult['error'] ?? 'Unknown error'}')));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Payout error: \\${e.toString()}')));
+    }
     await _loadPending();
   }
 

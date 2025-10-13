@@ -185,7 +185,7 @@ class _DoctorReferralsScreenState extends State<DoctorReferralsScreen> with Sing
                 Text(
                   "Referred by: "
                   + (data['fromProviderName'] ?? data['chw'] ?? data['referringProviderName'] ?? 'Unknown')
-                  + (data['fromProviderType'] != null ? ' (' + data['fromProviderType'].toString().toUpperCase() + ')' : ''),
+                  + (data['fromProviderType'] != null ? ' (${data['fromProviderType'].toString().toUpperCase()})' : ''),
                 ),
                 if (isReviewed) Text("Status: " + (data['status'] ?? '')),
               ],

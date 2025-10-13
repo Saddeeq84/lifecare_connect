@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../../shared/data/services/wallet_service.dart';
 
 class DoctorWalletScreen extends StatefulWidget {
-  const DoctorWalletScreen({Key? key}) : super(key: key);
+  const DoctorWalletScreen({super.key});
 
   @override
   State<DoctorWalletScreen> createState() => _DoctorWalletScreenState();
@@ -24,51 +24,80 @@ class _DoctorWalletScreenState extends State<DoctorWalletScreen> {
   Future<void> _requestWithdrawal() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
+    if (_balance <= 0) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Insufficient Funds'),
+          content: const Text('You do not have enough funds to withdraw.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
+          ],
+        ),
+      );
+      return;
+    }
     final amountController = TextEditingController();
     final bankController = TextEditingController();
     final accountNumberController = TextEditingController();
     final accountNameController = TextEditingController();
+    String? errorText;
     final result = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Withdraw Funds'),
-        content: SingleChildScrollView(
-          child: Column(
-            children: [
-              TextField(
-                controller: amountController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Amount (NGN)'),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) => AlertDialog(
+            title: const Text('Withdraw Funds'),
+            content: SingleChildScrollView(
+              child: Column(
+                children: [
+                  TextField(
+                    controller: amountController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Amount (NGN)'),
+                  ),
+                  TextField(
+                    controller: bankController,
+                    decoration: const InputDecoration(labelText: 'Bank Name'),
+                  ),
+                  TextField(
+                    controller: accountNumberController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Account Number'),
+                  ),
+                  TextField(
+                    controller: accountNameController,
+                    decoration: const InputDecoration(labelText: 'Account Name'),
+                  ),
+                  if (errorText != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(errorText!, style: const TextStyle(color: Colors.red)),
+                    ),
+                ],
               ),
-              TextField(
-                controller: bankController,
-                decoration: const InputDecoration(labelText: 'Bank Name'),
-              ),
-              TextField(
-                controller: accountNumberController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Account Number'),
-              ),
-              TextField(
-                controller: accountNameController,
-                decoration: const InputDecoration(labelText: 'Account Name'),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+              ElevatedButton(
+                onPressed: () {
+                  final amt = double.tryParse(amountController.text);
+                  if (amt == null || amt <= 0) {
+                    setState(() => errorText = 'Enter a valid amount');
+                  } else if (amt > _balance) {
+                    setState(() => errorText = 'Amount exceeds wallet balance');
+                  } else if (bankController.text.isEmpty || accountNumberController.text.isEmpty || accountNameController.text.isEmpty) {
+                    setState(() => errorText = 'All fields are required');
+                  } else {
+                    Navigator.pop(context, true);
+                  }
+                },
+                child: const Text('Request Withdrawal'),
               ),
             ],
           ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () {
-              final amt = double.tryParse(amountController.text);
-              if (amt != null && amt > 0 && amt <= _balance) {
-                Navigator.pop(context, true);
-              }
-            },
-            child: const Text('Request Withdrawal'),
-          ),
-        ],
-      ),
+        );
+      },
     );
     if (result == true) {
       final amt = double.tryParse(amountController.text)!;
@@ -169,7 +198,7 @@ class _DoctorWalletScreenState extends State<DoctorWalletScreen> {
                               title: Text(tx['description'] ?? ''),
                               subtitle: Text(tx['timestamp'] != null ? tx['timestamp'].toDate().toString() : ''),
                               trailing: Text(
-                                (tx['type'] == 'fund' || tx['type'].toString().contains('earning') ? '+' : '-') + '₦${tx['amount'].toString()}',
+                                '${tx['type'] == 'fund' || tx['type'].toString().contains('earning') ? '+' : '-'}₦${tx['amount'].toString()}',
                                 style: TextStyle(
                                   color: tx['type'] == 'fund' || tx['type'].toString().contains('earning') ? Colors.green : Colors.red,
                                   fontWeight: FontWeight.bold,

@@ -1,5 +1,14 @@
 rules_version = '2';
 service cloud.firestore {
+    // WALLETS COLLECTION
+    match /wallets/{walletId} {
+      // Allow authenticated users to read any wallet
+      allow read: if request.auth != null;
+      // Allow authenticated users to create/update any wallet (needed for crediting providers/admins)
+      allow create, update: if request.auth != null;
+      // Only admin can delete wallets
+      allow delete: if isAdmin();
+    }
   match /databases/{database}/documents {
     // FACILITIES COLLECTION - Allow public read/list for facility selection
     match /facilities/{facilityId} {

@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 class MakeReferralForm extends StatefulWidget {
   final String role;
-  const MakeReferralForm({required this.role, Key? key}) : super(key: key);
+  const MakeReferralForm({required this.role, super.key});
 
   @override
   State<MakeReferralForm> createState() => _MakeReferralFormState();
@@ -213,7 +213,7 @@ class _MakeReferralFormState extends State<MakeReferralForm> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     DropdownButtonFormField<String>(
-                      value: _selectedDoctorId,
+                      initialValue: _selectedDoctorId,
                       decoration: const InputDecoration(
                         labelText: 'Select Doctor *',
                         prefixIcon: Icon(Icons.local_hospital),
