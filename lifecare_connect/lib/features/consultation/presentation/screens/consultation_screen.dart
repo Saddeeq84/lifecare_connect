@@ -216,6 +216,45 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
     if (mounted) Navigator.of(context).pop();
   }
 
+  Future<void> _endCall() async {
+    // Show confirmation dialog
+    final shouldEnd = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('End Call'),
+          content: const Text('Are you sure you want to end the call? This will close the consultation.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('End Call'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldEnd == true) {
+      _stopCallTimer();
+      await _engine?.leaveChannel();
+      if (mounted) {
+        Navigator.of(context).pop();
+        // Optionally show a completion message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Call ended successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    }
+  }
+
   // ...existing code...
 
   @override
@@ -328,11 +367,19 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                   ),
                 const SizedBox(width: 12),
                 FloatingActionButton(
+                  heroTag: 'end',
+                  backgroundColor: Colors.red[700],
+                  onPressed: _endCall,
+                  tooltip: 'End Call',
+                  child: const Icon(Icons.call_end),
+                ),
+                const SizedBox(width: 12),
+                FloatingActionButton(
                   heroTag: 'leave',
-                  backgroundColor: Colors.red,
+                  backgroundColor: Colors.orange,
                   onPressed: _leaveCall,
                   tooltip: 'Leave Call',
-                  child: const Icon(Icons.call_end),
+                  child: const Icon(Icons.exit_to_app),
                 ),
               ],
             ),

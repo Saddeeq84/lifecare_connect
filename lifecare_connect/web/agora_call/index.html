@@ -42,6 +42,8 @@
     .btn:hover { background: #1e40af; }
     .btn.muted { background: #dc2626; }
     .btn.muted:hover { background: #b91c1c; }
+    .btn.end-call { background: #dc2626; }
+    .btn.end-call:hover { background: #b91c1c; }
     
     .call-info {
       margin: 20px auto; text-align: center; font-size: 1.1em;
@@ -73,7 +75,8 @@
     </div>
     <div class="controls-row">
       <button class="btn" id="mute-btn" onclick="toggleMicrophone()">🎤 Mute</button>
-      <button class="btn" onclick="leaveCall()">📞 Leave Call</button>
+      <button class="btn end-call" onclick="endCall()">📞 End Call</button>
+      <button class="btn" onclick="leaveCall()">� Leave Call</button>
     </div>
   </div>
   <div id="video-container"></div>
@@ -301,6 +304,44 @@
       
       // Optionally, show dialog again or redirect
       document.getElementById('entry-dialog').style.display = 'flex';
+    }
+
+    async function endCall() {
+      if (!joined) {
+        // If not in call, just close the window
+        closeCallWindow();
+        return;
+      }
+
+      // Confirm ending the call
+      const confirmEnd = confirm('Are you sure you want to end the call? This will close the call window.');
+      if (!confirmEnd) return;
+      
+      // Stop call timer
+      stopCallTimer();
+      
+      // Clean up tracks and leave
+      for (let track of localTracks) {
+        track.close();
+      }
+      await client.leave();
+      joined = false;
+      
+      // Close the window/tab or redirect to home
+      closeCallWindow();
+    }
+
+    function closeCallWindow() {
+      // Try to close the tab/window if possible, otherwise go back or to home
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.close();
+        // If window.close() fails (most browsers), redirect to home
+        setTimeout(function() {
+          window.location.href = '/';
+        }, 300);
+      }
     }
   </script>
 </body>
