@@ -249,15 +249,16 @@
     let db = null;
     let chatListener = null;
 
-    // Firebase configuration
+    // Firebase configuration - SECURE VERSION
+    // TODO: Load these from environment variables or secure configuration service
     const firebaseConfig = {
-      apiKey: "AIzaSyDDU_qLqJnxhpBOq3orM-LcGiMZpk-LL1M",
+      apiKey: window.FIREBASE_API_KEY || "REPLACE_WITH_YOUR_ACTUAL_API_KEY",
       authDomain: "lifecare-connect.firebaseapp.com",
       projectId: "lifecare-connect",
-      storageBucket: "lifecare-connect.appspot.com",
-      messagingSenderId: "945466270470",
-      appId: "1:945466270470:web:8b9ea49bb50736aa3313bb",
-      measurementId: "G-X6TZH1EDRG"
+      storageBucket: "lifecare-connect.appspot.com", 
+      messagingSenderId: window.FIREBASE_SENDER_ID || "REPLACE_WITH_YOUR_SENDER_ID",
+      appId: window.FIREBASE_APP_ID || "REPLACE_WITH_YOUR_APP_ID",
+      measurementId: window.FIREBASE_MEASUREMENT_ID || "REPLACE_WITH_YOUR_MEASUREMENT_ID"
     };
 
     // Initialize Firebase
