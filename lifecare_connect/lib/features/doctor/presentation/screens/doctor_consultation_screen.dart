@@ -11,25 +11,25 @@ import '../../../shared/presentation/screens/messages_screen.dart';
 
 // Confirmation dialog for mobile call
 void _showCallConfirmationDialog(
-  BuildContext context,
+  BuildContext parentContext,
   VoidCallback onContinue, {
   required bool isVideo,
 }) {
   showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
+    context: parentContext,
+    builder: (dialogContext) => AlertDialog(
       title: Text('Join Consultation'),
       content: Text(
         'Do you want to continue to the ${isVideo ? 'video' : 'audio'} call?',
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.of(dialogContext).pop(),
           child: const Text('Cancel', style: TextStyle(color: Colors.red)),
         ),
         ElevatedButton(
           onPressed: () {
-            Navigator.of(context).pop();
+            Navigator.of(dialogContext).pop();
             onContinue();
           },
           child: const Text('Continue'),
@@ -136,7 +136,36 @@ class _PendingConsultationTab extends StatelessWidget {
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return const Center(child: Text('No pending consultations'));
         }
-        final docs = snapshot.data!.docs;
+        
+        // Filter out CHW appointments - only show patient appointments
+        final allDocs = snapshot.data!.docs;
+        final docs = allDocs.where((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          // Exclude appointments booked by CHW (check bookedByRole field or patientName contains CHW)
+          final bookedByRole = data['bookedByRole'] ?? '';
+          final patientName = (data['patientName'] ?? '').toString().toLowerCase();
+          // If bookedByRole is 'chw' OR patientName contains 'chw', it's a CHW appointment
+          return bookedByRole != 'chw' && !patientName.contains('chw');
+        }).toList();
+        
+        if (docs.isEmpty) {
+          return const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.event_available, size: 64, color: Colors.grey),
+                SizedBox(height: 16),
+                Text('No pending patient consultations'),
+                SizedBox(height: 8),
+                Text(
+                  'CHW consultations are in the "CHW Consultations" tab',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        }
         return ListView.separated(
           padding: const EdgeInsets.all(16),
           itemCount: docs.length,
@@ -265,10 +294,11 @@ class _PendingConsultationTab extends StatelessWidget {
                                           'Start video consultation',
                                         ),
                                         onTap: () {
+                                          final scaffoldContext = context;
                                           Navigator.pop(context);
                                           if (kIsWeb) {
                                             openWebCallPage(
-                                              channelName: appointment['id'] ?? appointment['appointmentId'] ?? '',
+                                              channelName: 'appointment_${appointment['id'] ?? appointment['appointmentId'] ?? 'unknown'}',
                                               isVideo: true,
                                               userName: FirebaseAuth.instance.currentUser?.displayName ?? 'Doctor',
                                               userRole: 'doctor',
@@ -276,16 +306,14 @@ class _PendingConsultationTab extends StatelessWidget {
                                             );
                                           } else {
                                             _showCallConfirmationDialog(
-                                              context,
+                                              scaffoldContext,
                                               () {
-                                                Navigator.of(context).push(
+                                                Navigator.of(scaffoldContext).push(
                                                   MaterialPageRoute(
                                                     builder: (context) =>
                                                         ConsultationScreen(
                                                           channelName:
-                                                              appointment['id'] ??
-                                                              appointment['appointmentId'] ??
-                                                              '',
+                                                              'appointment_${appointment['id'] ?? appointment['appointmentId'] ?? 'unknown'}',
                                                           isVideo: true,
                                                         ),
                                                   ),
@@ -306,10 +334,11 @@ class _PendingConsultationTab extends StatelessWidget {
                                           'Start audio consultation',
                                         ),
                                         onTap: () {
+                                          final scaffoldContext = context;
                                           Navigator.pop(context);
                                           if (kIsWeb) {
                                             openWebCallPage(
-                                              channelName: appointment['id'] ?? appointment['appointmentId'] ?? '',
+                                              channelName: 'appointment_${appointment['id'] ?? appointment['appointmentId'] ?? 'unknown'}',
                                               isVideo: false,
                                               userName: FirebaseAuth.instance.currentUser?.displayName ?? 'Doctor',
                                               userRole: 'doctor',
@@ -317,16 +346,14 @@ class _PendingConsultationTab extends StatelessWidget {
                                             );
                                           } else {
                                             _showCallConfirmationDialog(
-                                              context,
+                                              scaffoldContext,
                                               () {
-                                                Navigator.of(context).push(
+                                                Navigator.of(scaffoldContext).push(
                                                   MaterialPageRoute(
                                                     builder: (context) =>
                                                         ConsultationScreen(
                                                           channelName:
-                                                              appointment['id'] ??
-                                                              appointment['appointmentId'] ??
-                                                              '',
+                                                              'appointment_${appointment['id'] ?? appointment['appointmentId'] ?? 'unknown'}',
                                                           isVideo: false,
                                                         ),
                                                   ),
@@ -1120,12 +1147,17 @@ class _DoctorConsultationDetailScreenState
       final doctorId = FirebaseAuth.instance.currentUser?.uid ?? '';
       final patientId = widget.appointment['patientId'] ?? '';
       final now = DateTime.now();
+      // Get the appointment ID for linking health record
+      final appointmentId = widget.appointment['id'] ?? widget.appointment['appointmentId'];
+      
       final recordData = {
+        'appointmentId': appointmentId, // CRITICAL: Link to appointment
         'patientId': patientId,
         'patientUid': patientId,
         'patientName': widget.appointment['patientName'] ?? '',
         'providerId': doctorId,
         'providerName': doctorName,
+        'providerType': 'Doctor',
         'type': 'DOCTOR_CONSULTATION',
         'date': now,
         'timestamp': now,
@@ -1164,12 +1196,20 @@ class _DoctorConsultationDetailScreenState
           await FirebaseFirestore.instance
               .collection('appointments')
               .doc(widget.appointment['id'])
-              .update({'status': 'completed'});
+              .update({
+                'status': 'completed',
+                'completedAt': FieldValue.serverTimestamp(),
+                'consultationCompletedDate': now,
+              });
         } else if (widget.appointment['appointmentId'] != null) {
           await FirebaseFirestore.instance
               .collection('appointments')
               .doc(widget.appointment['appointmentId'])
-              .update({'status': 'completed'});
+              .update({
+                'status': 'completed',
+                'completedAt': FieldValue.serverTimestamp(),
+                'consultationCompletedDate': now,
+              });
         }
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -1294,8 +1334,6 @@ class _DoctorConsultationDetailScreenState
                           context: context,
                           builder: (context) {
                             final customMedController = TextEditingController();
-                            final customStrengthController =
-                                TextEditingController();
                             final customDosageController =
                                 TextEditingController();
                             final customFrequencyController =
@@ -1321,13 +1359,6 @@ class _DoctorConsultationDetailScreenState
                                             ? 'Required'
                                             : null,
                                         autofocus: true,
-                                      ),
-                                      const SizedBox(height: 8),
-                                      TextFormField(
-                                        controller: customStrengthController,
-                                        decoration: const InputDecoration(
-                                          labelText: 'Strength',
-                                        ),
                                       ),
                                       const SizedBox(height: 8),
                                       TextFormField(
@@ -1369,9 +1400,6 @@ class _DoctorConsultationDetailScreenState
                                         false) {
                                       final med = customMedController.text
                                           .trim();
-                                      final strength = customStrengthController
-                                          .text
-                                          .trim();
                                       final dosage = customDosageController.text
                                           .trim();
                                       final frequency =
@@ -1383,7 +1411,6 @@ class _DoctorConsultationDetailScreenState
                                         selectedPrescriptions.add(
                                           [
                                                 med,
-                                                strength,
                                                 dosage,
                                                 frequency,
                                                 duration,
@@ -1408,7 +1435,6 @@ class _DoctorConsultationDetailScreenState
                             (p) => p.startsWith(value),
                           )) {
                         // Show dialog for default fields for standard medication
-                        final strengthController = TextEditingController();
                         final dosageController = TextEditingController();
                         final frequencyController = TextEditingController();
                         final durationController = TextEditingController();
@@ -1424,13 +1450,6 @@ class _DoctorConsultationDetailScreenState
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      TextFormField(
-                                        controller: strengthController,
-                                        decoration: const InputDecoration(
-                                          labelText: 'Strength',
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
                                       TextFormField(
                                         controller: dosageController,
                                         decoration: const InputDecoration(
@@ -1470,7 +1489,6 @@ class _DoctorConsultationDetailScreenState
                                       selectedPrescriptions.add(
                                         [
                                               value,
-                                              strengthController.text.trim(),
                                               dosageController.text.trim(),
                                               frequencyController.text.trim(),
                                               durationController.text.trim(),

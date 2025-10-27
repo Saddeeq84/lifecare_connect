@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import '../../../shared/data/services/appointment_service.dart';
+import '../../../shared/data/services/message_service.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'patient_staff_selection_screen.dart';
 import '../../../../../features/consultation/presentation/screens/consultation_screen.dart';
@@ -92,27 +93,32 @@ class _PatientAppointmentsScreenState extends State<PatientAppointmentsScreen>
 
 class _AppointmentsList extends StatelessWidget {
   // Confirmation dialog for mobile call
-  void _showCallConfirmationDialog(BuildContext context, bool isVideo) {
+  void _showCallConfirmationDialog(
+    BuildContext parentContext, 
+    bool isVideo,
+    String appointmentId,
+  ) {
+    final channelName = 'appointment_${appointmentId.isNotEmpty ? appointmentId : 'unknown'}';
     showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
+      context: parentContext,
+      builder: (dialogContext) => AlertDialog(
         title: Text('Join Consultation'),
         content: Text(
           'Do you want to continue to the \\${isVideo ? 'video' : 'audio'} call?',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('Cancel', style: TextStyle(color: Colors.red)),
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.of(context).pop();
+              Navigator.of(dialogContext).pop();
               Navigator.push(
-                context,
+                parentContext,
                 MaterialPageRoute(
                   builder: (context) => ConsultationScreen(
-                    channelName: agoraChannel,
+                    channelName: channelName,
                     isVideo: isVideo,
                   ),
                 ),
@@ -125,8 +131,6 @@ class _AppointmentsList extends StatelessWidget {
     );
   }
 
-  // Agora test credentials (shared with doctor)
-  final String agoraChannel = 'test_lifecare'; // updated channel name
   final String statusFilter;
   final String userId;
 
@@ -242,6 +246,7 @@ class _AppointmentsList extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final doc = appointments[index];
                   final data = doc.data() as Map<String, dynamic>;
+                  data['id'] = doc.id; // Add document ID to data map for channel naming
 
                   return _buildAppointmentCard(context, doc.id, data);
                 },
@@ -458,16 +463,17 @@ extension on _AppointmentsList {
                     icon: const Icon(Icons.videocam, color: Colors.blue),
                     tooltip: 'Video Call',
                     onPressed: () {
+                      final appointmentId = data['id'] ?? data['appointmentId'] ?? 'unknown';
                       if (kIsWeb) {
                         openWebCallPage(
-                          channelName: data['id'] ?? data['appointmentId'] ?? '',
+                          channelName: 'appointment_$appointmentId',
                           isVideo: true,
                           userName: FirebaseAuth.instance.currentUser?.displayName ?? 'Patient',
                           userRole: 'patient',
                           uid: FirebaseAuth.instance.currentUser?.uid,
                         );
                       } else {
-                        _showCallConfirmationDialog(context, true);
+                        _showCallConfirmationDialog(context, true, appointmentId);
                       }
                     },
                   ),
@@ -475,16 +481,17 @@ extension on _AppointmentsList {
                     icon: const Icon(Icons.call, color: Colors.green),
                     tooltip: 'Audio Call',
                     onPressed: () {
+                      final appointmentId = data['id'] ?? data['appointmentId'] ?? 'unknown';
                       if (kIsWeb) {
                         openWebCallPage(
-                          channelName: data['id'] ?? data['appointmentId'] ?? '',
+                          channelName: 'appointment_$appointmentId',
                           isVideo: false,
                           userName: FirebaseAuth.instance.currentUser?.displayName ?? 'Patient',
                           userRole: 'patient',
                           uid: FirebaseAuth.instance.currentUser?.uid,
                         );
                       } else {
-                        _showCallConfirmationDialog(context, false);
+                        _showCallConfirmationDialog(context, false, appointmentId);
                       }
                     },
                   ),
@@ -494,11 +501,7 @@ extension on _AppointmentsList {
                     tooltip: 'Chat',
                     onPressed: () => _openChat(context, data),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.check_circle, color: Colors.teal),
-                    tooltip: 'Mark Complete',
-                    onPressed: () => _markComplete(context, docId, data),
-                  ),
+                  // Mark Complete button removed - consultations auto-complete when provider saves notes
                 ] else if (status == 'pending') ...[
                   TextButton.icon(
                     onPressed: () => _viewAppointmentDetails(context, data),
@@ -601,61 +604,7 @@ extension on _AppointmentsList {
         });
   }
 
-  Future<void> _markComplete(
-    BuildContext context,
-    String docId,
-    Map<String, dynamic> appointmentData,
-  ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Mark Appointment Complete'),
-        content: const Text(
-          'Are you sure you want to mark this appointment as complete?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('No'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
-            child: const Text('Yes, Mark Complete'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      try {
-        await FirebaseFirestore.instance
-            .collection('appointments')
-            .doc(docId)
-            .update({
-              'status': 'completed',
-              'completedAt': FieldValue.serverTimestamp(),
-            });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Appointment marked as complete'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        // Optionally navigate to consultations screen
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const PatientConsultationsScreen(),
-          ),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-        );
-      }
-    }
-  }
+  // Mark Complete function removed - consultations auto-complete when provider saves notes
 }
 
 Future<void> _cancelAppointment(BuildContext context, String docId) async {
@@ -680,6 +629,14 @@ Future<void> _cancelAppointment(BuildContext context, String docId) async {
 
   if (confirmed == true) {
     try {
+      // Fetch appointment details for notification
+      final appointmentDoc = await FirebaseFirestore.instance
+          .collection('appointments')
+          .doc(docId)
+          .get();
+      
+      final appointmentData = appointmentDoc.data();
+      
       await FirebaseFirestore.instance
           .collection('appointments')
           .doc(docId)
@@ -688,6 +645,60 @@ Future<void> _cancelAppointment(BuildContext context, String docId) async {
             'cancelledAt': FieldValue.serverTimestamp(),
             'cancelledBy': 'patient',
           });
+
+      // Notify the service provider about cancellation
+      if (appointmentData != null && appointmentData['providerId'] != null) {
+        String appointmentInfo = '';
+        if (appointmentData['appointmentDate'] != null) {
+          try {
+            final appointmentDate = (appointmentData['appointmentDate'] as Timestamp).toDate();
+            final dateStr = '${appointmentDate.day}/${appointmentDate.month}/${appointmentDate.year}';
+            final timeStr = '${appointmentDate.hour.toString().padLeft(2, '0')}:${appointmentDate.minute.toString().padLeft(2, '0')}';
+            appointmentInfo = ' scheduled for $dateStr at $timeStr';
+          } catch (e) {
+            print('Could not format appointment date: $e');
+          }
+        }
+
+        final patientName = appointmentData['patientName'] ?? 'A patient';
+        final providerId = appointmentData['providerId'];
+        final providerName = appointmentData['providerName'] ?? 'Provider';
+        
+        // Get current user info
+        final currentUser = FirebaseAuth.instance.currentUser;
+        if (currentUser != null && providerId != null) {
+          try {
+            // Create or get conversation with provider
+            final conversationId = await MessageService.createOrGetConversation(
+              user1Id: currentUser.uid,
+              user1Name: patientName,
+              user1Role: 'patient',
+              user2Id: providerId,
+              user2Name: providerName,
+              user2Role: appointmentData['providerType']?.toString().toLowerCase() ?? 'provider',
+            );
+
+            // Send cancellation notification to provider
+            await MessageService.sendMessage(
+              conversationId: conversationId,
+              senderId: currentUser.uid,
+              senderName: patientName,
+              senderRole: 'patient',
+              receiverId: providerId,
+              receiverName: providerName,
+              receiverRole: appointmentData['providerType']?.toString().toLowerCase() ?? 'provider',
+              content: '❌ APPOINTMENT CANCELLED by patient\n\n'
+                  '👤 Patient: $patientName\n'
+                  '📅 Was scheduled$appointmentInfo\n\n'
+                  'The patient has cancelled this appointment. The time slot is now available for other patients.',
+              priority: 'high',
+            );
+          } catch (e) {
+            print('Could not notify provider: $e');
+            // Don't fail cancellation if notification fails
+          }
+        }
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

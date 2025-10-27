@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../../../shared/data/services/agora_token_service.dart';
 
@@ -40,6 +41,29 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
   @override
   void initState() {
     super.initState();
+    _requestPermissions();
+  }
+
+  Future<void> _requestPermissions() async {
+    // Request camera and microphone permissions
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.camera,
+      Permission.microphone,
+    ].request();
+
+    // Check if permissions are granted
+    bool cameraGranted = statuses[Permission.camera]?.isGranted ?? false;
+    bool micGranted = statuses[Permission.microphone]?.isGranted ?? false;
+
+    if (!cameraGranted || !micGranted) {
+      setState(() {
+        _error = 'Camera and microphone permissions are required for video calls.';
+        _loading = false;
+      });
+      return;
+    }
+
+    // Permissions granted, proceed with Agora initialization
     _initAgora();
   }
 

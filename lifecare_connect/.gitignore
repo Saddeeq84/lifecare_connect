@@ -17,8 +17,10 @@ firebase_options.dart
 
 # Local environment configuration (NEVER commit these!)
 web/env-config.local.js
+lib/firebase_options.local.dart
 **/local-config.*
 **/*.local.js
+**/*.local.dart
 **/*.env.local
 
 # Miscellaneous

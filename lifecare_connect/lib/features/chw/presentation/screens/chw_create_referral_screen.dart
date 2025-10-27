@@ -174,6 +174,27 @@ class _CHWCreateReferralScreenState extends State<CHWCreateReferralScreen> {
     });
   }
 
+  Future<String> _getCurrentUserRole() async {
+    try {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) return 'chw';
+
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .get();
+
+      final userData = userDoc.data();
+      if (userData == null) return 'chw';
+
+      final role = (userData['role'] ?? 'chw').toString().toLowerCase();
+      return role;
+    } catch (e) {
+      debugPrint('Error getting user role: $e');
+      return 'chw';
+    }
+  }
+
   Future<void> _createReferral() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -404,12 +425,23 @@ class _CHWCreateReferralScreenState extends State<CHWCreateReferralScreen> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            SearchablePatientSelector(
-              selectedPatientId: selectedPatientId,
-              selectedPatientName: selectedPatientName,
-              onPatientSelected: _onPatientSelected,
-              currentUserRole: 'chw',
-              hintText: 'Select patient to refer',
+            Builder(
+              builder: (context) {
+                // Determine the current user's role dynamically
+                return FutureBuilder<String>(
+                  future: _getCurrentUserRole(),
+                  builder: (context, snapshot) {
+                    final userRole = snapshot.data ?? 'chw';
+                    return SearchablePatientSelector(
+                      selectedPatientId: selectedPatientId,
+                      selectedPatientName: selectedPatientName,
+                      onPatientSelected: _onPatientSelected,
+                      currentUserRole: userRole,
+                      hintText: 'Select patient to refer',
+                    );
+                  },
+                );
+              },
             ),
 
             const SizedBox(height: 24),
@@ -470,7 +502,7 @@ class _CHWCreateReferralScreenState extends State<CHWCreateReferralScreen> {
                                   ),
                                 ),
                                 Text(
-                                  '${doctor['specialization']} • ${doctor['facility']}',
+                                  doctor['specialization'],
                                   style: const TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey,

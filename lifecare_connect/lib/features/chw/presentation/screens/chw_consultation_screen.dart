@@ -16,25 +16,25 @@ import 'package:lifecare_connect/features/shared/data/services/message_service.d
 
 // Confirmation dialog for mobile call
 void _showCallConfirmationDialog(
-  BuildContext context,
+  BuildContext parentContext,
   VoidCallback onContinue, {
   required bool isVideo,
 }) {
   showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
+    context: parentContext,
+    builder: (dialogContext) => AlertDialog(
       title: Text('Join Consultation'),
       content: Text(
         'Do you want to continue to the ${isVideo ? 'video' : 'audio'} call?',
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.of(dialogContext).pop(),
           child: const Text('Cancel', style: TextStyle(color: Colors.red)),
         ),
         ElevatedButton(
           onPressed: () {
-            Navigator.of(context).pop();
+            Navigator.of(dialogContext).pop();
             onContinue();
           },
           child: const Text('Continue'),
@@ -340,11 +340,9 @@ class CHWConsultationScreen extends StatelessWidget {
                           icon: Icon(Icons.videocam, color: Colors.indigo),
                           tooltip: 'Video Call',
                           onPressed: () {
-                            final channelName = appointmentId.isNotEmpty
-                                ? appointmentId
-                                : patientId.isNotEmpty
-                                ? patientId
-                                : chwUid;
+                            // FIXED: Use appointment document ID for consistent channel naming
+                            final channelName = 'appointment_${appointmentId.isNotEmpty ? appointmentId : patientId}';
+                            final scaffoldContext = context;
                             if (kIsWeb) {
                               openWebCallPage(
                                 channelName: channelName,
@@ -354,8 +352,8 @@ class CHWConsultationScreen extends StatelessWidget {
                                 uid: FirebaseAuth.instance.currentUser?.uid,
                               );
                             } else {
-                              _showCallConfirmationDialog(context, () {
-                                Navigator.of(context).push(
+                              _showCallConfirmationDialog(scaffoldContext, () {
+                                Navigator.of(scaffoldContext).push(
                                   MaterialPageRoute(
                                     builder: (context) => ConsultationScreen(
                                       channelName: channelName,
@@ -371,11 +369,9 @@ class CHWConsultationScreen extends StatelessWidget {
                           icon: Icon(Icons.call, color: Colors.indigo),
                           tooltip: 'Audio Call',
                           onPressed: () {
-                            final channelName = appointmentId.isNotEmpty
-                                ? appointmentId
-                                : patientId.isNotEmpty
-                                ? patientId
-                                : chwUid;
+                            // FIXED: Use appointment document ID for consistent channel naming
+                            final channelName = 'appointment_${appointmentId.isNotEmpty ? appointmentId : patientId}';
+                            final scaffoldContext = context;
                             if (kIsWeb) {
                               openWebCallPage(
                                 channelName: channelName,
@@ -385,8 +381,8 @@ class CHWConsultationScreen extends StatelessWidget {
                                 uid: FirebaseAuth.instance.currentUser?.uid,
                               );
                             } else {
-                              _showCallConfirmationDialog(context, () {
-                                Navigator.of(context).push(
+                              _showCallConfirmationDialog(scaffoldContext, () {
+                                Navigator.of(scaffoldContext).push(
                                   MaterialPageRoute(
                                     builder: (context) => ConsultationScreen(
                                       channelName: channelName,
