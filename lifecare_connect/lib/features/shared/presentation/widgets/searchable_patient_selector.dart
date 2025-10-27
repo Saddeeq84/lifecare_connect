@@ -171,17 +171,34 @@ class _SearchablePatientSelectorState extends State<SearchablePatientSelector> {
           }
         }
 
-        // 3. Patients from appointments
+        // 3. Patients from appointments (approved, completed, attended)
         try {
           final appointments = await FirebaseFirestore.instance
               .collection('appointments')
               .where('providerId', isEqualTo: currentUser.uid)
-              .where('status', whereIn: ['completed', 'attended'])
+              .where('status', whereIn: ['approved', 'completed', 'attended'])
               .get();
           for (final doc in appointments.docs) {
             final data = doc.data();
-            if (data['patientId'] != null) {
-              patientIds.add(data['patientId']);
+            final patientId = data['patientUid'] ?? data['patientId'];
+            if (patientId != null) {
+              patientIds.add(patientId);
+            }
+          }
+        } catch (e) {}
+
+        // 3b. Patients from consultations (approved status)
+        try {
+          final consultations = await FirebaseFirestore.instance
+              .collection('consultations')
+              .where('providerId', isEqualTo: currentUser.uid)
+              .where('status', isEqualTo: 'approved')
+              .get();
+          for (final doc in consultations.docs) {
+            final data = doc.data();
+            final patientId = data['patientUid'] ?? data['patientId'];
+            if (patientId != null) {
+              patientIds.add(patientId);
             }
           }
         } catch (e) {}
