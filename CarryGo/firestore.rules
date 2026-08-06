@@ -1,0 +1,383 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userDoc(uid) {
+      return get(/databases/$(database)/documents/users/$(uid));
+    }
+
+    function role() {
+      return signedIn() && request.auth.token.admin == true
+        ? 'admin'
+        : signedIn() && request.auth.token.role is string
+        ? request.auth.token.role
+        : signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? (
+          userDoc(request.auth.uid).data.isAdmin == true
+            || userDoc(request.auth.uid).data.admin == true
+            || userDoc(request.auth.uid).data.is_admin == true
+            || userDoc(request.auth.uid).data.role == 'admin'
+            || userDoc(request.auth.uid).data.role == 'Admin'
+          ? 'admin'
+          : exists(/databases/$(database)/documents/riders/$(request.auth.uid))
+          ? 'rider'
+          : userDoc(request.auth.uid).data.role is string
+          ? userDoc(request.auth.uid).data.role
+          : 'none'
+        )
+        : signedIn()
+        && exists(/databases/$(database)/documents/riders/$(request.auth.uid))
+        ? 'rider'
+        : 'none';
+    }
+
+    function isAdmin() {
+      return signedIn() && role() == 'admin';
+    }
+
+    function isApprovedRider() {
+      return signedIn()
+        && role() == 'rider'
+        && (
+          (
+            exists(/databases/$(database)/documents/users/$(request.auth.uid))
+            && (
+              userDoc(request.auth.uid).data.riderStatus == 'approved'
+              || userDoc(request.auth.uid).data.isApproved == true
+            )
+          )
+          || (
+            exists(/databases/$(database)/documents/riders/$(request.auth.uid))
+            && get(/databases/$(database)/documents/riders/$(request.auth.uid)).data.isVerified == true
+          )
+        )
+        && (
+          !exists(/databases/$(database)/documents/users/$(request.auth.uid))
+          || userDoc(request.auth.uid).data.accountStatus != 'suspended'
+        );
+    }
+
+    function ownsUserDoc(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function immutablePaymentFields() {
+      return !request.resource.data.diff(resource.data).affectedKeys()
+        .hasAny(['paymentStatus', 'payment_status']);
+    }
+
+    function immutablePricingFields() {
+      return !request.resource.data.diff(resource.data).affectedKeys()
+        .hasAny(['delivery_fee', 'cost', 'platformCommission', 'riderPayout']);
+    }
+
+    function riderVisiblePaymentStatus() {
+      return resource.data.payment_status in [
+        'paid',
+        'cash_on_pickup',
+        'wallet_authorized'
+      ];
+    }
+
+    function requestRiderVisiblePaymentStatus() {
+      return request.resource.data.payment_status in [
+        'paid',
+        'cash_on_pickup',
+        'wallet_authorized'
+      ];
+    }
+
+    match /users/{userId} {
+      allow create: if ownsUserDoc(userId)
+        && request.resource.data.role in ['customer', 'rider'];
+      allow read: if ownsUserDoc(userId) || isAdmin();
+      allow update: if isAdmin()
+        || (ownsUserDoc(userId)
+          && !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(['role', 'riderStatus', 'accountStatus']));
+      allow delete: if isAdmin() || ownsUserDoc(userId);
+    }
+
+    match /phone_logins/{phoneKey} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && !exists(/databases/$(database)/documents/phone_logins/$(phoneKey));
+      allow update: if isAdmin();
+      allow delete: if isAdmin()
+        || (signedIn() && resource.data.uid == request.auth.uid);
+    }
+
+    match /riders/{riderId} {
+      allow create: if ownsUserDoc(riderId) && role() == 'rider';
+      allow read: if isAdmin() || ownsUserDoc(riderId) || isApprovedRider();
+      allow update: if isAdmin()
+        || (
+          ownsUserDoc(riderId)
+          && resource.data.adminApprovalStatus == 'approved'
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly([
+              'idCardUrl',
+              'idCardType',
+              'ninNumber',
+              'riderLicenseUrl',
+              'documentUrls',
+              'profileCompleted',
+              'verificationStatus',
+              'documentReviewStatus',
+              'ninStatus',
+              'licenseStatus',
+              'documentReviewSubmittedAt',
+              'profileCompletedAt',
+              'updatedAt'
+            ])
+        )
+        || (ownsUserDoc(riderId)
+          && !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(['verificationStatus', 'paystackSubaccount', 'completedOrders']));
+      allow delete: if isAdmin() || ownsUserDoc(riderId);
+    }
+
+    match /public_riders/{riderId} {
+      allow read: if signedIn();
+      allow create, update: if isAdmin()
+        || (
+          ownsUserDoc(riderId)
+          && role() == 'rider'
+          && request.resource.data.riderId == request.auth.uid
+        );
+      allow delete: if isAdmin() || ownsUserDoc(riderId);
+    }
+
+    match /orders/{orderId} {
+      allow create: if signedIn()
+        && request.resource.data.customer_id == request.auth.uid
+        && (
+          (
+            request.resource.data.order_status in ['draft', 'pending_payment']
+            && request.resource.data.payment_status in ['unpaid', 'initialized']
+          )
+          || (
+            request.resource.data.order_status == 'searching_rider'
+            && request.resource.data.payment_status in [
+              'cash_on_pickup',
+              'wallet_authorized'
+            ]
+          )
+        );
+
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.customer_id == request.auth.uid)
+        || (isApprovedRider()
+          && (
+            resource.data.rider_id == request.auth.uid
+            || (
+              resource.data.order_status == 'searching_rider'
+              && riderVisiblePaymentStatus()
+              && (
+                !resource.data.keys().hasAny(['rider_id'])
+                || resource.data.rider_id == null
+                || resource.data.rider_id == ''
+                || resource.data.rider_id == request.auth.uid
+              )
+            )
+          ));
+
+      allow update: if (isAdmin() && immutablePaymentFields())
+        || (
+          signedIn()
+          && resource.data.customer_id == request.auth.uid
+          && immutablePaymentFields()
+          && immutablePricingFields()
+          && !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(['rider_id', 'riderId', 'order_status', 'status'])
+        )
+        || (
+          signedIn()
+          && resource.data.customer_id == request.auth.uid
+          && resource.data.pickup_time_status == 'rider_proposed_change'
+          && immutablePaymentFields()
+          && immutablePricingFields()
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly([
+              'acceptedPickupTime',
+              'accepted_pickup_time',
+              'pickupTimeStatus',
+              'pickup_time_status',
+              'isLocked',
+              'status',
+              'order_status',
+              'cancelledAt'
+            ])
+          && request.resource.data.order_status in ['accepted', 'cancelled']
+        )
+        || (
+          isApprovedRider()
+          && resource.data.order_status == 'searching_rider'
+          && request.resource.data.rider_id == request.auth.uid
+          && request.resource.data.order_status == 'accepted'
+          && requestRiderVisiblePaymentStatus()
+          && request.resource.data.pickup_time_status in [
+            'accepted',
+            'rider_proposed_change'
+          ]
+          && request.resource.data.isLocked in [true, false]
+          && immutablePaymentFields()
+          && immutablePricingFields()
+        )
+        || (
+          isApprovedRider()
+          && resource.data.rider_id == request.auth.uid
+          && request.resource.data.rider_id == request.auth.uid
+          && request.resource.data.order_status in [
+            'picked_up',
+            'in_transit',
+            'delivered'
+          ]
+          && immutablePaymentFields()
+          && immutablePricingFields()
+        );
+
+      allow delete: if isAdmin()
+        || (signedIn() && resource.data.userId == request.auth.uid);
+    }
+
+    match /payments/{paymentId} {
+      allow create, update, delete: if false;
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.customerId == request.auth.uid);
+    }
+
+    match /admin_wallet/{entryId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    match /wallet_transactions/{transactionId} {
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.userId == request.auth.uid);
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.type in ['topup'];
+      allow update: if isAdmin()
+        || (
+          signedIn()
+          && resource.data.userId == request.auth.uid
+          && resource.data.type == 'topup'
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly([
+              'status',
+              'verificationStatus',
+              'verificationMessage',
+              'paidAt',
+              'updatedAt'
+            ])
+        );
+      allow delete: if false;
+    }
+
+    match /withdrawal_requests/{requestId} {
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.amount > 0
+        && request.resource.data.status == 'pending';
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.userId == request.auth.uid);
+      allow update: if isAdmin();
+      allow delete: if false;
+    }
+
+    match /pricing_rules/{ruleId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    match /cities/{cityId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    match /ratings/{ratingId} {
+      allow create: if signedIn()
+        && request.resource.data.customerId == request.auth.uid;
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.customerId == request.auth.uid)
+        || (signedIn() && resource.data.riderId == request.auth.uid);
+      allow update, delete: if isAdmin();
+    }
+
+    match /complaints/{complaintId} {
+      allow create: if signedIn()
+        && request.resource.data.customerId == request.auth.uid;
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.customerId == request.auth.uid)
+        || (signedIn() && resource.data.riderId == request.auth.uid);
+      allow update, delete: if isAdmin();
+    }
+
+    match /notifications/{notificationId} {
+      allow create: if (
+        signedIn()
+        && request.resource.data.type in [
+          'order_request',
+          'order_status',
+          'account'
+        ]
+        && request.resource.data.role in ['customer', 'rider']
+      ) || (
+        isAdmin()
+        && request.resource.data.type == 'admin_broadcast'
+      );
+      allow update: if signedIn()
+        && (
+          resource.data.userId == request.auth.uid
+          || resource.data.role == role()
+          || resource.data.role == 'all'
+        )
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['isRead', 'readAt']);
+      allow delete: if isAdmin()
+        || (signedIn() && resource.data.userId == request.auth.uid);
+      allow read: if isAdmin()
+        || (signedIn()
+          && (
+            resource.data.userId == request.auth.uid
+            || resource.data.role == role()
+            || resource.data.role == 'all'
+          ));
+    }
+
+    match /admin_logs/{logId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    match /payouts/{payoutId} {
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.riderId == request.auth.uid);
+      allow write: if false;
+    }
+
+    match /email_queue/{messageId} {
+      allow create: if signedIn()
+        && (request.resource.data.userId == request.auth.uid || isAdmin());
+      allow read, delete: if isAdmin()
+        || (signedIn() && resource.data.userId == request.auth.uid);
+      allow update: if isAdmin();
+    }
+
+    match /sms_queue/{messageId} {
+      allow create: if signedIn()
+        && (request.resource.data.userId == request.auth.uid || isAdmin());
+      allow read, delete: if isAdmin()
+        || (signedIn() && resource.data.userId == request.auth.uid);
+      allow update: if isAdmin();
+    }
+  }
+}

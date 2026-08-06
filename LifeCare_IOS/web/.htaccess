@@ -1,0 +1,21 @@
+# .htaccess for Flutter Web SPA in subdirectory
+RewriteEngine On
+
+# Set the base directory for the app
+RewriteBase /lifecareconnect/
+
+# Redirect all requests to index.html except for existing files and directories
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ /lifecareconnect/index.html [L]
+
+# Set proper MIME types for Flutter web assets
+AddType application/wasm .wasm
+AddType application/javascript .js
+AddType application/octet-stream .blob
+AddType font/woff2 .woff2
+AddType font/woff .woff
+AddType font/ttf .ttf
+AddType font/otf .otf
+AddType image/svg+xml .svg
+AddType application/json .json

@@ -1,0 +1,25 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.lifecare_connect">
+
+    <!-- Internet permission (optional here if already in main manifest) -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <application
+        android:name="io.flutter.app.FlutterApplication"
+        android:label="lifecare_connect"
+        android:icon="@mipmap/ic_launcher"
+        android:enableOnBackInvokedCallback="true"
+        tools:replace="android:label,android:name">
+
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            tools:replace="android:configChanges" />
+        
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+    </application>
+
+</manifest>

@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "default": "lifecare-connect",
+    "deploy": "lifecare-connect"
+  },
+  "targets": {},
+  "etags": {}
+}

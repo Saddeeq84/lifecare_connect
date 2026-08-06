@@ -1,0 +1,15 @@
+{
+  "name": "agora-token-server",
+  "version": "1.0.0",
+  "description": "Backend server for Agora token generation",
+  "main": "agora-token-server.js",
+  "scripts": {
+    "start": "node agora-token-server.js"
+  },
+  "dependencies": {
+    "agora-access-token": "2.0.4",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "firebase": "^12.4.0"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "functions": {
+    "source": "functions"
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "hosting": {
+    "site": "carrygo",
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "carrygo-bf7cb",
+          "appId": "1:368833982808:android:fccacfb3854618359a352d",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "carrygo-bf7cb",
+          "configurations": {
+            "android": "1:368833982808:android:fccacfb3854618359a352d",
+            "web": "1:368833982808:web:c074c35c6361cce09a352d"
+          }
+        }
+      }
+    }
+  }
+}
